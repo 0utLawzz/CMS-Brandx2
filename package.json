@@ -1,0 +1,14 @@
+{
+  "name": "brandex-portal",
+  "version": "1.0.0",
+  "description": "BrandEx Law — Trademark Portal (WebView + Mobile)",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "mobile": "cd mobile && npx expo start --tunnel"
+  },
+  "license": "ISC",
+  "dependencies": {
+    "adm-zip": "^0.5.17"
+  }
+}

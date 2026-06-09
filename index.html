@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BrandEx Law — Trademark Portal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Grotesk:wght@400;500;600;700&family=DM+Mono:wght@500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="header">
+    <div class="header-inner">
+      <div class="logo-group">
+        <div class="logo-box"><span class="logo-b">B</span><span class="logo-dot">.</span></div>
+        <div>
+          <div class="brand-name">BRANDEX LAW</div>
+          <div class="brand-sub">TRADEMARK PORTAL · PK</div>
+        </div>
+      </div>
+      <nav class="tab-nav" id="tabNav">
+        <button class="tab-btn active" data-tab="search">⌕ SEARCH</button>
+        <button class="tab-btn" data-tab="records">≡ ALL RECORDS</button>
+        <button class="tab-btn" data-tab="journal">◎ JOURNAL</button>
+      </nav>
+    </div>
+  </header>
+
+  <main class="main">
+
+    <!-- SEARCH TAB -->
+    <section class="tab-panel active" id="tab-search">
+      <div class="container">
+
+        <div class="chart-card" id="chartCard" style="display:none">
+          <div class="chart-header">
+            <span class="chart-title">STAGE DISTRIBUTION</span>
+            <span class="chart-total" id="chartTotal">—</span>
+          </div>
+          <div id="stageBars" class="stage-bars"></div>
+        </div>
+
+        <div class="stats-grid" id="statsGrid">
+          <div class="stat-tile"><span class="stat-val" id="s-total" style="color:#1a1a1a">—</span><span class="stat-label">TOTAL</span></div>
+          <div class="stat-tile"><span class="stat-val" id="s-exam" style="color:#D4A800">—</span><span class="stat-label">EXAMINATION</span></div>
+          <div class="stat-tile"><span class="stat-val" id="s-accepted" style="color:#0D9970">—</span><span class="stat-label">ACCEPTED</span></div>
+          <div class="stat-tile"><span class="stat-val" id="s-dnote" style="color:#C94A00">—</span><span class="stat-label">DEMAND NOTE</span></div>
+          <div class="stat-tile"><span class="stat-val" id="s-dpaid" style="color:#0A6B52">—</span><span class="stat-label">D-NOTE PAID</span></div>
+          <div class="stat-tile"><span class="stat-val" id="s-cert" style="color:#8B2FC9">—</span><span class="stat-label">CERTIFICATE</span></div>
+        </div>
+
+        <div class="search-card">
+          <div class="search-eyebrow">APPLICATION LOOKUP</div>
+          <div class="search-row">
+            <input type="text" class="search-input" id="searchInput"
+              placeholder="App number, TM No or mark name…" autocomplete="off" spellcheck="false" />
+            <button class="btn-orange" id="searchBtn">SEARCH</button>
+          </div>
+          <div class="search-status-row">
+            <span class="status-chip ok" id="statusChip">
+              <span class="status-dot"></span>
+              <span id="statusText">Loading data…</span>
+            </span>
+            <button class="btn-outline" id="refreshBtn">↻ REFRESH</button>
+          </div>
+        </div>
+
+        <div id="searchResults"></div>
+      </div>
+    </section>
+
+    <!-- RECORDS TAB -->
+    <section class="tab-panel" id="tab-records">
+      <div class="container container--wide">
+        <div class="records-toolbar">
+          <input type="text" class="filter-input" id="filterInput" placeholder="Filter any field…" autocomplete="off" />
+          <span class="records-count" id="recordsCount">— records</span>
+          <div class="sort-group">
+            <span class="sort-label">SORT</span>
+            <button class="sort-btn active" data-sort="date">DATE</button>
+            <button class="sort-btn" data-sort="name">NAME</button>
+            <button class="sort-btn" data-sort="status">STATUS</button>
+            <button class="sort-btn" data-sort="city">CITY</button>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table class="records-table" id="recordsTable">
+            <thead>
+              <tr>
+                <th><input type="checkbox" id="selectAll" /></th>
+                <th>DATE</th>
+                <th>CASE NO</th>
+                <th>APP NAME</th>
+                <th>TM NO</th>
+                <th>CL</th>
+                <th>STATUS</th>
+                <th>SUB STATUS</th>
+                <th>CITY</th>
+                <th>ACTIONS</th>
+              </tr>
+            </thead>
+            <tbody id="recordsTbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- JOURNAL TAB -->
+    <section class="tab-panel" id="tab-journal">
+      <div class="container journal-wrap">
+        <div class="coming-stamp">COMING SOON</div>
+        <h2 class="journal-title">JOURNAL &amp; IPO DATA</h2>
+        <p class="journal-desc">This module will connect to official IPO journal data, gazette listings, and opposition tracking.</p>
+        <div class="journal-features">
+          <div class="j-card"><span class="j-icon">📰</span><div><b>JOURNAL BROWSER</b><p>Browse official IPO trademark journals by date and issue.</p></div></div>
+          <div class="j-card"><span class="j-icon">🔍</span><div><b>OPPOSITION TRACKER</b><p>Monitor opposition periods and track filed objections.</p></div></div>
+          <div class="j-card"><span class="j-icon">📋</span><div><b>IPO DATA SYNC</b><p>Cross-reference marks against IPO public database entries.</p></div></div>
+          <div class="j-card"><span class="j-icon">📊</span><div><b>ANALYTICS</b><p>Visual reports on acceptance rates, class distribution, and timelines.</p></div></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- EDIT MODAL -->
+  <div class="modal-overlay" id="editModal">
+    <div class="modal-sheet">
+      <div class="modal-header">
+        <div>
+          <span class="modal-title">EDIT RECORD</span>
+          <span class="modal-case" id="modalCase"></span>
+        </div>
+        <button class="modal-close-btn" id="modalClose">✕</button>
+      </div>
+      <div class="modal-notice">⚠ LOCAL EDITS — Changes are session-only. Update your Google Sheet to persist.</div>
+      <div class="modal-body">
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">APP NAME</label>
+            <input type="text" class="form-input" id="editName" placeholder="Application / Logo name" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">TM NUMBER</label>
+            <input type="text" class="form-input" id="editTmNo" placeholder="6-digit TM number" maxlength="6" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">CLASS (1–45)</label>
+            <select class="form-select" id="editClass"></select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">CITY</label>
+            <select class="form-select" id="editCity">
+              <option value="">— Select city —</option>
+              <option>KARACHI</option><option>LAHORE</option><option>ISLAMABAD</option><option>PESHAWAR</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">STATUS</label>
+            <select class="form-select" id="editStatus"></select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">SUB STATUS</label>
+            <select class="form-select" id="editSubStatus"></select>
+          </div>
+          <div class="form-group form-full">
+            <label class="form-label">NOTES</label>
+            <textarea class="form-textarea" id="editNotes" rows="3" placeholder="Add notes…"></textarea>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-outline" id="modalCancel">CANCEL</button>
+        <button class="btn-orange" id="modalSave">SAVE CHANGES</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
