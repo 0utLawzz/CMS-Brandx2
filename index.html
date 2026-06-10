@@ -42,27 +42,30 @@
         </div>
 
         <div class="stats-grid" id="statsGrid">
-          <div class="stat-tile"><span class="stat-val" id="s-total" style="color:#1a1a1a">—</span><span class="stat-label">TOTAL</span></div>
-          <div class="stat-tile"><span class="stat-val" id="s-exam" style="color:#D4A800">—</span><span class="stat-label">EXAMINATION</span></div>
-          <div class="stat-tile"><span class="stat-val" id="s-accepted" style="color:#0D9970">—</span><span class="stat-label">ACCEPTED</span></div>
-          <div class="stat-tile"><span class="stat-val" id="s-dnote" style="color:#C94A00">—</span><span class="stat-label">DEMAND NOTE</span></div>
-          <div class="stat-tile"><span class="stat-val" id="s-dpaid" style="color:#0A6B52">—</span><span class="stat-label">D-NOTE PAID</span></div>
-          <div class="stat-tile"><span class="stat-val" id="s-cert" style="color:#8B2FC9">—</span><span class="stat-label">CERTIFICATE</span></div>
+          <div class="stat-tile"><span class="stat-val" id="s-total"      style="color:#1a1a1a">—</span><span class="stat-label">TOTAL</span></div>
+          <div class="stat-tile"><span class="stat-val" id="s-run"        style="color:#2563EB">—</span><span class="stat-label">RUN</span></div>
+          <div class="stat-tile"><span class="stat-val" id="s-processing" style="color:#D4A800">—</span><span class="stat-label">PROCESSING</span></div>
+          <div class="stat-tile"><span class="stat-val" id="s-done"       style="color:#0D9970">—</span><span class="stat-label">DONE</span></div>
+          <div class="stat-tile"><span class="stat-val" id="s-s1"         style="color:#C94A00">—</span><span class="stat-label">STAGE 1</span></div>
+          <div class="stat-tile"><span class="stat-val" id="s-s2"         style="color:#0A6B52">—</span><span class="stat-label">STAGE 2</span></div>
+          <div class="stat-tile"><span class="stat-val" id="s-s3"         style="color:#D4A800">—</span><span class="stat-label">STAGE 3</span></div>
+          <div class="stat-tile"><span class="stat-val" id="s-s4"         style="color:#0D9970">—</span><span class="stat-label">STAGE 4</span></div>
         </div>
 
         <div class="search-card">
-          <div class="search-eyebrow">APPLICATION LOOKUP</div>
+          <div class="search-eyebrow">TRADEMARK LOOKUP — SEARCH BY TM NUMBER, NAME OR SR. NO</div>
           <div class="search-row">
             <input type="text" class="search-input" id="searchInput"
-              placeholder="App number, TM No or mark name…" autocomplete="off" spellcheck="false" />
+              placeholder="TM Number, App Name, CNIC or SR. No…" autocomplete="off" spellcheck="false" />
             <button class="btn-orange" id="searchBtn">SEARCH</button>
           </div>
           <div class="search-status-row">
             <span class="status-chip ok" id="statusChip">
               <span class="status-dot"></span>
-              <span id="statusText">Loading data…</span>
+              <span id="statusText">Connecting to database…</span>
             </span>
             <button class="btn-outline" id="refreshBtn">↻ REFRESH</button>
+            <button class="btn-orange-sm" id="addNewBtn">+ ADD NEW</button>
           </div>
         </div>
 
@@ -78,25 +81,26 @@
           <span class="records-count" id="recordsCount">— records</span>
           <div class="sort-group">
             <span class="sort-label">SORT</span>
-            <button class="sort-btn active" data-sort="date">DATE</button>
-            <button class="sort-btn" data-sort="name">NAME</button>
-            <button class="sort-btn" data-sort="status">STATUS</button>
-            <button class="sort-btn" data-sort="city">CITY</button>
+            <button class="sort-btn active" data-sort="date_l">DATE</button>
+            <button class="sort-btn" data-sort="app_name">NAME</button>
+            <button class="sort-btn" data-sort="stage">STAGE</button>
+            <button class="sort-btn" data-sort="status_run">STATUS</button>
           </div>
+          <button class="btn-orange-sm" id="addNewBtn2">+ ADD NEW</button>
         </div>
         <div class="table-wrap">
           <table class="records-table" id="recordsTable">
             <thead>
               <tr>
                 <th><input type="checkbox" id="selectAll" /></th>
-                <th>DATE</th>
-                <th>CASE NO</th>
-                <th>APP NAME</th>
+                <th>SR. NO</th>
                 <th>TM NO</th>
-                <th>CL</th>
+                <th>APP NAME</th>
+                <th>CLASS</th>
+                <th>STAGE</th>
                 <th>STATUS</th>
-                <th>SUB STATUS</th>
-                <th>CITY</th>
+                <th>APP TYPE</th>
+                <th>CON. NAME</th>
                 <th>ACTIONS</th>
               </tr>
             </thead>
@@ -122,55 +126,167 @@
     </section>
   </main>
 
-  <!-- EDIT MODAL -->
+  <!-- ─── EDIT / ADD MODAL ────────────────────────────────────────────────── -->
   <div class="modal-overlay" id="editModal">
-    <div class="modal-sheet">
+    <div class="modal-sheet modal-sheet--wide">
       <div class="modal-header">
         <div>
-          <span class="modal-title">EDIT RECORD</span>
+          <span class="modal-title" id="modalTitle">EDIT RECORD</span>
           <span class="modal-case" id="modalCase"></span>
         </div>
         <button class="modal-close-btn" id="modalClose">✕</button>
       </div>
-      <div class="modal-notice">⚠ LOCAL EDITS — Changes are session-only. Update your Google Sheet to persist.</div>
+      <div class="modal-notice" id="modalNotice">📡 Changes save directly to MySQL database.</div>
+
       <div class="modal-body">
+
+        <!-- ── GROUP A: STATUS / STAGE ── -->
+        <div class="form-section-label">A–B · STATUS &amp; STAGE</div>
         <div class="form-grid">
           <div class="form-group">
-            <label class="form-label">APP NAME</label>
-            <input type="text" class="form-input" id="editName" placeholder="Application / Logo name" />
-          </div>
-          <div class="form-group">
-            <label class="form-label">TM NUMBER</label>
-            <input type="text" class="form-input" id="editTmNo" placeholder="6-digit TM number" maxlength="6" />
-          </div>
-          <div class="form-group">
-            <label class="form-label">CLASS (1–45)</label>
-            <select class="form-select" id="editClass"></select>
-          </div>
-          <div class="form-group">
-            <label class="form-label">CITY</label>
-            <select class="form-select" id="editCity">
-              <option value="">— Select city —</option>
-              <option>KARACHI</option><option>LAHORE</option><option>ISLAMABAD</option><option>PESHAWAR</option>
+            <label class="form-label">A · STATUS <span class="req">⭐</span></label>
+            <select class="form-select" id="editStatusRun">
+              <option value="">— Select —</option>
+              <option>Run</option><option>Processing</option><option>Done</option>
             </select>
           </div>
           <div class="form-group">
-            <label class="form-label">STATUS</label>
-            <select class="form-select" id="editStatus"></select>
-          </div>
-          <div class="form-group">
-            <label class="form-label">SUB STATUS</label>
-            <select class="form-select" id="editSubStatus"></select>
-          </div>
-          <div class="form-group form-full">
-            <label class="form-label">NOTES</label>
-            <textarea class="form-textarea" id="editNotes" rows="3" placeholder="Add notes…"></textarea>
+            <label class="form-label">B · STAGE <span class="req">⭐</span></label>
+            <select class="form-select" id="editStage">
+              <option value="">— Select —</option>
+              <option>STAGE 1</option><option>STAGE 2</option>
+              <option>STAGE 3</option><option>STAGE 4</option>
+              <option>STOPPED</option><option>COPYRIGHT</option>
+            </select>
           </div>
         </div>
-      </div>
+
+        <!-- ── GROUP B: IDENTITY ── -->
+        <div class="form-section-label">C–F · IDENTITY &amp; DATE</div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">C · SERIAL NO</label>
+            <input type="text" class="form-input" id="editSrNo" placeholder="PB-RWP-… (auto-generated)" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">D · TM NUMBER</label>
+            <input type="text" class="form-input" id="editTmNo" placeholder="Trademark number" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">E · FOLDER NAME <span class="req">⭐</span></label>
+            <input type="text" class="form-input" id="editFolder" placeholder="Google Drive folder name" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">F · DATE (LONG)</label>
+            <input type="text" class="form-input" id="editDateL" placeholder="e.g. 01-MAY-2026" />
+          </div>
+        </div>
+
+        <!-- ── GROUP C: CLASS ── -->
+        <div class="form-section-label">G–H · CLASS</div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">G · CLASS (01–45) <span class="req">⭐</span></label>
+            <select class="form-select" id="editClass"></select>
+          </div>
+          <div class="form-group form-full">
+            <label class="form-label">H · CLASS DESCRIPTION</label>
+            <input type="text" class="form-input" id="editClassDesc" placeholder="Goods &amp; services description" />
+          </div>
+        </div>
+
+        <!-- ── GROUP D: APPLICANT ── -->
+        <div class="form-section-label">I–L · APPLICANT DETAILS</div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">I · APP TYPE <span class="req">⭐</span></label>
+            <select class="form-select" id="editAppType">
+              <option value="">— Select —</option>
+              <option>SOLE</option><option>PARTNER</option><option>COMPANY</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">J · APP NAME <span class="req">⭐</span></label>
+            <input type="text" class="form-input" id="editAppName" placeholder="Applicant full name" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">K · FATHER'S NAME (S/O)</label>
+            <input type="text" class="form-input" id="editAppSo" placeholder="Father's name" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">L · APP CNIC <span class="req">⭐</span></label>
+            <input type="text" class="form-input" id="editAppCnic" placeholder="XXXXX-XXXXXXX-X" maxlength="15" />
+          </div>
+        </div>
+
+        <!-- ── GROUP E: DATES ── -->
+        <div class="form-section-label">M–N · DATES</div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">M · ISSUE DATE</label>
+            <input type="text" class="form-input" id="editIssueDate" placeholder="01-MAY-2026 11:26:12 AM" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">N · EXPIRY DATE <span style="font-size:9px;color:#0A6B52">(auto +7 days)</span></label>
+            <input type="text" class="form-input" id="editExpiryDate" placeholder="Auto from issue date" readonly style="background:#f5f5f0" />
+          </div>
+        </div>
+
+        <!-- ── GROUP F: TRADE / ADDRESS / YEAR ── -->
+        <div class="form-section-label">O–Q · TRADE &amp; ADDRESS</div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">O · BUSINESS / TRADE NAME <span class="req">⭐</span></label>
+            <input type="text" class="form-input" id="editAppTrade" placeholder="Registered trade/brand name" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Q · YEAR</label>
+            <select class="form-select" id="editYear">
+              <option value="">— Select —</option>
+              <option>2022</option><option>2023</option><option>2024</option>
+              <option>2025</option><option>2026</option>
+            </select>
+          </div>
+          <div class="form-group form-full">
+            <label class="form-label">P · APPLICANT ADDRESS <span class="req">⭐</span></label>
+            <textarea class="form-textarea" id="editAppAdd" rows="2" placeholder="Full address of applicant"></textarea>
+          </div>
+        </div>
+
+        <!-- ── GROUP G: CONSULTANT ── -->
+        <div class="form-section-label">R–S · CONSULTANT</div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">R · CONSULTANT NAME <span class="req">⭐</span></label>
+            <input type="text" class="form-input" id="editConName" placeholder="Consultant full name" />
+          </div>
+          <div class="form-group form-full">
+            <label class="form-label">S · CONSULTANT ADDRESS <span class="req">⭐</span></label>
+            <textarea class="form-textarea" id="editConAdd" rows="2" placeholder="Consultant address"></textarea>
+          </div>
+        </div>
+
+        <!-- ── GROUP H: MEDIA ── -->
+        <div class="form-section-label">T–U · IMAGE</div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">T · GOOGLE DRIVE IMAGE ID</label>
+            <input type="text" class="form-input" id="editImg" placeholder="Drive file ID (from share link)" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">U · FALLBACK TEXT (NO IMAGE)</label>
+            <input type="text" class="form-input" id="editNoImg" placeholder="e.g. WORDMARK / DEVICE MARK" />
+          </div>
+        </div>
+        <div id="imgPreview" style="display:none;margin-top:8px">
+          <img id="imgPreviewEl" src="" alt="Drive preview" style="max-width:120px;max-height:120px;border:3px solid #0C0C0C;border-radius:4px" />
+        </div>
+
+      </div><!-- /modal-body -->
+
       <div class="modal-footer">
         <button class="btn-outline" id="modalCancel">CANCEL</button>
-        <button class="btn-orange" id="modalSave">SAVE CHANGES</button>
+        <button class="btn-orange" id="modalSave">SAVE TO DATABASE</button>
       </div>
     </div>
   </div>

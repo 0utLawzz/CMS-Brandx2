@@ -1,0 +1,2 @@
+- [21-column schema V2](schema-v2.md) — BrandEx trademarks table upgraded from 11 to 21 cols (A–U); auto-migrates on API startup via runMigrations() in db.js.
+- [WebView → MySQL proxy](webview-proxy.md) — server.js proxies /api/* to localhost:3000 so WebView fetches from MySQL, not Google Sheets.

@@ -1,7 +1,7 @@
 const express = require('express');
 const cors    = require('cors');
 require('dotenv').config();
-const { pool, testConnection } = require('./db');
+const { pool, testConnection, runMigrations } = require('./db');
 
 const app  = express();
 const PORT = process.env.PORT || 3000;
@@ -220,4 +220,5 @@ app.post('/api/import', async (req, res) => {
 app.listen(PORT, 'localhost', async () => {
   console.log(`BrandEx API running on http://localhost:${PORT}`);
   await testConnection();
+  await runMigrations();
 });
