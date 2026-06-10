@@ -22,6 +22,10 @@ args = "Start application"
 task = "workflow.run"
 args = "Start Expo (Android)"
 
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Start API (MySQL)"
+
 [[workflows.workflow]]
 name = "Start application"
 author = "agent"
@@ -45,6 +49,18 @@ args = "cd mobile && EXPO_NO_DOTENV=1 npx expo start --tunnel --port 8081"
 [workflows.workflow.metadata]
 outputType = "console"
 
+[[workflows.workflow]]
+name = "Start API (MySQL)"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "cd api && node index.js"
+waitForPort = 3000
+
+[workflows.workflow.metadata]
+outputType = "console"
+
 [[ports]]
 localPort = 5000
 externalPort = 80
@@ -54,4 +70,5 @@ localPort = 8081
 externalPort = 8081
 
 [deployment]
-deploymentTarget = "cloudrun"
+deploymentTarget = "autoscale"
+run = ["node", "server.js"]
