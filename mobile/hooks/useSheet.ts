@@ -1,32 +1,45 @@
 import { useState, useCallback } from 'react';
-import { parseCSV, toBool, normalize, SheetData } from '../lib/csv';
+import { parseCSV, normalize, SheetData } from '../lib/csv';
 
 const SHEET_CSV_URL =
   'https://docs.google.com/spreadsheets/d/e/2PACX-1vTelzPMvLPhdXugWg7No78vyJXgc3e3h4mKDcQLAAsSvLRWQe36fyqlk7mRwIsQSB7PabmNLqKXG2cz/pub?gid=229416165&single=true&output=csv';
 
+// ─── Column map: matches the 21-column schema (A=0 … U=20) ──────────────────
 export const COL = {
-  DATE: 0,
-  CASE_NO: 1,
-  NAME: 2,
-  NUMBER: 3,
-  CLASS: 4,
-  STATUS: 5,
-  SUB_STATUS: 6,
-  DUPLICATE: 7,
-  TM11: 8,
-  NOTES: 9,
-  CITY: 10,
+  STATUS_RUN:  0,   // A — Run / Processing / Done
+  STAGE:       1,   // B — STAGE 1–4
+  SR_NO:       2,   // C — PB-RWP-XXXXXXXXXXXXXXXXXX
+  TM_NO:       3,   // D — Trademark Number (PRIMARY SEARCH KEY)
+  FOLDER:      4,   // E — Drive Folder Name
+  DATE_L:      5,   // F — Long Date
+  CLASS:       6,   // G — 01 to 45
+  CLASS_DESC:  7,   // H — Class Description
+  APP_TYPE:    8,   // I — SOLE / PARTNER / COMPANY
+  APP_NAME:    9,   // J — Applicant Name ⭐
+  APP_SO:      10,  // K — Father's Name (S/O)
+  APP_CNIC:    11,  // L — CNIC (XXXXX-XXXXXXX-X) ⭐
+  ISSUE_DATE:  12,  // M — Issue Date
+  EXPIRY_DATE: 13,  // N — Expiry Date (auto +7 days)
+  APP_TRADE:   14,  // O — Business / Trade Name ⭐
+  APP_ADD:     15,  // P — Applicant Address ⭐
+  YEAR:        16,  // Q — 2022–2026
+  CON_NAME:    17,  // R — Consultant Name ⭐
+  CON_ADD:     18,  // S — Consultant Address ⭐
+  IMG:         19,  // T — Google Drive Image File ID
+  NO_IMG:      20,  // U — Fallback text if no image
 } as const;
 
-export interface StageCount { s1: number; s2: number; s3: number; s4: number; stopped: number; }
+export type ColKey = keyof typeof COL;
+
+export interface StageCount {
+  s1: number; s2: number; s3: number; s4: number; stopped: number; copyright: number;
+}
 
 export interface SheetStats {
   total: number;
-  examination: number;
-  accepted: number;
-  demandNote: number;
-  demandNotePaid: number;
-  certificate: number;
+  run: number;
+  processing: number;
+  done: number;
   stages: StageCount;
 }
 
@@ -37,46 +50,32 @@ export interface SheetState extends SheetData {
   lastLoaded: Date | null;
 }
 
-export interface LocalEdit {
-  [caseNo: string]: Partial<Record<keyof typeof COL, string>>;
-}
-
 const EMPTY_STATS: SheetStats = {
-  total: 0, examination: 0, accepted: 0,
-  demandNote: 0, demandNotePaid: 0, certificate: 0,
-  stages: { s1: 0, s2: 0, s3: 0, s4: 0, stopped: 0 },
+  total: 0, run: 0, processing: 0, done: 0,
+  stages: { s1: 0, s2: 0, s3: 0, s4: 0, stopped: 0, copyright: 0 },
 };
 
-function getStageKey(status: string): keyof StageCount | null {
-  const v = normalize(status);
-  if (/stage[\s_]*4/.test(v) || v.includes('4️⃣')) return 's4';
-  if (/stage[\s_]*3/.test(v) || v.includes('3️⃣')) return 's3';
-  if (/stage[\s_]*2/.test(v) || v.includes('2️⃣')) return 's2';
-  if (/stage[\s_]*1/.test(v) || v.includes('1️⃣')) return 's1';
-  if (/abandon|stop|hold|refus/.test(v)) return 'stopped';
-  return null;
-}
-
 function computeStats(rows: string[][]): SheetStats {
-  const stages: StageCount = { s1: 0, s2: 0, s3: 0, s4: 0, stopped: 0 };
-  let examination = 0, accepted = 0, demandNote = 0, demandNotePaid = 0, certificate = 0;
+  const stages: StageCount = { s1: 0, s2: 0, s3: 0, s4: 0, stopped: 0, copyright: 0 };
+  let run = 0, processing = 0, done = 0;
 
   for (const r of rows) {
-    const sub = normalize(r[COL.SUB_STATUS] ?? '');
-    const status = normalize(r[COL.STATUS] ?? '');
+    const runVal   = (r[COL.STATUS_RUN] ?? '').trim();
+    const stageVal = normalize(r[COL.STAGE] ?? '');
 
-    const sk = getStageKey(r[COL.STATUS] ?? '');
-    if (sk) stages[sk]++;
-    else if (/abandon|stop|hold|refus/.test(sub)) stages.stopped++;
+    if (runVal === 'Done')         done++;
+    else if (runVal === 'Processing') processing++;
+    else                           run++;
 
-    if (sub.includes('exam')) examination++;
-    if (sub.includes('accept')) accepted++;
-    if (sub.includes('demand note paid') || sub.includes('d-note paid')) demandNotePaid++;
-    else if (sub.includes('demand note') || sub.includes('d-note')) demandNote++;
-    if (sub.includes('cert') || /stage[\s_]*4/.test(status) || status.includes('4️⃣')) certificate++;
+    if (/stage[\s_]*4/.test(stageVal)) stages.s4++;
+    else if (/stage[\s_]*3/.test(stageVal)) stages.s3++;
+    else if (/stage[\s_]*2/.test(stageVal)) stages.s2++;
+    else if (/stage[\s_]*1/.test(stageVal)) stages.s1++;
+    else if (/stopped/.test(stageVal))      stages.stopped++;
+    else if (/copyright/.test(stageVal))    stages.copyright++;
   }
 
-  return { total: rows.length, examination, accepted, demandNote, demandNotePaid, certificate, stages };
+  return { total: rows.length, run, processing, done, stages };
 }
 
 export function useSheet() {
@@ -84,7 +83,7 @@ export function useSheet() {
     headers: [], rows: [], stats: EMPTY_STATS,
     loading: false, error: null, lastLoaded: null,
   });
-  const [localEdits, setLocalEdits] = useState<LocalEdit>({});
+  const [localEdits, setLocalEdits] = useState<Record<string, Partial<Record<ColKey, string>>>>({});
 
   const load = useCallback(async () => {
     setState((s) => ({ ...s, loading: true, error: null }));
@@ -93,16 +92,9 @@ export function useSheet() {
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const text = await res.text();
       const { headers, rows } = parseCSV(text);
-      setState({
-        headers, rows,
-        stats: computeStats(rows),
-        loading: false, error: null, lastLoaded: new Date(),
-      });
+      setState({ headers, rows, stats: computeStats(rows), loading: false, error: null, lastLoaded: new Date() });
     } catch (err: unknown) {
-      setState((s) => ({
-        ...s, loading: false,
-        error: err instanceof Error ? err.message : 'Unknown error',
-      }));
+      setState((s) => ({ ...s, loading: false, error: err instanceof Error ? err.message : 'Unknown error' }));
     }
   }, []);
 
@@ -110,38 +102,33 @@ export function useSheet() {
     (query: string): string[][] => {
       const q = query.trim().toLowerCase();
       if (!q) return [];
-      return state.rows.filter(
-        (r) =>
-          (r[COL.NUMBER] ?? '').toLowerCase() === q ||
-          (r[COL.NAME] ?? '').toLowerCase().includes(q) ||
-          (r[COL.CASE_NO] ?? '').toLowerCase().includes(q)
+      return state.rows.filter(r =>
+        (r[COL.TM_NO]    ?? '').toLowerCase() === q ||
+        (r[COL.TM_NO]    ?? '').toLowerCase().includes(q) ||
+        (r[COL.APP_NAME] ?? '').toLowerCase().includes(q) ||
+        (r[COL.SR_NO]    ?? '').toLowerCase().includes(q) ||
+        (r[COL.APP_CNIC] ?? '').toLowerCase().includes(q) ||
+        (r[COL.APP_TRADE]?? '').toLowerCase().includes(q)
       );
     },
     [state.rows]
   );
 
-  const saveEdit = useCallback((caseNo: string, edits: Partial<Record<keyof typeof COL, string>>) => {
-    setLocalEdits((prev) => ({ ...prev, [caseNo]: { ...(prev[caseNo] ?? {}), ...edits } }));
-  }, []);
-
-  const deleteRecord = useCallback((caseNo: string) => {
-    setState((s) => ({
-      ...s,
-      rows: s.rows.filter((r) => (r[COL.CASE_NO] ?? '') !== caseNo),
-    }));
+  const saveEdit = useCallback((srNo: string, edits: Partial<Record<ColKey, string>>) => {
+    setLocalEdits((prev) => ({ ...prev, [srNo]: { ...(prev[srNo] ?? {}), ...edits } }));
   }, []);
 
   const getRow = useCallback((row: string[]): string[] => {
-    const caseNo = row[COL.CASE_NO] ?? '';
-    const edits = localEdits[caseNo];
+    const srNo = row[COL.SR_NO] ?? '';
+    const edits = localEdits[srNo];
     if (!edits) return row;
     const merged = [...row];
-    (Object.keys(edits) as Array<keyof typeof COL>).forEach((k) => {
+    (Object.keys(edits) as ColKey[]).forEach((k) => {
       const idx = COL[k];
       if (edits[k] !== undefined) merged[idx] = edits[k]!;
     });
     return merged;
   }, [localEdits]);
 
-  return { ...state, load, search, saveEdit, deleteRecord, getRow, localEdits };
+  return { ...state, load, search, saveEdit, getRow, localEdits };
 }
