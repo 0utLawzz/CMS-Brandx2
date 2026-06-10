@@ -53,13 +53,12 @@ outputType = "console"
 name = "Start API (MySQL)"
 author = "agent"
 
+[workflows.workflow.metadata]
+outputType = "console"
+
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "cd api && node index.js"
-waitForPort = 3000
-
-[workflows.workflow.metadata]
-outputType = "console"
 
 [[ports]]
 localPort = 5000
