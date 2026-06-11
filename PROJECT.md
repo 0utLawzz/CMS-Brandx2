@@ -135,20 +135,60 @@ https://docs.google.com/spreadsheets/d/e/2PACX-1vTelzP.../pub?gid=229416165&sing
 
 ---
 
+---
+
+### Session 6 — Major UI Rebuild (Bugs + Features)
+
+**Bugs fixed:**
+- Stage badges no longer show `?` — full sub-status → stage number mapping in `getStageNum()` including all IPO sub-statuses (APPLICATION FILED, ACKNOWLEDGMENT, ASSIGNED, PUBLISHED, OPPO:*, DEMAND NOTE, CERTIFICATE*, etc.)
+- Stage badge now displays clean number **1/2/3/4** (not "S1", "S2") — color coded
+- Modal notice no longer says "MySQL database" — fixed to "📡 Changes save directly to database."
+- Delete from Search tab now re-runs the search so the deleted card disappears immediately
+- Select All + Bulk Delete now functional with confirmation dialog
+
+**New features:**
+- **4 renamed tabs**: Dashboard · Search TM · All Records · Assignment
+- **Dashboard tab**: stage distribution chart + 8 stats tiles + status chip + Refresh/Sync/Add buttons
+- **Search TM tab**: search moved here (result count displayed, delete refreshes results)
+- **All Records tab**:
+  - Filter dropdowns: Stage / Status / App Type / Year
+  - Sort: Newest / Name / Stage / Status
+  - Pagination: 50 / 100 / 500 / ALL per page (default 100, most recent first)
+  - 25×25 trademark image thumbnail column in table
+  - Bulk select (per-page) + bulk delete with confirmation
+  - Export to CSV (respects active filters)
+- **Assignment tab**: stage hierarchy with live sub-status counts, agent grid (UZMA/FASIAL/RASHID/SULMAN × KARACHI/LAHORE/ISLAMABAD), assigned record table; full DB tracking queued
+- **Image upload**: file input in Edit/Add modal — uploads to `/uploads/` via multer, path auto-fills `img` field; falls back to Drive ID thumbnail
+- **Sync from Google Sheets**: `POST /api/sync-sheets` endpoint re-imports CSV, button in Dashboard
+- **README.md**: full install/run docs, schema table, API endpoints, tab descriptions
+
+**Backend changes:**
+- `api/index.js`: added `/api/upload` (multer), `/api/sync-sheets` (fetch → parse → upsert), `/api/import` (bulk)
+- `uploads/` directory created at workspace root; served as static files
+
+---
+
 ## Queued / Upcoming Tasks
 
 | # | Task | Priority |
 |---|------|----------|
-| 1 | Fix stage badges showing `?` (emojis in stage field from old data) | 🔴 Bug |
-| 2 | Fix modal HTML still says "MySQL database" (line 139 index.html) | 🔴 Bug |
-| 3 | Fix delete from search results not refreshing the search view | 🔴 Bug |
-| 4 | CSV / Excel file upload import | 🟡 Feature |
-| 5 | "Sync from Google Sheets" one-click button | 🟡 Feature |
-| 6 | Export all/filtered records to CSV | 🟡 Feature |
-| 7 | Filter dropdowns (Stage, Status, App Type, Year) in All Records tab | 🟡 Feature |
-| 8 | Expiry date alerts (7-day / 30-day warning highlights) | 🟡 Feature |
-| 9 | Journal tab — real IPO data or class breakdown analytics | 🟢 Future |
-| 10 | Resume mobile app (Expo) when web portal is stable | 🟢 Future |
+| 1 | ~~Fix stage badges showing `?`~~ | ✅ Done S6 |
+| 2 | ~~Fix modal "MySQL" text~~ | ✅ Done S6 |
+| 3 | ~~Delete refreshes search results~~ | ✅ Done S6 |
+| 4 | ~~Bulk select + bulk delete~~ | ✅ Done S6 |
+| 5 | ~~Sync from Google Sheets button~~ | ✅ Done S6 |
+| 6 | ~~Export to CSV~~ | ✅ Done S6 |
+| 7 | ~~Filter dropdowns (Stage/Status/Type/Year)~~ | ✅ Done S6 |
+| 8 | ~~Pagination (50/100/500/ALL, newest first)~~ | ✅ Done S6 |
+| 9 | ~~Image upload + 25x25 thumbnail in table~~ | ✅ Done S6 |
+| 10 | ~~4-tab rename (Dashboard/Search TM/All Records/Assignment)~~ | ✅ Done S6 |
+| 11 | ~~Assignment tab UI (hierarchy + agents)~~ | ✅ Done S6 |
+| 12 | ~~README.md~~ | ✅ Done S6 |
+| 13 | Full Assignment tracking (DB: assign to agent, timestamps, completion) | 🔴 Next Phase |
+| 14 | CSV/Excel file upload import UI | 🟡 Feature |
+| 15 | Expiry date alerts (7/30-day colour highlights) | 🟡 Feature |
+| 16 | Journal tab — IPO analytics / class breakdown | 🟢 Future |
+| 17 | Resume mobile app (Expo) | 🟢 Future |
 
 ---
 

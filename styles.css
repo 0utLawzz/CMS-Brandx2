@@ -406,3 +406,119 @@ body { background: var(--bg); font-family: var(--font-body); color: var(--black)
 ::-webkit-scrollbar-track { background: var(--bg2); }
 ::-webkit-scrollbar-thumb { background: var(--gray); border-radius: 3px; }
 input[type=checkbox] { cursor: pointer; width: 15px; height: 15px; accent-color: var(--orange); }
+
+/* ─── Dashboard toolbar ────────────────────────────────────────────────────── */
+.dash-toolbar {
+  display: flex; align-items: center; justify-content: space-between;
+  flex-wrap: wrap; gap: 10px; padding: 14px 0; margin-bottom: 14px;
+  border-bottom: 2.5px solid var(--black);
+}
+
+/* ─── Stage badge number (table) ──────────────────────────────────────────── */
+.stage-badge-num {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 26px; height: 26px; border-radius: 3px; border: 1.5px solid var(--black);
+  font-family: var(--font-head); font-size: 15px; color: white; font-weight: 700;
+}
+
+/* ─── Filter toolbar ──────────────────────────────────────────────────────── */
+.filter-toolbar {
+  display: flex; gap: 8px; flex-wrap: wrap; align-items: center;
+  padding: 8px 0 12px; border-bottom: 1.5px solid var(--bg2); margin-bottom: 8px;
+}
+.filter-select {
+  border: 2px solid var(--black); border-radius: 0; padding: 6px 10px;
+  font-family: var(--font-mono); font-size: 10px; background: var(--white);
+  color: var(--black); outline: none; cursor: pointer;
+}
+.filter-select:focus { border-color: var(--orange); }
+
+/* ─── Bulk bar ─────────────────────────────────────────────────────────────── */
+.bulk-bar {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  background: rgba(201,74,0,0.06); border: 2px solid var(--orange);
+  border-radius: 4px; padding: 8px 14px; margin-bottom: 8px;
+}
+.btn-danger {
+  background: #c00; color: white; border: 2px solid var(--black); border-radius: 4px;
+  font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.5px;
+  padding: 5px 14px; cursor: pointer; box-shadow: 2px 2px 0 var(--black);
+}
+.btn-danger:hover { background: #a00; transform: translate(-1px,-1px); box-shadow: 3px 3px 0 var(--black); }
+
+/* ─── Pagination ───────────────────────────────────────────────────────────── */
+.pagination-row {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 4px 0;
+}
+.pg-info { font-family: var(--font-mono); font-size: 10px; color: var(--gray); white-space: nowrap; }
+.pg-pages { display: flex; gap: 3px; }
+.pg-sizes { display: flex; align-items: center; gap: 4px; margin-left: auto; flex-wrap: wrap; }
+.pg-btn {
+  border: 2px solid var(--bg2); border-radius: 3px; padding: 3px 9px;
+  background: var(--bg); font-family: var(--font-mono); font-size: 10px;
+  color: var(--gray); cursor: pointer; transition: all 0.1s; min-width: 28px; text-align: center;
+}
+.pg-btn:hover:not(:disabled):not(.active) { border-color: var(--black); color: var(--black); }
+.pg-btn.active { background: var(--black); border-color: var(--black); color: var(--orange); }
+.pg-btn:disabled { opacity: 0.35; cursor: default; }
+
+/* ─── Assignment tab ──────────────────────────────────────────────────────── */
+.assign-header { margin-bottom: 16px; padding: 14px 0; border-bottom: 2.5px solid var(--black); }
+.assign-stat-row { display: flex; gap: 12px; flex-wrap: wrap; }
+.assign-stat {
+  background: var(--white); border: 2.5px solid var(--black); border-radius: 6px;
+  padding: 12px 20px; text-align: center; box-shadow: var(--shadow-sm);
+  display: flex; flex-direction: column; align-items: center; gap: 4px; min-width: 100px;
+}
+.assign-stat-val { font-family: var(--font-head); font-size: 32px; line-height: 1; }
+.assign-stat-lbl { font-family: var(--font-mono); font-size: 8px; color: var(--gray); letter-spacing: 1px; }
+
+.assign-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px;
+}
+@media (max-width: 768px) { .assign-grid { grid-template-columns: 1fr; } }
+
+.assign-panel {
+  background: var(--white); border: 3px solid var(--black); border-radius: 6px;
+  padding: 16px; box-shadow: var(--shadow-sm);
+}
+.assign-panel-title {
+  font-family: var(--font-mono); font-size: 9px; color: var(--orange);
+  letter-spacing: 1.5px; text-transform: uppercase;
+  border-left: 3px solid var(--orange); padding-left: 8px; margin-bottom: 14px;
+}
+
+.stage-hierarchy { display: flex; flex-direction: column; gap: 12px; }
+.hier-stage { }
+.hier-stage-label {
+  font-family: var(--font-mono); font-size: 9px; letter-spacing: 1px;
+  padding-left: 8px; margin-bottom: 6px; text-transform: uppercase; font-weight: 600;
+}
+.hier-subs { display: flex; flex-direction: column; gap: 2px; padding-left: 12px; }
+.hier-sub {
+  display: flex; align-items: center; justify-content: space-between;
+  font-family: var(--font-body); font-size: 12px; color: var(--dim);
+  padding: 3px 8px; border-radius: 3px; background: var(--bg);
+  border: 1px solid var(--bg2);
+}
+.hier-count {
+  font-family: var(--font-head); font-size: 16px; line-height: 1;
+}
+
+.agents-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 14px; }
+.agent-card {
+  border: 2px solid var(--black); border-radius: 4px; padding: 10px 12px;
+  background: var(--bg); box-shadow: 2px 2px 0 var(--black);
+}
+.agent-name { font-family: var(--font-head); font-size: 18px; letter-spacing: 1px; margin-bottom: 6px; }
+.agent-cities { display: flex; gap: 4px; flex-wrap: wrap; }
+.agent-city-badge {
+  font-family: var(--font-mono); font-size: 8px; letter-spacing: 0.5px;
+  border: 1.5px solid var(--teal-lt); color: var(--teal-lt); border-radius: 3px;
+  padding: 1px 5px; background: rgba(13,153,112,0.06);
+}
+.assign-note {
+  background: rgba(212,168,0,0.08); border: 1.5px solid var(--yellow);
+  border-radius: 4px; padding: 10px 12px;
+  font-family: var(--font-body); font-size: 12px; color: var(--dim); line-height: 1.5;
+}

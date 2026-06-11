@@ -1,3 +1,5 @@
 - [21-column schema V2](schema-v2.md) — BrandEx trademarks table upgraded from 11 to 21 cols (A–U); auto-migrates on API startup via runMigrations() in db.js.
 - [WebView → PostgreSQL proxy](webview-proxy.md) — server.js proxies /api/* to localhost:3000; switched from MySQL to Replit PostgreSQL (DATABASE_URL) because Hostinger shared hosting blocks port 3306 from cloud IPs.
 - [Hostinger MySQL blocked](hostinger-mysql.md) — Hostinger shared hosting firewalls port 3306 externally; Remote MySQL whitelist only controls MySQL auth, not the firewall. Cannot connect from Replit.
+- [Stage mapping](stage-mapping.md) — getStageNum() in app.js maps IPO sub-statuses to 1–4; -1=stopped, -2=copyright; badge shows plain number. DB regex in stats query uses ILIKE patterns to count stages.
+- [Image upload](image-upload.md) — multer saves to workspace/uploads/; img field stores /uploads/filename (fits VARCHAR(255)); Drive ID fallback still works via thumbnail URL.

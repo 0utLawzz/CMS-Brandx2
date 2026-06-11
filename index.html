@@ -20,18 +20,33 @@
         </div>
       </div>
       <nav class="tab-nav" id="tabNav">
-        <button class="tab-btn active" data-tab="search">⌕ SEARCH</button>
+        <button class="tab-btn active" data-tab="dashboard">▣ DASHBOARD</button>
+        <button class="tab-btn" data-tab="search">⌕ SEARCH TM</button>
         <button class="tab-btn" data-tab="records">≡ ALL RECORDS</button>
-        <button class="tab-btn" data-tab="journal">◎ JOURNAL</button>
+        <button class="tab-btn" data-tab="assignment">◈ ASSIGNMENT</button>
       </nav>
     </div>
   </header>
 
   <main class="main">
 
-    <!-- SEARCH TAB -->
-    <section class="tab-panel active" id="tab-search">
+    <!-- ══════════════════════════════════════════════════════════════════
+         TAB 1 — DASHBOARD
+    ═══════════════════════════════════════════════════════════════════ -->
+    <section class="tab-panel active" id="tab-dashboard">
       <div class="container">
+
+        <div class="dash-toolbar">
+          <span class="status-chip ok" id="statusChip">
+            <span class="status-dot"></span>
+            <span id="statusText">Connecting…</span>
+          </span>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+            <button class="btn-outline" id="refreshBtn">↻ REFRESH</button>
+            <button class="btn-outline" id="syncBtn">⟳ SYNC SHEETS</button>
+            <button class="btn-orange-sm" id="addNewBtn">+ ADD NEW</button>
+          </div>
+        </div>
 
         <div class="chart-card" id="chartCard" style="display:none">
           <div class="chart-header">
@@ -52,47 +67,105 @@
           <div class="stat-tile"><span class="stat-val" id="s-s4"         style="color:#0D9970">—</span><span class="stat-label">STAGE 4</span></div>
         </div>
 
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════════════════════════════
+         TAB 2 — SEARCH TM
+    ═══════════════════════════════════════════════════════════════════ -->
+    <section class="tab-panel" id="tab-search">
+      <div class="container">
         <div class="search-card">
-          <div class="search-eyebrow">TRADEMARK LOOKUP — SEARCH BY TM NUMBER, NAME OR SR. NO</div>
+          <div class="search-eyebrow">TRADEMARK LOOKUP — SEARCH BY TM NUMBER, NAME, CNIC OR SR. NO</div>
           <div class="search-row">
             <input type="text" class="search-input" id="searchInput"
               placeholder="TM Number, App Name, CNIC or SR. No…" autocomplete="off" spellcheck="false" />
             <button class="btn-orange" id="searchBtn">SEARCH</button>
           </div>
           <div class="search-status-row">
-            <span class="status-chip ok" id="statusChip">
-              <span class="status-dot"></span>
-              <span id="statusText">Connecting to database…</span>
-            </span>
-            <button class="btn-outline" id="refreshBtn">↻ REFRESH</button>
-            <button class="btn-orange-sm" id="addNewBtn">+ ADD NEW</button>
+            <span style="font-family:'DM Mono',monospace;font-size:9px;color:#888" id="searchCount"></span>
+            <button class="btn-orange-sm" id="addNewBtn2">+ ADD NEW</button>
           </div>
         </div>
-
-        <div id="searchResults"></div>
+        <div id="searchResults">
+          <div class="no-results">
+            <div class="no-results-title">START SEARCHING</div>
+            <p class="no-results-hint">Enter TM Number, applicant name, CNIC or serial number above.</p>
+          </div>
+        </div>
       </div>
     </section>
 
-    <!-- RECORDS TAB -->
+    <!-- ══════════════════════════════════════════════════════════════════
+         TAB 3 — ALL RECORDS
+    ═══════════════════════════════════════════════════════════════════ -->
     <section class="tab-panel" id="tab-records">
       <div class="container container--wide">
+
+        <!-- Toolbar row 1: text filter + counts + buttons -->
         <div class="records-toolbar">
           <input type="text" class="filter-input" id="filterInput" placeholder="Filter any field…" autocomplete="off" />
           <span class="records-count" id="recordsCount">— records</span>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-left:auto">
+            <button class="btn-outline" id="exportBtn">↓ EXPORT CSV</button>
+            <button class="btn-orange-sm" id="addNewBtn3">+ ADD NEW</button>
+          </div>
+        </div>
+
+        <!-- Toolbar row 2: filter dropdowns + sort -->
+        <div class="filter-toolbar">
+          <select class="filter-select" id="filterStage">
+            <option value="">All Stages</option>
+            <option value="1">Stage 1</option>
+            <option value="2">Stage 2</option>
+            <option value="3">Stage 3</option>
+            <option value="4">Stage 4</option>
+            <option value="-1">Stopped</option>
+            <option value="-2">Copyright</option>
+          </select>
+          <select class="filter-select" id="filterStatus">
+            <option value="">All Status</option>
+            <option value="Run">Run</option>
+            <option value="Processing">Processing</option>
+            <option value="Done">Done</option>
+          </select>
+          <select class="filter-select" id="filterType">
+            <option value="">All Types</option>
+            <option value="SOLE">Sole</option>
+            <option value="PARTNER">Partner</option>
+            <option value="COMPANY">Company</option>
+          </select>
+          <select class="filter-select" id="filterYear">
+            <option value="">All Years</option>
+            <option>2020</option><option>2021</option><option>2022</option>
+            <option>2023</option><option>2024</option><option>2025</option><option>2026</option>
+          </select>
           <div class="sort-group">
             <span class="sort-label">SORT</span>
-            <button class="sort-btn active" data-sort="date_l">DATE</button>
+            <button class="sort-btn active" data-sort="created_at">NEWEST</button>
             <button class="sort-btn" data-sort="app_name">NAME</button>
             <button class="sort-btn" data-sort="stage">STAGE</button>
             <button class="sort-btn" data-sort="status_run">STATUS</button>
           </div>
-          <button class="btn-orange-sm" id="addNewBtn2">+ ADD NEW</button>
         </div>
+
+        <!-- Bulk action bar (hidden until rows selected) -->
+        <div class="bulk-bar" id="bulkBar" style="display:none">
+          <span id="bulkCount" style="font-family:'DM Mono',monospace;font-size:11px"></span>
+          <button class="btn-danger" id="bulkDelBtn">✕ DELETE SELECTED</button>
+          <button class="btn-outline" id="bulkClrBtn" style="padding:5px 12px;font-size:10px">CLEAR</button>
+        </div>
+
+        <!-- Pagination bar -->
+        <div id="paginationBar" style="margin-bottom:8px"></div>
+
+        <!-- Table -->
         <div class="table-wrap">
           <table class="records-table" id="recordsTable">
             <thead>
               <tr>
                 <th><input type="checkbox" id="selectAll" /></th>
+                <th style="width:30px">IMG</th>
                 <th>SR. NO</th>
                 <th>TM NO</th>
                 <th>APP NAME</th>
@@ -107,26 +180,29 @@
             <tbody id="recordsTbody"></tbody>
           </table>
         </div>
+
+        <!-- Bottom pagination -->
+        <div id="paginationBarBottom" style="margin-top:10px"></div>
+
       </div>
     </section>
 
-    <!-- JOURNAL TAB -->
-    <section class="tab-panel" id="tab-journal">
-      <div class="container journal-wrap">
-        <div class="coming-stamp">COMING SOON</div>
-        <h2 class="journal-title">JOURNAL &amp; IPO DATA</h2>
-        <p class="journal-desc">This module will connect to official IPO journal data, gazette listings, and opposition tracking.</p>
-        <div class="journal-features">
-          <div class="j-card"><span class="j-icon">📰</span><div><b>JOURNAL BROWSER</b><p>Browse official IPO trademark journals by date and issue.</p></div></div>
-          <div class="j-card"><span class="j-icon">🔍</span><div><b>OPPOSITION TRACKER</b><p>Monitor opposition periods and track filed objections.</p></div></div>
-          <div class="j-card"><span class="j-icon">📋</span><div><b>IPO DATA SYNC</b><p>Cross-reference marks against IPO public database entries.</p></div></div>
-          <div class="j-card"><span class="j-icon">📊</span><div><b>ANALYTICS</b><p>Visual reports on acceptance rates, class distribution, and timelines.</p></div></div>
+    <!-- ══════════════════════════════════════════════════════════════════
+         TAB 4 — ASSIGNMENT
+    ═══════════════════════════════════════════════════════════════════ -->
+    <section class="tab-panel" id="tab-assignment">
+      <div class="container container--wide">
+        <div id="assignmentContent">
+          <div class="no-results"><div class="no-results-title">LOADING…</div></div>
         </div>
       </div>
     </section>
+
   </main>
 
-  <!-- ─── EDIT / ADD MODAL ────────────────────────────────────────────────── -->
+  <!-- ═══════════════════════════════════════════════════════════════════════
+       EDIT / ADD MODAL
+  ══════════════════════════════════════════════════════════════════════════ -->
   <div class="modal-overlay" id="editModal">
     <div class="modal-sheet modal-sheet--wide">
       <div class="modal-header">
@@ -136,11 +212,10 @@
         </div>
         <button class="modal-close-btn" id="modalClose">✕</button>
       </div>
-      <div class="modal-notice" id="modalNotice">📡 Changes save directly to MySQL database.</div>
+      <div class="modal-notice" id="modalNotice">📡 Changes save directly to database.</div>
 
       <div class="modal-body">
 
-        <!-- ── GROUP A: STATUS / STAGE ── -->
         <div class="form-section-label">A–B · STATUS &amp; STAGE</div>
         <div class="form-grid">
           <div class="form-group">
@@ -154,14 +229,53 @@
             <label class="form-label">B · STAGE <span class="req">⭐</span></label>
             <select class="form-select" id="editStage">
               <option value="">— Select —</option>
-              <option>STAGE 1</option><option>STAGE 2</option>
-              <option>STAGE 3</option><option>STAGE 4</option>
-              <option>STOPPED</option><option>COPYRIGHT</option>
+              <optgroup label="── STAGE 1">
+                <option>STAGE 1</option>
+                <option>APPLICATION FILED</option>
+                <option>ACKNOWLEDGMENT</option>
+                <option>EXAMINATION</option>
+              </optgroup>
+              <optgroup label="── STAGE 2">
+                <option>STAGE 2</option>
+                <option>ASSIGNED</option>
+                <option>ACCEPTED</option>
+                <option>HEARING</option>
+              </optgroup>
+              <optgroup label="── STAGE 3">
+                <option>STAGE 3</option>
+                <option>PUBLISHED</option>
+                <option>OPPO: WITHDRAWN</option>
+                <option>OPPO: FILED</option>
+                <option>OPPO: RECEIVED</option>
+                <option>DEMAND NOTE RECEIVED</option>
+                <option>DEMAND NOTE PAID</option>
+              </optgroup>
+              <optgroup label="── STAGE 4">
+                <option>STAGE 4</option>
+                <option>CERTIFICATE RECEIVED</option>
+                <option>CERTIFICATE DISPATCH</option>
+                <option>COMPLETE</option>
+              </optgroup>
+              <optgroup label="── STOPPED">
+                <option>STOPPED</option>
+                <option>ABANDONED</option>
+                <option>HOLD</option>
+                <option>REFUSED</option>
+                <option>NOTE</option>
+              </optgroup>
+              <optgroup label="── COPYRIGHT">
+                <option>COPYRIGHT</option>
+                <option>COPYRIGHT FILED</option>
+                <option>COPYRIGHT IN NEWSPAPERS</option>
+                <option>COPYRIGHT ACKNOWLEDGEMENT</option>
+                <option>COPYRIGHT EXAMINATION</option>
+                <option>COPYRIGHT CERTIFICATE RECEIVED</option>
+                <option>COPYRIGHT CERTIFICATE DISPATCHED</option>
+              </optgroup>
             </select>
           </div>
         </div>
 
-        <!-- ── GROUP B: IDENTITY ── -->
         <div class="form-section-label">C–F · IDENTITY &amp; DATE</div>
         <div class="form-grid">
           <div class="form-group">
@@ -173,7 +287,7 @@
             <input type="text" class="form-input" id="editTmNo" placeholder="Trademark number" />
           </div>
           <div class="form-group">
-            <label class="form-label">E · FOLDER NAME <span class="req">⭐</span></label>
+            <label class="form-label">E · FOLDER NAME</label>
             <input type="text" class="form-input" id="editFolder" placeholder="Google Drive folder name" />
           </div>
           <div class="form-group">
@@ -182,7 +296,6 @@
           </div>
         </div>
 
-        <!-- ── GROUP C: CLASS ── -->
         <div class="form-section-label">G–H · CLASS</div>
         <div class="form-grid">
           <div class="form-group">
@@ -195,7 +308,6 @@
           </div>
         </div>
 
-        <!-- ── GROUP D: APPLICANT ── -->
         <div class="form-section-label">I–L · APPLICANT DETAILS</div>
         <div class="form-grid">
           <div class="form-group">
@@ -219,12 +331,11 @@
           </div>
         </div>
 
-        <!-- ── GROUP E: DATES ── -->
         <div class="form-section-label">M–N · DATES</div>
         <div class="form-grid">
           <div class="form-group">
             <label class="form-label">M · ISSUE DATE</label>
-            <input type="text" class="form-input" id="editIssueDate" placeholder="01-MAY-2026 11:26:12 AM" />
+            <input type="text" class="form-input" id="editIssueDate" placeholder="01-MAY-2026" />
           </div>
           <div class="form-group">
             <label class="form-label">N · EXPIRY DATE <span style="font-size:9px;color:#0A6B52">(auto +7 days)</span></label>
@@ -232,46 +343,48 @@
           </div>
         </div>
 
-        <!-- ── GROUP F: TRADE / ADDRESS / YEAR ── -->
         <div class="form-section-label">O–Q · TRADE &amp; ADDRESS</div>
         <div class="form-grid">
           <div class="form-group">
-            <label class="form-label">O · BUSINESS / TRADE NAME <span class="req">⭐</span></label>
+            <label class="form-label">O · BUSINESS / TRADE NAME</label>
             <input type="text" class="form-input" id="editAppTrade" placeholder="Registered trade/brand name" />
           </div>
           <div class="form-group">
             <label class="form-label">Q · YEAR</label>
             <select class="form-select" id="editYear">
               <option value="">— Select —</option>
-              <option>2022</option><option>2023</option><option>2024</option>
-              <option>2025</option><option>2026</option>
+              <option>2020</option><option>2021</option><option>2022</option>
+              <option>2023</option><option>2024</option><option>2025</option><option>2026</option>
             </select>
           </div>
           <div class="form-group form-full">
-            <label class="form-label">P · APPLICANT ADDRESS <span class="req">⭐</span></label>
+            <label class="form-label">P · APPLICANT ADDRESS</label>
             <textarea class="form-textarea" id="editAppAdd" rows="2" placeholder="Full address of applicant"></textarea>
           </div>
         </div>
 
-        <!-- ── GROUP G: CONSULTANT ── -->
         <div class="form-section-label">R–S · CONSULTANT</div>
         <div class="form-grid">
           <div class="form-group">
-            <label class="form-label">R · CONSULTANT NAME <span class="req">⭐</span></label>
+            <label class="form-label">R · CONSULTANT NAME</label>
             <input type="text" class="form-input" id="editConName" placeholder="Consultant full name" />
           </div>
           <div class="form-group form-full">
-            <label class="form-label">S · CONSULTANT ADDRESS <span class="req">⭐</span></label>
+            <label class="form-label">S · CONSULTANT ADDRESS</label>
             <textarea class="form-textarea" id="editConAdd" rows="2" placeholder="Consultant address"></textarea>
           </div>
         </div>
 
-        <!-- ── GROUP H: MEDIA ── -->
-        <div class="form-section-label">T–U · IMAGE</div>
+        <div class="form-section-label">T–U · TRADEMARK IMAGE</div>
         <div class="form-grid">
           <div class="form-group">
+            <label class="form-label">T · UPLOAD MARK IMAGE</label>
+            <input type="file" class="form-input" id="imgUpload" accept="image/*" style="padding:6px" />
+            <span style="font-family:'DM Mono',monospace;font-size:9px;color:#888;margin-top:3px">— or paste Drive ID below</span>
+          </div>
+          <div class="form-group">
             <label class="form-label">T · GOOGLE DRIVE IMAGE ID</label>
-            <input type="text" class="form-input" id="editImg" placeholder="Drive file ID (from share link)" />
+            <input type="text" class="form-input" id="editImg" placeholder="Drive file ID or auto-filled on upload" />
           </div>
           <div class="form-group">
             <label class="form-label">U · FALLBACK TEXT (NO IMAGE)</label>
@@ -279,10 +392,10 @@
           </div>
         </div>
         <div id="imgPreview" style="display:none;margin-top:8px">
-          <img id="imgPreviewEl" src="" alt="Drive preview" style="max-width:120px;max-height:120px;border:3px solid #0C0C0C;border-radius:4px" />
+          <img id="imgPreviewEl" src="" alt="Preview" style="max-width:140px;max-height:140px;border:3px solid #0C0C0C;border-radius:4px" />
         </div>
 
-      </div><!-- /modal-body -->
+      </div>
 
       <div class="modal-footer">
         <button class="btn-outline" id="modalCancel">CANCEL</button>
