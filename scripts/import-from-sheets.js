@@ -21,9 +21,9 @@ function fetchUrl(url) {
 
 function parseCSV(text) {
   const lines = text.split('\n');
-  const headers = parseRow(lines[0]);
+  const headers = parseRow(lines[0]); // Row 0 = frozen header row — always skipped
   const rows = [];
-  for (let i = 1; i < lines.length; i++) {
+  for (let i = 1; i < lines.length; i++) { // Data starts at row 1
     const line = lines[i].trim();
     if (!line) continue;
     const vals = parseRow(line);
