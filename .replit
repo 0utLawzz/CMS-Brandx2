@@ -20,10 +20,6 @@ args = "Start application"
 
 [[workflows.workflow.tasks]]
 task = "workflow.run"
-args = "Start Expo (Android)"
-
-[[workflows.workflow.tasks]]
-task = "workflow.run"
 args = "Start API (MySQL)"
 
 [[workflows.workflow]]
@@ -37,17 +33,6 @@ waitForPort = 5000
 
 [workflows.workflow.metadata]
 outputType = "webview"
-
-[[workflows.workflow]]
-name = "Start Expo (Android)"
-author = "agent"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "cd mobile && EXPO_NO_DOTENV=1 npx expo start --tunnel --port 8081"
-
-[workflows.workflow.metadata]
-outputType = "console"
 
 [[workflows.workflow]]
 name = "Start API (MySQL)"
