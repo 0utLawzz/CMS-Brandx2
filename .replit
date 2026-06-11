@@ -79,3 +79,12 @@ run = ["node", "server.js"]
 [postMerge]
 path = "scripts/post-merge.sh"
 timeoutMs = 120000
+
+[userenv]
+
+[userenv.shared]
+DB_HOST = "srv1928.hstgr.io"
+DB_NAME = "u472671597_dev"
+DB_USER = "u472671597_ndm"
+DB_PORT = "3306"
+PORT = "3000"
