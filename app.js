@@ -113,7 +113,7 @@ async function loadData() {
     if(!j.success) throw new Error(j.error);
     allRecords=j.data;
     chip.className='status-chip ok';
-    st.textContent=allRecords.length.toLocaleString()+' records ready (MySQL)';
+    st.textContent=allRecords.length.toLocaleString()+' records ready';
     await loadStats();
     document.getElementById('searchResults').innerHTML=
       `<div class="no-results"><div class="no-results-title">START SEARCHING</div>
@@ -306,7 +306,7 @@ function openEditModal(id) {
   editingRecord=rec;
   document.getElementById('modalTitle').textContent='EDIT RECORD';
   document.getElementById('modalCase').textContent =rec.sr_no||'';
-  document.getElementById('modalNotice').textContent='📡 Changes save directly to MySQL database.';
+  document.getElementById('modalNotice').textContent='📡 Changes save directly to database.';
   fillModalForm(rec);
   document.getElementById('editModal').classList.add('open');
 }
@@ -315,7 +315,7 @@ function openAddModal() {
   isNewRecord=true; editingRecord=null;
   document.getElementById('modalTitle').textContent='ADD NEW RECORD';
   document.getElementById('modalCase').textContent ='';
-  document.getElementById('modalNotice').textContent='📡 New record will be saved to MySQL database.';
+  document.getElementById('modalNotice').textContent='📡 New record will be saved to database.';
   fillModalForm({});
   document.getElementById('editSrNo').value=genSrNo();
   document.getElementById('editModal').classList.add('open');

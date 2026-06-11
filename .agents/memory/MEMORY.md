@@ -1,2 +1,3 @@
 - [21-column schema V2](schema-v2.md) — BrandEx trademarks table upgraded from 11 to 21 cols (A–U); auto-migrates on API startup via runMigrations() in db.js.
-- [WebView → MySQL proxy](webview-proxy.md) — server.js proxies /api/* to localhost:3000 so WebView fetches from MySQL, not Google Sheets.
+- [WebView → PostgreSQL proxy](webview-proxy.md) — server.js proxies /api/* to localhost:3000; switched from MySQL to Replit PostgreSQL (DATABASE_URL) because Hostinger shared hosting blocks port 3306 from cloud IPs.
+- [Hostinger MySQL blocked](hostinger-mysql.md) — Hostinger shared hosting firewalls port 3306 externally; Remote MySQL whitelist only controls MySQL auth, not the firewall. Cannot connect from Replit.
