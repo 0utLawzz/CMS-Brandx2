@@ -302,6 +302,138 @@ app.post('/api/sync-sheets', async (req, res) => {
   } catch (err) { res.status(500).json({ success: false, error: err.message }); }
 });
 
+// ═══════════════════════════════════════════════════════════════════════════
+// ASSIGNMENT SYSTEM
+// ═══════════════════════════════════════════════════════════════════════════
+
+// GET all assignments (joined with trademark data)
+app.get('/api/assignments', async (req, res) => {
+  try {
+    const { agent, city, status } = req.query;
+    let sql = `
+      SELECT a.id, a.trademark_id, a.agent_name, a.agent_city,
+             a.assigned_at, a.completed_at, a.status, a.notes,
+             t.tm_no, t.app_name, t.sr_no, t.class, t.stage,
+             t.status_run, t.year, t.img
+      FROM assignments a
+      JOIN trademarks t ON t.id = a.trademark_id
+      WHERE 1=1`;
+    const params = [];
+    let idx = 1;
+    if (agent)  { sql += ` AND a.agent_name = $${idx++}`; params.push(agent); }
+    if (city)   { sql += ` AND a.agent_city = $${idx++}`; params.push(city); }
+    if (status) { sql += ` AND a.status = $${idx++}`;     params.push(status); }
+    sql += ' ORDER BY a.assigned_at DESC';
+    const { rows } = await pool.query(sql, params);
+    res.json({ success: true, count: rows.length, data: rows });
+  } catch (err) { res.status(500).json({ success: false, error: err.message }); }
+});
+
+// GET unassigned queue — stage=ASSIGNED but no assignment record
+app.get('/api/assignments/unassigned', async (req, res) => {
+  try {
+    const { rows } = await pool.query(`
+      SELECT t.id, t.tm_no, t.app_name, t.sr_no, t.class, t.stage, t.class_desc, t.year, t.img
+      FROM trademarks t
+      WHERE (t.stage ILIKE '%ASSIGNED%'
+          OR t.class_desc ILIKE '%UZMA%' OR t.class_desc ILIKE '%FASIAL%'
+          OR t.class_desc ILIKE '%FAISAL%' OR t.class_desc ILIKE '%RASHID%'
+          OR t.class_desc ILIKE '%SULMAN%')
+        AND NOT EXISTS (SELECT 1 FROM assignments a WHERE a.trademark_id = t.id)
+      ORDER BY t.created_at DESC
+      LIMIT 200
+    `);
+    res.json({ success: true, count: rows.length, data: rows });
+  } catch (err) { res.status(500).json({ success: false, error: err.message }); }
+});
+
+// GET assignment stats
+app.get('/api/assignments/stats', async (req, res) => {
+  try {
+    const { rows: totals } = await pool.query(`
+      SELECT
+        COUNT(*)                                                  AS total,
+        SUM(CASE WHEN status='Pending'     THEN 1 ELSE 0 END)   AS pending,
+        SUM(CASE WHEN status='In Progress' THEN 1 ELSE 0 END)   AS in_progress,
+        SUM(CASE WHEN status='Complete'    THEN 1 ELSE 0 END)   AS complete
+      FROM assignments
+    `);
+    const { rows: byAgent } = await pool.query(`
+      SELECT agent_name, agent_city,
+             COUNT(*)                                            AS total,
+             SUM(CASE WHEN status='Pending'     THEN 1 ELSE 0 END) AS pending,
+             SUM(CASE WHEN status='In Progress' THEN 1 ELSE 0 END) AS in_progress,
+             SUM(CASE WHEN status='Complete'    THEN 1 ELSE 0 END) AS complete
+      FROM assignments
+      GROUP BY agent_name, agent_city
+      ORDER BY agent_name, agent_city
+    `);
+    const { rows: unassigned } = await pool.query(`
+      SELECT COUNT(*) AS count FROM trademarks t
+      WHERE (t.stage ILIKE '%ASSIGNED%'
+          OR t.class_desc ILIKE '%UZMA%' OR t.class_desc ILIKE '%FASIAL%'
+          OR t.class_desc ILIKE '%RASHID%' OR t.class_desc ILIKE '%SULMAN%')
+        AND NOT EXISTS (SELECT 1 FROM assignments a WHERE a.trademark_id = t.id)
+    `);
+    res.json({ success: true, data: { ...totals[0], by_agent: byAgent, unassigned: parseInt(unassigned[0].count)||0 } });
+  } catch (err) { res.status(500).json({ success: false, error: err.message }); }
+});
+
+// POST create assignment
+app.post('/api/assignments', async (req, res) => {
+  try {
+    const { trademark_id, agent_name, agent_city, notes } = req.body;
+    if (!trademark_id || !agent_name || !agent_city)
+      return res.status(400).json({ success: false, error: 'trademark_id, agent_name, agent_city required' });
+    const { rows } = await pool.query(
+      `INSERT INTO assignments (trademark_id, agent_name, agent_city, notes, status)
+       VALUES ($1, $2, $3, $4, 'Pending')
+       ON CONFLICT (trademark_id) DO UPDATE
+         SET agent_name=$2, agent_city=$3, notes=$4, assigned_at=NOW(), status='Pending', completed_at=NULL
+       RETURNING id`,
+      [trademark_id, agent_name, agent_city, notes||null]
+    );
+    // Also update trademark stage to ASSIGNED if not already
+    await pool.query(
+      `UPDATE trademarks SET stage='ASSIGNED', class_desc=$1 WHERE id=$2 AND (stage IS NULL OR stage NOT ILIKE '%ASSIGNED%')`,
+      [`${agent_name} (${agent_city.slice(0,3)})`, trademark_id]
+    );
+    res.json({ success: true, id: rows[0].id });
+  } catch (err) { res.status(500).json({ success: false, error: err.message }); }
+});
+
+// PATCH update assignment (status, notes, reassign)
+app.patch('/api/assignments/:id', async (req, res) => {
+  try {
+    const { status, notes, agent_name, agent_city } = req.body;
+    const allowed = { status, notes, agent_name, agent_city };
+    const fields = Object.keys(allowed).filter(k => allowed[k] !== undefined);
+    if (!fields.length) return res.status(400).json({ success: false, error: 'Nothing to update' });
+    const sets = [];
+    const vals = [];
+    let i = 1;
+    for (const f of fields) { sets.push(`${f}=$${i++}`); vals.push(allowed[f]); }
+    // Auto-set completed_at when marking Complete
+    if (status === 'Complete') { sets.push(`completed_at=NOW()`); }
+    if (status && status !== 'Complete') { sets.push(`completed_at=NULL`); }
+    vals.push(req.params.id);
+    const { rowCount } = await pool.query(
+      `UPDATE assignments SET ${sets.join(',')} WHERE id=$${i}`, vals
+    );
+    if (!rowCount) return res.status(404).json({ success: false, error: 'Not found' });
+    res.json({ success: true });
+  } catch (err) { res.status(500).json({ success: false, error: err.message }); }
+});
+
+// DELETE remove assignment
+app.delete('/api/assignments/:id', async (req, res) => {
+  try {
+    const { rowCount } = await pool.query('DELETE FROM assignments WHERE id=$1', [req.params.id]);
+    if (!rowCount) return res.status(404).json({ success: false, error: 'Not found' });
+    res.json({ success: true });
+  } catch (err) { res.status(500).json({ success: false, error: err.message }); }
+});
+
 // ─── Start ────────────────────────────────────────────────────────────────────
 app.listen(PORT, 'localhost', async () => {
   console.log(`BrandEx API running on http://localhost:${PORT}`);

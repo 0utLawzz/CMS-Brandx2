@@ -522,3 +522,65 @@ input[type=checkbox] { cursor: pointer; width: 15px; height: 15px; accent-color:
   border-radius: 4px; padding: 10px 12px;
   font-family: var(--font-body); font-size: 12px; color: var(--dim); line-height: 1.5;
 }
+
+/* ─── Assignment system (full) ─────────────────────────────────────────────── */
+.assign-filter-bar {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  padding: 8px 0 12px; border-bottom: 1.5px solid var(--bg2); margin-bottom: 12px;
+}
+
+/* Agent breakdown cards */
+.agent-breakdown-row {
+  display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 16px; align-items: stretch;
+}
+.agent-breakdown-card {
+  background: var(--white); border: 2.5px solid var(--black); border-radius: 6px;
+  padding: 12px 16px; cursor: pointer; transition: all 0.1s;
+  box-shadow: 3px 3px 0 var(--black); min-width: 130px; flex: 1;
+}
+.agent-breakdown-card:hover { transform: translate(-1px,-1px); box-shadow: 4px 4px 0 var(--black); }
+.agent-breakdown-card.active { background: var(--black); }
+.agent-breakdown-card.active .agent-breakdown-name { color: var(--orange); }
+.agent-breakdown-card.active .agent-breakdown-total { color: var(--white); }
+.agent-breakdown-card.active .agent-sub-stat span:last-child { color: #aaa; }
+.agent-breakdown-name {
+  font-family: var(--font-head); font-size: 22px; letter-spacing: 1px; color: var(--black);
+  line-height: 1; margin-bottom: 4px;
+}
+.agent-breakdown-total {
+  font-family: var(--font-head); font-size: 36px; line-height: 1;
+  color: var(--orange); margin-bottom: 8px;
+}
+.agent-breakdown-bars { display: flex; gap: 10px; flex-wrap: wrap; }
+.agent-sub-stat {
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+}
+.agent-sub-stat span:first-child {
+  font-family: var(--font-head); font-size: 18px; line-height: 1;
+}
+.agent-sub-stat span:last-child {
+  font-family: var(--font-mono); font-size: 7px; color: #888; letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+/* Status badge in assignments table */
+.assign-status-badge {
+  display: inline-block; font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.5px;
+  border: 1.5px solid; border-radius: 3px; padding: 1px 6px; font-weight: 600;
+  background: transparent;
+}
+
+/* Assign / Complete buttons */
+.btn-assign {
+  background: var(--teal-lt); color: white; border: 1.5px solid var(--black);
+  border-radius: 3px; font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.5px;
+  padding: 3px 8px; cursor: pointer; box-shadow: 1px 1px 0 var(--black);
+}
+.btn-assign:hover { filter: brightness(1.1); transform: translate(-1px,-1px); box-shadow: 2px 2px 0 var(--black); }
+
+.btn-assign-complete {
+  background: var(--teal-lt); color: white; border: 1.5px solid var(--black);
+  border-radius: 3px; font-family: var(--font-mono); font-size: 10px;
+  padding: 3px 8px; cursor: pointer; box-shadow: 1px 1px 0 var(--black);
+}
+.btn-assign-complete:hover { filter: brightness(1.15); transform: translate(-1px,-1px); }

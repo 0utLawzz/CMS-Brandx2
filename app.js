@@ -305,6 +305,7 @@ function renderRecordsTable(){
       <td><div class="action-cell">
         <button class="action-tick ${isSel?'checked':''}" data-id="${r.id}">✓</button>
         <button class="action-edit" onclick="openEditModal(${r.id})">✎</button>
+        <button class="btn-assign" style="padding:3px 6px;font-size:9px" title="Assign to agent" onclick="openAssignModal(${r.id},'${(r.tm_no||'').replace(/'/g,"\\'")}','${(r.app_name||'').replace(/'/g,"\\'")}')">⊕</button>
         <button class="action-del"  onclick="deleteRec(${r.id},'${(r.app_name||'').replace(/'/g,"\\'")}',false)">✕</button>
       </div></td>
     </tr>`;
@@ -440,104 +441,236 @@ async function handleImageUpload(file){
   }catch(e){alert('Upload failed: '+e.message);}
 }
 
-// ─── Assignment tab ───────────────────────────────────────────────────────────
-function renderAssignmentTab(){
+// ─── Assignment system ────────────────────────────────────────────────────────
+let assignmentFilter = { agent:'', status:'', city:'' };
+let assigningTrademarkId = null;
+let editingAssignmentId  = null;
+
+const STATUS_COLORS = { Pending:'#D4A800', 'In Progress':'#2563EB', Complete:'#0D9970' };
+const AGENTS = ['UZMA','FASIAL','RASHID','SULMAN'];
+
+async function renderAssignmentTab(){
   const el=document.getElementById('assignmentContent');
   if(!el) return;
+  el.innerHTML=`<div style="padding:40px;text-align:center;font-family:'DM Mono',monospace;font-size:11px;color:#888">Loading assignments…</div>`;
 
-  const agents=['UZMA','FASIAL','RASHID','SULMAN'];
-  const cities=['KARACHI','LAHORE','ISLAMABAD'];
-  const stageHierarchy=[
-    {stage:'STAGE 1',color:'#C94A00',subs:['APPLICATION FILED','ACKNOWLEDGMENT','EXAMINATION']},
-    {stage:'STAGE 2',color:'#0A6B52',subs:['ASSIGNED','ACCEPTED','HEARING']},
-    {stage:'STAGE 3',color:'#D4A800',subs:['PUBLISHED','OPPO: WITHDRAWN','OPPO: FILED','OPPO: RECEIVED','DEMAND NOTE RECEIVED','DEMAND NOTE PAID']},
-    {stage:'STAGE 4',color:'#0D9970',subs:['CERTIFICATE RECEIVED','CERTIFICATE DISPATCH','HEARING','COMPLETE']},
-    {stage:'STOPPED', color:'#888',  subs:['ABANDONED','NOTE','HOLD','REFUSED']},
-    {stage:'COPYRIGHT',color:'#8B2FC9',subs:['FILED','IN NEWSPAPERS','ACKNOWLEDGEMENT','EXAMINATION','CERTIFICATE RECEIVED','CERTIFICATE DISPATCHED']},
-  ];
+  try{
+    const [statsRes,assignRes,unassignedRes]=await Promise.all([
+      fetch(`${API}/assignments/stats`),
+      fetch(`${API}/assignments`),
+      fetch(`${API}/assignments/unassigned`),
+    ]);
+    const [statsJ,assignJ,unassignedJ]=await Promise.all([
+      statsRes.json(),assignRes.json(),unassignedRes.json()
+    ]);
+    if(!assignJ.success) throw new Error(assignJ.error);
 
-  // Count sub-statuses
-  const counts={};
-  allRecords.forEach(r=>{
-    const s=cleanStageText(r.stage||'').toUpperCase().trim();
-    if(s) counts[s]=(counts[s]||0)+1;
-  });
+    const stats     =statsJ.data||{};
+    const allAssign =assignJ.data||[];
+    const unassigned=unassignedJ.data||[];
 
-  // Assigned records (stage = ASSIGNED or class_desc contains agent name)
-  const assignedRecs=allRecords.filter(r=>{
-    const s=cleanStageText(r.stage||'').toUpperCase();
-    return s.startsWith('ASSIGNED')||agents.some(a=>s.includes(a));
-  });
+    // Filter
+    let filtered=allAssign;
+    if(assignmentFilter.agent)  filtered=filtered.filter(a=>a.agent_name===assignmentFilter.agent);
+    if(assignmentFilter.city)   filtered=filtered.filter(a=>a.agent_city===assignmentFilter.city);
+    if(assignmentFilter.status) filtered=filtered.filter(a=>a.status===assignmentFilter.status);
 
-  el.innerHTML=`
-    <div class="assign-header">
-      <div class="assign-stat-row">
-        <div class="assign-stat"><span class="assign-stat-val" style="color:#C94A00">${assignedRecs.length}</span><span class="assign-stat-lbl">ASSIGNED</span></div>
-        <div class="assign-stat"><span class="assign-stat-val" style="color:#0A6B52">${allRecords.filter(r=>getStageNum(r.stage||'')==2).length}</span><span class="assign-stat-lbl">STAGE 2</span></div>
-        <div class="assign-stat"><span class="assign-stat-val" style="color:#D4A800">${allRecords.length}</span><span class="assign-stat-lbl">TOTAL</span></div>
-      </div>
-    </div>
+    // Agent breakdown
+    const aStats={};
+    AGENTS.forEach(a=>{aStats[a]={total:0,pending:0,inProgress:0,complete:0};});
+    allAssign.forEach(a=>{
+      if(!aStats[a.agent_name]) aStats[a.agent_name]={total:0,pending:0,inProgress:0,complete:0};
+      aStats[a.agent_name].total++;
+      if(a.status==='Pending')     aStats[a.agent_name].pending++;
+      if(a.status==='In Progress') aStats[a.agent_name].inProgress++;
+      if(a.status==='Complete')    aStats[a.agent_name].complete++;
+    });
 
-    <div class="assign-grid">
-      <div class="assign-panel">
-        <div class="assign-panel-title">STAGE HIERARCHY &amp; SUB-STATUSES</div>
-        <div class="stage-hierarchy">
-          ${stageHierarchy.map(s=>`
-            <div class="hier-stage">
-              <div class="hier-stage-label" style="border-left:3px solid ${s.color};color:${s.color}">${s.stage}</div>
-              <div class="hier-subs">
-                ${s.subs.map(sub=>{
-                  const c=counts[sub.toUpperCase()]||0;
-                  return `<div class="hier-sub">
-                    <span>${sub}</span>
-                    ${c?`<span class="hier-count" style="color:${s.color}">${c}</span>`:''}
-                  </div>`;
-                }).join('')}
-              </div>
-            </div>`).join('')}
+    el.innerHTML=`
+      <!-- Stats -->
+      <div class="assign-header">
+        <div class="assign-stat-row">
+          <div class="assign-stat"><span class="assign-stat-val" style="color:#0C0C0C">${parseInt(stats.total)||0}</span><span class="assign-stat-lbl">TOTAL</span></div>
+          <div class="assign-stat"><span class="assign-stat-val" style="color:#D4A800">${parseInt(stats.pending)||0}</span><span class="assign-stat-lbl">PENDING</span></div>
+          <div class="assign-stat"><span class="assign-stat-val" style="color:#2563EB">${parseInt(stats.in_progress)||0}</span><span class="assign-stat-lbl">IN PROGRESS</span></div>
+          <div class="assign-stat"><span class="assign-stat-val" style="color:#0D9970">${parseInt(stats.complete)||0}</span><span class="assign-stat-lbl">COMPLETE</span></div>
+          ${unassigned.length?`<div class="assign-stat" style="border-color:#C94A00"><span class="assign-stat-val" style="color:#C94A00">${unassigned.length}</span><span class="assign-stat-lbl">UNASSIGNED</span></div>`:''}
         </div>
       </div>
 
-      <div class="assign-panel">
-        <div class="assign-panel-title">AGENTS</div>
-        <div class="agents-grid">
-          ${agents.map(agent=>`
-            <div class="agent-card">
-              <div class="agent-name">${agent}</div>
-              <div class="agent-cities">
-                ${cities.map(city=>`<span class="agent-city-badge">${city}</span>`).join('')}
-              </div>
-            </div>`).join('')}
-        </div>
-        <div class="assign-note">
-          <strong>⚙️ Full Assignment Tracking</strong><br>
-          Assigning cases to specific agents with timestamps and completion tracking requires a data structure update. Queued for next phase after current fixes are approved.
-        </div>
+      <!-- Agent cards -->
+      <div class="agent-breakdown-row">
+        ${AGENTS.map(agent=>{
+          const s=aStats[agent];
+          const active=assignmentFilter.agent===agent;
+          return `<div class="agent-breakdown-card${active?' active':''}" onclick="filterAssignByAgent('${active?'':agent}')">
+            <div class="agent-breakdown-name">${agent}</div>
+            <div class="agent-breakdown-total">${s.total}</div>
+            <div class="agent-breakdown-bars">
+              <div class="agent-sub-stat"><span style="color:#D4A800">${s.pending}</span><span>Pending</span></div>
+              <div class="agent-sub-stat"><span style="color:#2563EB">${s.inProgress}</span><span>Active</span></div>
+              <div class="agent-sub-stat"><span style="color:#0D9970">${s.complete}</span><span>Done</span></div>
+            </div>
+          </div>`;
+        }).join('')}
       </div>
-    </div>
 
-    ${assignedRecs.length?`
-    <div style="margin-top:20px">
-      <div class="assign-panel-title">ASSIGNED RECORDS (${assignedRecs.length})</div>
-      <div class="table-wrap" style="margin-top:10px">
+      <!-- Filter + count row -->
+      <div class="assign-filter-bar">
+        <select class="filter-select" onchange="filterAssignByStatus(this.value)">
+          <option value="">All Status</option>
+          ${['Pending','In Progress','Complete'].map(s=>`<option${assignmentFilter.status===s?' selected':''}>${s}</option>`).join('')}
+        </select>
+        <select class="filter-select" onchange="filterAssignByCity(this.value)">
+          <option value="">All Cities</option>
+          ${['KARACHI','LAHORE','ISLAMABAD'].map(c=>`<option${assignmentFilter.city===c?' selected':''}>${c}</option>`).join('')}
+        </select>
+        ${(assignmentFilter.agent||assignmentFilter.status||assignmentFilter.city)?`<button class="btn-outline" style="padding:5px 10px;font-size:9px" onclick="clearAssignFilters()">✕ CLEAR</button>`:''}
+        <span style="font-family:'DM Mono',monospace;font-size:10px;color:#888;margin-left:auto">${filtered.length} record${filtered.length!==1?'s':''}</span>
+      </div>
+
+      <!-- Assignments table -->
+      <div class="table-wrap" style="margin-bottom:24px">
         <table class="records-table">
-          <thead><tr><th>SR. NO</th><th>TM NO</th><th>APP NAME</th><th>CLASS</th><th>STAGE</th><th>SUB-STATUS</th><th>ACTIONS</th></tr></thead>
+          <thead><tr>
+            <th>TM NO</th><th>APP NAME</th><th>CLASS</th><th>STAGE</th>
+            <th>AGENT</th><th>CITY</th><th>STATUS</th><th>DATE</th><th>ACTIONS</th>
+          </tr></thead>
           <tbody>
-            ${assignedRecs.slice(0,100).map(r=>`<tr>
-              <td class="td-case">${r.sr_no||'—'}</td>
-              <td class="td-tm">™ ${r.tm_no||'—'}</td>
-              <td class="td-name">${r.app_name||'—'}</td>
-              <td><span class="td-cls">${r.class||'—'}</span></td>
-              <td><div class="stage-badge-num" style="background:${stageBadgeColor(getStageNum(r.stage||''))}">${stageBadgeText(getStageNum(r.stage||''))}</div></td>
-              <td style="font-family:'DM Mono',monospace;font-size:9px;color:#C94A00">${cleanStageText(r.class_desc||'')||'—'}</td>
-              <td><button class="action-edit" onclick="openEditModal(${r.id})" style="width:auto;padding:3px 8px;font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.5px">✎ EDIT</button></td>
-            </tr>`).join('')}
+            ${!filtered.length?`<tr><td colspan="9" style="text-align:center;padding:30px;color:#888;font-family:'DM Mono',monospace;font-size:11px">NO ASSIGNMENTS${(assignmentFilter.agent||assignmentFilter.status||assignmentFilter.city)?' — clear filters to see all':' YET'}</td></tr>`:''}
+            ${filtered.map(a=>{
+              const sn=getStageNum(a.stage||'');
+              const sc=stageBadgeColor(sn);
+              const stc=STATUS_COLORS[a.status]||'#888';
+              const dt=a.assigned_at?new Date(a.assigned_at).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}):'—';
+              const safe_tm   =(a.tm_no||'').replace(/'/g,"\\'");
+              const safe_name =(a.app_name||'').replace(/'/g,"\\'");
+              return `<tr>
+                <td class="td-tm">™ ${a.tm_no||'—'}</td>
+                <td class="td-name">${a.app_name||'—'}</td>
+                <td><span class="td-cls">${a.class||'—'}</span></td>
+                <td><div class="stage-badge-num" style="background:${sc}">${stageBadgeText(sn)}</div></td>
+                <td style="font-family:'DM Mono',monospace;font-size:11px;font-weight:600">${a.agent_name}</td>
+                <td style="font-family:'DM Mono',monospace;font-size:10px;color:#555">${a.agent_city}</td>
+                <td><span class="assign-status-badge" style="color:${stc};border-color:${stc}">${a.status}</span></td>
+                <td class="td-date">${dt}</td>
+                <td><div class="action-cell" style="gap:4px;flex-wrap:wrap">
+                  ${a.status!=='Complete'
+                    ?`<button class="btn-assign-complete" onclick="completeAssignment(${a.id})">✓</button>`
+                    :`<span style="font-family:'DM Mono',monospace;font-size:9px;color:#0D9970;padding:2px 4px">✓</span>`
+                  }
+                  <button class="action-edit" title="Reassign" onclick="openAssignModal(${a.trademark_id},'${safe_tm}','${safe_name}',${a.id},'${a.agent_name}','${a.agent_city}','${a.status}')">⟳</button>
+                  <button class="action-del" onclick="removeAssignment(${a.id},'${safe_name}')">✕</button>
+                </div></td>
+              </tr>`;
+            }).join('')}
           </tbody>
         </table>
       </div>
-      ${assignedRecs.length>100?`<div style="text-align:center;padding:10px;font-family:'DM Mono',monospace;font-size:9px;color:#888">Showing 100 of ${assignedRecs.length} — see All Records tab for full list</div>`:''}
-    </div>`:''}
-  `;
+
+      <!-- Unassigned Queue -->
+      ${unassigned.length?`
+      <div class="assign-panel">
+        <div class="assign-panel-title" style="color:#C94A00">
+          UNASSIGNED QUEUE — ${unassigned.length} record${unassigned.length!==1?'s':''} in ASSIGNED stage without a formal assignment
+        </div>
+        <div class="table-wrap" style="margin-top:10px">
+          <table class="records-table">
+            <thead><tr><th>TM NO</th><th>APP NAME</th><th>CLASS</th><th>STAGE</th><th>SUB-STATUS</th><th>ACTION</th></tr></thead>
+            <tbody>
+              ${unassigned.slice(0,50).map(r=>{
+                const sn=getStageNum(r.stage||'');
+                const safe_tm   =(r.tm_no||'').replace(/'/g,"\\'");
+                const safe_name =(r.app_name||'').replace(/'/g,"\\'");
+                return `<tr>
+                  <td class="td-tm">™ ${r.tm_no||'—'}</td>
+                  <td class="td-name">${r.app_name||'—'}</td>
+                  <td><span class="td-cls">${r.class||'—'}</span></td>
+                  <td><div class="stage-badge-num" style="background:${stageBadgeColor(sn)}">${stageBadgeText(sn)}</div></td>
+                  <td style="font-family:'DM Mono',monospace;font-size:9px;color:#C94A00">${cleanStageText(r.class_desc||'')||'—'}</td>
+                  <td><button class="btn-assign" onclick="openAssignModal(${r.id},'${safe_tm}','${safe_name}')">⊕ ASSIGN</button></td>
+                </tr>`;
+              }).join('')}
+            </tbody>
+          </table>
+        </div>
+        ${unassigned.length>50?`<div style="text-align:center;padding:8px;font-family:'DM Mono',monospace;font-size:9px;color:#888">Showing 50 of ${unassigned.length}</div>`:''}
+      </div>`:''}
+    `;
+  }catch(e){
+    el.innerHTML=`<div class="no-results"><div class="no-results-title">ERROR</div><p class="no-results-hint">${e.message}</p></div>`;
+  }
+}
+
+function filterAssignByAgent(a){ assignmentFilter.agent=a; renderAssignmentTab(); }
+function filterAssignByStatus(s){ assignmentFilter.status=s; renderAssignmentTab(); }
+function filterAssignByCity(c){ assignmentFilter.city=c; renderAssignmentTab(); }
+function clearAssignFilters(){ assignmentFilter={agent:'',status:'',city:''}; renderAssignmentTab(); }
+
+// ─── Assign modal ─────────────────────────────────────────────────────────────
+function openAssignModal(trademarkId,tmNo,appName,assignId,agent,city,status){
+  assigningTrademarkId=trademarkId;
+  editingAssignmentId=assignId||null;
+  document.getElementById('assignModalTitle').textContent=assignId?'REASSIGN RECORD':'ASSIGN RECORD';
+  document.getElementById('assignModalCase').textContent=tmNo?`TM ${tmNo}`:'';
+  document.getElementById('assignAgent').value=agent||'';
+  document.getElementById('assignCity').value=city||'';
+  document.getElementById('assignStatus').value=status||'Pending';
+  document.getElementById('assignNotes').value='';
+  const preview=document.getElementById('assignRecordPreview');
+  const info=document.getElementById('assignRecordInfo');
+  if(appName){preview.style.display='block';info.textContent=appName+(tmNo?` · TM ${tmNo}` :'');}
+  else preview.style.display='none';
+  document.getElementById('assignModal').classList.add('open');
+}
+
+function closeAssignModal(){
+  document.getElementById('assignModal').classList.remove('open');
+  assigningTrademarkId=null;
+  editingAssignmentId=null;
+}
+
+async function saveAssignment(){
+  const agent =document.getElementById('assignAgent').value;
+  const city  =document.getElementById('assignCity').value;
+  const status=document.getElementById('assignStatus').value;
+  const notes =document.getElementById('assignNotes').value.trim();
+  if(!agent||!city){alert('Select an agent and city.');return;}
+  const btn=document.getElementById('assignModalSave');
+  btn.textContent='SAVING…';btn.disabled=true;
+  try{
+    let j;
+    if(editingAssignmentId){
+      const res=await fetch(`${API}/assignments/${editingAssignmentId}`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({agent_name:agent,agent_city:city,status,notes:notes||null})});
+      j=await res.json();
+    }else{
+      const res=await fetch(`${API}/assignments`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({trademark_id:assigningTrademarkId,agent_name:agent,agent_city:city,notes:notes||null})});
+      j=await res.json();
+    }
+    if(!j.success) throw new Error(j.error);
+    closeAssignModal();
+    renderAssignmentTab();
+  }catch(e){alert('Save failed: '+e.message);}
+  finally{btn.textContent='ASSIGN';btn.disabled=false;}
+}
+
+async function completeAssignment(id){
+  try{
+    const res=await fetch(`${API}/assignments/${id}`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({status:'Complete'})});
+    const j=await res.json();
+    if(!j.success) throw new Error(j.error);
+    renderAssignmentTab();
+  }catch(e){alert('Failed: '+e.message);}
+}
+
+async function removeAssignment(id,appName){
+  if(!confirm(`Remove assignment for "${appName}"?\n\nThe record will stay in the database, just unassigned.`)) return;
+  try{
+    const res=await fetch(`${API}/assignments/${id}`,{method:'DELETE'});
+    const j=await res.json();
+    if(!j.success) throw new Error(j.error);
+    renderAssignmentTab();
+  }catch(e){alert('Failed: '+e.message);}
 }
 
 // ─── Edit / Add modal ─────────────────────────────────────────────────────────
@@ -641,8 +774,8 @@ function updateImgPreview(src){
 function switchTab(id){
   document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active',b.dataset.tab===id));
   document.querySelectorAll('.tab-panel').forEach(p=>p.classList.toggle('active',p.id==='tab-'+id));
-  if(id==='records') renderRecordsTable();
-  if(id==='assignment') renderAssignmentTab();
+  if(id==='records')    renderRecordsTable();
+  if(id==='assignment') renderAssignmentTab(); // async — updates DOM when done
 }
 
 // ─── Init ─────────────────────────────────────────────────────────────────────
@@ -700,7 +833,15 @@ document.addEventListener('DOMContentLoaded',()=>{
   document.getElementById('bulkClrBtn').addEventListener('click',bulkClear);
   document.getElementById('exportBtn').addEventListener('click',exportCSV);
 
-  // Modal
+  // Assign modal
+  document.getElementById('assignModalClose').addEventListener('click',closeAssignModal);
+  document.getElementById('assignModalCancel').addEventListener('click',closeAssignModal);
+  document.getElementById('assignModalSave').addEventListener('click',saveAssignment);
+  document.getElementById('assignModal').addEventListener('click',e=>{
+    if(e.target===document.getElementById('assignModal')) closeAssignModal();
+  });
+
+  // Edit modal
   document.getElementById('modalClose').addEventListener('click',closeEditModal);
   document.getElementById('modalCancel').addEventListener('click',closeEditModal);
   document.getElementById('modalSave').addEventListener('click',saveEdit);
