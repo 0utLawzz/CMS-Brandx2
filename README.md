@@ -10,13 +10,14 @@ Neo-brutalism UI · PostgreSQL database · REST API · Google Sheets sync
 ### Prerequisites
 - Node.js 18+
 - A Replit account (or any environment with Node.js)
+- MySQL Database (either a local instance or a remote database like Hostinger's)
 
 ### Installation
 
 ```bash
 # 1. Clone the repo
 git clone <your-repo-url>
-cd brandex-portal
+cd CMS-Brandx2
 
 # 2. Install root dependencies (web server)
 npm install
@@ -65,7 +66,7 @@ PORT=3000
 ## Project Structure
 
 ```
-brandex-portal/
+CMS-Brandx2/
 │
 ├── index.html              ← Main web portal UI (4 tabs)
 ├── styles.css              ← Neo-brutalism theme (cream/orange/teal/black)
@@ -79,22 +80,16 @@ brandex-portal/
 ├── api/
 │   ├── index.js            ← Express REST API (port 3000)
 │   ├── db.js               ← PostgreSQL pool + auto-migrations
+│   ├── migrate-from-sheets.js ← One-time Google Sheets CSV importer
 │   ├── .env                ← Local credentials (gitignored)
 │   ├── .env.example        ← Template for credentials
 │   ├── package.json        ← API deps: express, pg, cors, dotenv, multer
 │   ├── schema.sql          ← V1 schema reference
 │   └── schema_v2.sql       ← V2 schema reference (21 columns)
 │
-├── scripts/
-│   └── import-from-sheets.js ← One-time Google Sheets CSV importer
-│
 ├── uploads/                ← Uploaded trademark images (auto-created)
 │
 └── mobile/                 ← Expo React Native app (PAUSED)
-    ├── App.tsx
-    ├── screens/
-    ├── components/
-    └── hooks/useSheet.ts
 ```
 
 ---
@@ -133,114 +128,50 @@ Schema is **auto-created** on API startup via `runMigrations()` in `api/db.js`.
 
 ---
 
-## Stage / Sub-Status Hierarchy
-
-| Stage | Sub-Statuses |
-|-------|-------------|
-| STAGE 1 | APPLICATION FILED · ACKNOWLEDGMENT · EXAMINATION |
-| STAGE 2 | ASSIGNED · ACCEPTED · HEARING |
-| STAGE 3 | PUBLISHED · OPPO: WITHDRAWN · OPPO: FILED · OPPO: RECEIVED · DEMAND NOTE RECEIVED · DEMAND NOTE PAID |
-| STAGE 4 | CERTIFICATE RECEIVED · CERTIFICATE DISPATCH · HEARING · COMPLETE |
-| STOPPED | ABANDONED · NOTE · HOLD · REFUSED |
-| COPYRIGHT | FILED · IN NEWSPAPERS · ACKNOWLEDGEMENT · EXAMINATION · CERTIFICATE RECEIVED · CERTIFICATE DISPATCHED |
-
----
-
-## API Endpoints
-
-All endpoints are proxied through the web server at `/api/*` → `localhost:3000/api/*`.
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | /api/health | Database connection status |
-| GET | /api/trademarks | List all trademarks (query: search, stage, status_run, app_type, year, class, limit, offset) |
-| GET | /api/trademarks/:id | Get one trademark by ID |
-| GET | /api/trademarks/tm/:tmNo | Get one trademark by TM number |
-| GET | /api/stats | Stage/status counts for dashboard |
-| POST | /api/trademarks | Create new trademark |
-| PATCH | /api/trademarks/:id | Update trademark fields |
-| DELETE | /api/trademarks/:id | Delete trademark |
-| POST | /api/upload | Upload trademark image (multipart/form-data, field: `image`) |
-| POST | /api/import | Bulk import (body: `{ records: [...] }`) |
-| POST | /api/sync-sheets | Pull latest data from Google Sheets |
-
----
-
-## Web Portal Tabs
-
-### 1. Dashboard
-- Stage distribution bar chart
-- Stats tiles: Total, Run, Processing, Done, Stage 1–4
-- Refresh + Sync Sheets + Add New buttons
-
-### 2. Search TM
-- Full-text search across TM number, app name, CNIC, SR no, trade name, consultant
-- Returns rich cards with all details, expand/collapse
-- Edit and delete from search results
-
-### 3. All Records
-- Paginated table (50 / 100 / 500 / ALL per page)
-- Filter dropdowns: Stage, Status, App Type, Year
-- Free-text filter on any field
-- Sort: Newest / Name / Stage / Status
-- Bulk select + bulk delete
-- Export to CSV (filtered records)
-- 25×25 image thumbnail per row
-
-### 4. Assignment
-- Overview of assigned cases
-- Stage → Sub-status hierarchy with record counts
-- Agent list (UZMA, FASIAL, RASHID, SULMAN × KARACHI, LAHORE, ISLAMABAD)
-- Full DB-backed assignment tracking: **queued for next phase**
-
----
-
-## Data Import
+## Data Import & Syncing
 
 ### From Google Sheets (automated)
 ```bash
-node scripts/import-from-sheets.js
+cd api
+node migrate-from-sheets.js
 ```
-Or click **⟳ SYNC SHEETS** in the Dashboard tab.
+Or click **⟳ SYNC SHEETS** in the Dashboard tab (if available).
 
-**Sheet column mapping:**
+### Sheet Structure Requirements
 
-| Sheet Column | → DB Field |
-|---|---|
-| DATE | date_l |
-| CASE NO | sr_no |
-| APP NAME | app_name |
-| TM NO | tm_no |
-| CLASS | class |
-| STATUS | stage (emojis stripped) |
-| APPLICATION SUB STATUS | class_desc |
-| Notes | no_img |
-| City | app_add |
+Because the migration script reads column names dynamically, **the exact column index (order) does not matter**. You can add new columns anywhere. However, the script looks for specific **Header Names** (row 1) to map standard fields into the database.
 
-Row 1 (frozen header) is always skipped automatically.
+Here are the recommended column headers and how they are detected:
+
+| Sheet Header Name | Mapped Database Field | Description |
+|-------------------|-----------------------|-------------|
+| **Date** | `date` | The date of the trademark filing |
+| **Case No** or **Sr No** | `case_no` / `sr_no` | The primary serial / case number (Required) |
+| **App Name** or **Name** | `name` / `app_name` | The name of the applicant (Required) |
+| **TM No** or **Number** | `tm_number` / `tm_no`| The Trademark number |
+| **Class** | `class` | The trademark class (e.g., 35) |
+| **Status** | `status` | The main status |
+| **Sub Status** or **Application \nSub Status** | `sub_status` | The sub-status or stage |
+| **Duplicate** | `is_duplicate` | TRUE / FALSE |
+| **TM-11** | `tm11` | Status of TM-11 filing |
+| **Notes** | `notes` | Any multi-line notes |
+| **City** | `city` | The city of the applicant |
+
+*(Note: If you add new columns that aren't on this list, they will be safely ignored unless you update the mapping logic in `api/migrate-from-sheets.js`.)*
 
 ### Manual CSV/Excel upload
 Use the **+ ADD NEW** button for single records, or the bulk import API for batch inserts.
 
 ---
 
-## Image Upload
+## Deploying to Hostinger
 
-Trademark mark images can be:
-1. **Uploaded directly** via the file input in Add/Edit modal (saved to `/uploads/`)
-2. **Linked via Google Drive ID** (paste the Drive file ID)
-
-Uploaded images are stored at `uploads/` in the project root and served at `/uploads/filename.jpg`.
-
----
-
-## Workflows (Replit)
-
-| Workflow | Command | Port | Type |
-|----------|---------|------|------|
-| Start application | `node server.js` | 5000 | WebView (primary) |
-| Start API (MySQL) | `cd api && node index.js` | 3000 | Console (background) |
-| Start Expo (Android) | `cd mobile && npx expo start --tunnel` | 8081 | Console (**paused**) |
+1. Upload your code via FTP or Git to your Hostinger Web Hosting.
+2. In Hostinger **hPanel**, go to **Advanced** → **Node.js**.
+3. Create a new Node.js App.
+4. Set the Start Command to `node server.js` or `node index.js` (depending on how you structure your live backend).
+5. Add your `.env` variables directly in the Hostinger Node.js interface.
+6. For the Database, use Hostinger's **MySQL Databases** panel to create a user and database, and import your `api/schema.sql` via phpMyAdmin.
 
 ---
 
@@ -253,26 +184,6 @@ Uploaded images are stored at `uploads/` in the project root and served at `/upl
 | Colors | Black `#0C0C0C` · Orange `#C94A00` · Cream `#F5EDD8` · Teal `#0A6B52` |
 | Web server | Node.js built-in `http` module |
 | API | Express.js 5 |
-| Database | PostgreSQL (Replit built-in) |
+| Database | PostgreSQL (Replit built-in) or MySQL (Hostinger) |
 | File upload | Multer |
 | Mobile | Expo React Native (**paused**) |
-
----
-
-## Known Constraints
-
-- **Hostinger MySQL** — Port 3306 is firewalled from Replit cloud IPs (Google Cloud range). Use Replit PostgreSQL for development.
-- **Replit outgoing IP** — Changes between sessions (`34.100.162.117` at last check). Not suitable for IP-whitelisted DBs.
-- **Google Apps Script URL** — Returns health ping only. Actual data comes from the published CSV URL.
-
----
-
-## Queued Features
-
-| # | Feature | Priority |
-|---|---------|----------|
-| 1 | Full Assignment tracking (DB-backed, agent assignment with timestamps) | 🔴 High |
-| 2 | CSV/Excel file upload import UI | 🟡 Medium |
-| 3 | Expiry date alerts (7/30-day highlights) | 🟡 Medium |
-| 4 | Journal tab — IPO data or class breakdown analytics | 🟢 Future |
-| 5 | Resume mobile app (Expo) | 🟢 Future |
