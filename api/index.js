@@ -287,18 +287,31 @@ app.post('/api/sync-sheets', async (req, res) => {
         };
       });
 
-    let inserted = 0, skipped = 0;
+    let inserted = 0, updated = 0, skipped = 0;
     for (const b of records) {
       try {
-        await pool.query(
+        const { rows } = await pool.query(
           `INSERT INTO trademarks (status_run,stage,sr_no,tm_no,date_l,class,class_desc,app_name,app_add,year,no_img)
-           VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) ON CONFLICT DO NOTHING`,
+           VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)
+           ON CONFLICT (sr_no) WHERE sr_no IS NOT NULL AND sr_no != ''
+           DO UPDATE SET
+             status_run = EXCLUDED.status_run,
+             stage      = EXCLUDED.stage,
+             tm_no      = EXCLUDED.tm_no,
+             date_l     = EXCLUDED.date_l,
+             class      = EXCLUDED.class,
+             class_desc = EXCLUDED.class_desc,
+             app_name   = EXCLUDED.app_name,
+             app_add    = EXCLUDED.app_add,
+             year       = EXCLUDED.year,
+             no_img     = EXCLUDED.no_img
+           RETURNING (xmax = 0) AS inserted`,
           [b.status_run,b.stage,b.sr_no,b.tm_no,b.date_l,b.class,b.class_desc,b.app_name,b.app_add,b.year,b.no_img]
         );
-        inserted++;
+        if (rows[0]?.inserted) inserted++; else updated++;
       } catch { skipped++; }
     }
-    res.json({ success: true, inserted, skipped, total: records.length });
+    res.json({ success: true, inserted, updated, skipped, total: records.length });
   } catch (err) { res.status(500).json({ success: false, error: err.message }); }
 });
 
@@ -434,9 +447,5 @@ app.delete('/api/assignments/:id', async (req, res) => {
   } catch (err) { res.status(500).json({ success: false, error: err.message }); }
 });
 
-// ─── Start ────────────────────────────────────────────────────────────────────
-app.listen(PORT, 'localhost', async () => {
-  console.log(`BrandEx API running on http://localhost:${PORT}`);
-  await testConnection();
-  await runMigrations();
-});
+// ─── Export (server.js starts the combined app on port 5000) ─────────────────
+module.exports = app;

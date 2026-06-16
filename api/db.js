@@ -120,6 +120,50 @@ async function runMigrations() {
       )
     `);
 
+    // ── Deduplicate trademarks by sr_no (keep lowest id) ──────────────────────
+    // Step 1: Move assignments from duplicates to the keeper record, then delete
+    await client.query(`
+      UPDATE assignments a
+      SET trademark_id = keep.keep_id
+      FROM (
+        SELECT MIN(id) AS keep_id, sr_no
+        FROM   trademarks
+        WHERE  sr_no IS NOT NULL AND sr_no != ''
+        GROUP  BY sr_no
+        HAVING COUNT(*) > 1
+      ) keep
+      WHERE  a.trademark_id IN (
+        SELECT id FROM trademarks
+        WHERE sr_no = keep.sr_no AND id != keep.keep_id
+      )
+        AND  NOT EXISTS (
+          SELECT 1 FROM assignments x WHERE x.trademark_id = keep.keep_id
+        )
+    `);
+
+    // Step 2: Delete all remaining duplicates (assignments moved or none)
+    const { rowCount: dupsRemoved } = await client.query(`
+      DELETE FROM trademarks t1
+      USING (
+        SELECT MIN(id) AS keep_id, sr_no
+        FROM   trademarks
+        WHERE  sr_no IS NOT NULL AND sr_no != ''
+        GROUP  BY sr_no
+        HAVING COUNT(*) > 1
+      ) keep
+      WHERE  t1.sr_no = keep.sr_no
+        AND  t1.id   != keep.keep_id
+    `);
+    if (dupsRemoved > 0) console.log(`✅ Removed ${dupsRemoved} more duplicate trademark records`);
+
+    // ── Partial unique index on sr_no (allows multiple NULLs) ─────────────────
+    await client.query(`DROP INDEX IF EXISTS idx_tm_sr_no`);
+    await client.query(`
+      CREATE UNIQUE INDEX IF NOT EXISTS idx_tm_sr_no
+      ON trademarks(sr_no)
+      WHERE sr_no IS NOT NULL AND sr_no != ''
+    `);
+
     console.log('✅ Schema migrations complete');
     await autoMigrateAssignments(client);
   } catch (err) {
