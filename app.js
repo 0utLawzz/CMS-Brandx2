@@ -178,18 +178,18 @@ function renderCard(rec){
     <div class="card-main">
       ${imgSrc
         ?`<img src="${imgSrc}" alt="" style="width:52px;height:52px;object-fit:contain;border:2.5px solid #0C0C0C;border-radius:4px;background:#f0e8d0">`
-        :`<div class="avatar" style="background:${avColor}"><span>${initials}</span><span class="avatar-tm">™</span></div>`
+        :`<div class="avatar" style="background:${avColor}"><span>${initials}</span><span class="avatar-tm">&#8482;</span></div>`
       }
       <div class="card-info">
         <div class="card-name">${rec.app_name||'Untitled Mark'}</div>
         <div class="card-tm-row">
-          <span class="card-tm-icon">™</span>
+          <span class="card-tm-icon">&#8482;</span>
           <span class="card-tm-no">${rec.tm_no||'—'}</span>
           ${rec.class?`<span class="card-class">CL ${rec.class}</span>`:''}
           ${rec.app_type?`<span class="card-class" style="color:#0A6B52;border-color:#0A6B52">${rec.app_type}</span>`:''}
         </div>
         ${rec.app_trade?`<div style="font-family:'Space Grotesk',sans-serif;font-size:11px;color:#555;font-style:italic;margin-top:2px">${rec.app_trade}</div>`:''}
-        ${rec.app_cnic?`<div style="font-family:'DM Mono',monospace;font-size:9px;color:#888;margin-top:2px">CNIC: ${rec.app_cnic}</div>`:''}
+        ${rec.app_cnic?`<div style="font-family:'DM Mono',monospace;font-size:9px;color:#888;margin-top:2px">CNIC/NTN: ${rec.app_cnic}</div>`:''}
       </div>
       <div class="card-stage-box" style="background:${sc};border-color:${sc}">
         <span class="card-stage-text" style="color:white">${stageBadgeText(sn)}</span>
@@ -200,11 +200,19 @@ function renderCard(rec){
     </div>`:''}
     ${rec.con_name?`<div style="font-family:'DM Mono',monospace;font-size:9px;color:#0A6B52;margin-top:4px;padding:3px 8px;background:rgba(10,107,82,0.06);border:1.5px solid rgba(10,107,82,0.2);border-radius:3px;display:inline-block">CON: ${rec.con_name}</div>`:''}
     <div class="card-actions">
-      <button class="expand-btn" onclick="toggleKV('kv_${id}',this)">▼ ALL FIELDS</button>
-      <button class="edit-btn"   onclick="openEditModal(${rec.id})">✎ EDIT</button>
-      <button class="action-del" style="padding:5px 10px;font-size:10px" onclick="deleteRec(${rec.id},'${(rec.app_name||'').replace(/'/g,"\\'")}',true)">✕</button>
+      <button class="expand-btn" onclick="toggleKV('kv_${id}',this)">&#9660; ALL FIELDS</button>
+      <button class="edit-btn"   onclick="openEditModal(${rec.id})">&#9998; EDIT</button>
+      <button class="action-del" style="padding:5px 10px;font-size:10px" onclick="deleteRec(${rec.id},'${(rec.app_name||'').replace(/'/g,"\\'")}',true)">&#10005;</button>
     </div>
     <div id="kv_${id}" class="kv-table" style="display:none">${kvRows}</div>
+    <!-- History panel -->
+    <div style="margin-top:10px;border-top:2px solid #f0e8d0;padding-top:8px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+        <span style="font-family:'DM Mono',monospace;font-size:9px;color:#888;text-transform:uppercase;letter-spacing:1px">&#128203; Case History</span>
+        <button class="expand-btn" onclick="toggleHistory('hist_${id}',${rec.id},this)" style="padding:2px 8px;font-size:8px">&#9660; SHOW</button>
+      </div>
+      <div id="hist_${id}" style="display:none"></div>
+    </div>
   </div>`;
 }
 
@@ -213,6 +221,18 @@ function toggleKV(kvId,btn){
   const hidden=el.style.display==='none';
   el.style.display=hidden?'block':'none';
   btn.textContent=hidden?'▲ HIDE FIELDS':'▼ ALL FIELDS';
+}
+
+function toggleHistory(histId,trademarkId,btn){
+  const el=document.getElementById(histId);
+  if(!el) return;
+  const hidden=el.style.display==='none';
+  el.style.display=hidden?'block':'none';
+  btn.textContent=hidden?'▲ HIDE':'▼ SHOW';
+  if(hidden && !el.dataset.loaded){
+    el.dataset.loaded='1';
+    renderTrademarkLogs(trademarkId,histId);
+  }
 }
 
 // ─── Search ───────────────────────────────────────────────────────────────────
@@ -279,7 +299,7 @@ function renderRecordsTable(){
 
   const tbody=document.getElementById('recordsTbody');
   if(!pageRows.length){
-    tbody.innerHTML=`<tr><td colspan="11" style="text-align:center;padding:30px;color:#888;font-family:'DM Mono',monospace;font-size:11px">NO RECORDS</td></tr>`;
+    tbody.innerHTML=`<tr><td colspan="12" style="text-align:center;padding:30px;color:#888;font-family:'DM Mono',monospace;font-size:11px">NO RECORDS</td></tr>`;
     updateBulkBar(); return;
   }
   tbody.innerHTML=pageRows.map(r=>{
@@ -290,20 +310,20 @@ function renderRecordsTable(){
     const imgSrc=getImageSrc(r.img,'40');
     const imgCell=imgSrc
       ?`<img src="${imgSrc}" alt="" style="width:25px;height:25px;object-fit:contain;border:1.5px solid #0C0C0C;border-radius:3px;background:#f5edd8;vertical-align:middle">`
-      :`<div style="width:25px;height:25px;background:#ede0c4;border:1.5px solid #ccc;border-radius:3px;display:inline-flex;align-items:center;justify-content:center;font-size:8px;color:#aaa;font-family:'DM Mono',monospace">™</div>`;
+      :`<div style="width:25px;height:25px;background:#ede0c4;border:1.5px solid #ccc;border-radius:3px;display:inline-flex;align-items:center;justify-content:center;font-size:8px;color:#aaa;font-family:'DM Mono',monospace">&#8482;</div>`;
     return `<tr class="${isSel?'tr-selected':''}">
       <td><input type="checkbox" class="row-check" data-id="${r.id}" ${isSel?'checked':''}></td>
       <td>${imgCell}</td>
-      <td class="td-case">${r.sr_no||'—'}</td>
-      <td class="td-tm">™ ${r.tm_no||'—'}</td>
-      <td class="td-name">${r.app_name||'—'}</td>
-      <td><span class="td-cls">${r.class||'—'}</span></td>
+      <td class="td-case">${r.sr_no||'&#8212;'}</td>
+      <td class="td-tm">&#8482; ${r.tm_no||'&#8212;'}</td>
+      <td class="td-name">${r.app_name||'&#8212;'}</td>
+      <td><span class="td-cls">${r.class||'&#8212;'}</span></td>
       <td><div class="stage-badge-num" style="background:${sc};border-color:${sc}">${stageBadgeText(sn)}</div></td>
-      <td><span style="font-family:'DM Mono',monospace;font-size:9px;color:${runColor};border:1.5px solid ${runColor};border-radius:3px;padding:1px 5px">${r.status_run||'—'}</span></td>
-      <td>${r.app_type?`<span class="td-city" style="color:#0A6B52;border-color:#0A6B52">${r.app_type}</span>`:'—'}</td>
-      <td class="td-date" style="max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${r.con_name||''}">${r.con_name||'—'}</td>
+      <td><span style="font-family:'DM Mono',monospace;font-size:9px;color:${runColor};border:1.5px solid ${runColor};border-radius:3px;padding:1px 5px">${r.status_run||'&#8212;'}</span></td>
+      <td>${r.app_type?`<span class="td-city" style="color:#0A6B52;border-color:#0A6B52">${r.app_type}</span>`:'&#8212;'}</td>
+      <td class="td-date" style="max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${r.date_l||''}">${r.date_l||'&#8212;'}</td>
+      <td class="td-date" style="max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${r.con_name||''}">${r.con_name||'&#8212;'}</td>
       <td><div class="action-cell">
-        <button class="action-tick ${isSel?'checked':''}" data-id="${r.id}">✓</button>
         <button class="action-edit" onclick="openEditModal(${r.id})">✎</button>
         <button class="btn-assign" style="padding:3px 6px;font-size:9px" title="Assign to agent" onclick="openAssignModal(${r.id},'${(r.tm_no||'').replace(/'/g,"\\'")}','${(r.app_name||'').replace(/'/g,"\\'")}')">⊕</button>
         <button class="action-del"  onclick="deleteRec(${r.id},'${(r.app_name||'').replace(/'/g,"\\'")}',false)">✕</button>
@@ -775,7 +795,93 @@ function switchTab(id){
   document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active',b.dataset.tab===id));
   document.querySelectorAll('.tab-panel').forEach(p=>p.classList.toggle('active',p.id==='tab-'+id));
   if(id==='records')    renderRecordsTable();
-  if(id==='assignment') renderAssignmentTab(); // async — updates DOM when done
+  if(id==='assignment') renderAssignmentTab();
+  if(id==='logs')       renderLogsTab();
+}
+
+// ─── Logs tab ─────────────────────────────────────────────────────────────────
+const ACTION_COLORS = { CREATE:'#0D9970', UPDATE:'#2563EB', DELETE:'#DC2626', SYNC:'#8B2FC9' };
+
+function formatLogDate(dt){
+  if(!dt) return '—';
+  const d=new Date(dt);
+  return d.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'})+' '
+        +d.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+}
+
+async function renderLogsTab(){
+  const el=document.getElementById('logsContent');
+  const countEl=document.getElementById('logsCount');
+  if(!el) return;
+  const actionFilter=document.getElementById('logsFilterAction')?.value||'';
+  el.innerHTML=`<div style="padding:30px;text-align:center;font-family:'DM Mono',monospace;font-size:11px;color:#888">Loading logs…</div>`;
+  try{
+    const url=`${API}/logs?limit=500${actionFilter?'&action='+actionFilter:''}`;
+    const res=await fetch(url);
+    const j=await res.json();
+    if(!j.success) throw new Error(j.error);
+    const logs=j.data;
+    if(countEl) countEl.textContent=logs.length.toLocaleString()+' entries';
+    if(!logs.length){
+      el.innerHTML=`<div class="no-results"><div class="no-results-title">NO LOGS YET</div><p class="no-results-hint">Activity will appear here as records are created, edited or deleted.</p></div>`;
+      return;
+    }
+    el.innerHTML=`
+      <div class="table-wrap">
+        <table class="records-table">
+          <thead><tr>
+            <th>DATE &amp; TIME</th>
+            <th>ACTION</th>
+            <th>TRADEMARK</th>
+            <th>TM NO</th>
+            <th>NOTE</th>
+          </tr></thead>
+          <tbody>
+            ${logs.map(l=>{
+              const ac=ACTION_COLORS[l.action]||'#888';
+              const tm=l.app_name||(l.new_values?.app_name)||'—';
+              const tmNo=l.tm_no||(l.new_values?.tm_no)||'—';
+              return `<tr>
+                <td class="td-date" style="white-space:nowrap">${formatLogDate(l.created_at)}</td>
+                <td><span style="font-family:'DM Mono',monospace;font-size:9px;color:${ac};border:1.5px solid ${ac};border-radius:3px;padding:2px 7px;font-weight:600">${l.action}</span></td>
+                <td class="td-name">${tm}</td>
+                <td class="td-tm" style="font-size:10px">${tmNo}</td>
+                <td style="font-family:'DM Mono',monospace;font-size:9px;color:#555;max-width:300px">${l.note||'—'}</td>
+              </tr>`;
+            }).join('')}
+          </tbody>
+        </table>
+      </div>`;
+  }catch(e){
+    el.innerHTML=`<div class="no-results"><div class="no-results-title">ERROR</div><p class="no-results-hint">${e.message}</p></div>`;
+  }
+}
+
+// ─── Trademark log history (used in search cards + edit modal) ────────────────
+async function renderTrademarkLogs(trademarkId, containerId){
+  const el=document.getElementById(containerId);
+  if(!el) return;
+  el.innerHTML=`<div style="font-family:'DM Mono',monospace;font-size:9px;color:#888;padding:6px 0">Loading history…</div>`;
+  try{
+    const res=await fetch(`${API}/logs/${trademarkId}`);
+    const j=await res.json();
+    if(!j.success) throw new Error(j.error);
+    const logs=j.data;
+    if(!logs.length){
+      el.innerHTML=`<div style="font-family:'DM Mono',monospace;font-size:9px;color:#bbb;padding:6px 0">No history recorded yet.</div>`;
+      return;
+    }
+    el.innerHTML=logs.map(l=>{
+      const ac=ACTION_COLORS[l.action]||'#888';
+      return `<div style="display:flex;gap:8px;align-items:flex-start;padding:4px 0;border-bottom:1px solid #f0e8d0">
+        <span style="font-family:'DM Mono',monospace;font-size:8px;color:${ac};border:1px solid ${ac};border-radius:2px;padding:1px 5px;white-space:nowrap;flex-shrink:0">${l.action}</span>
+        <span style="font-family:'DM Mono',monospace;font-size:8px;color:#888;white-space:nowrap;flex-shrink:0">${formatLogDate(l.created_at)}</span>
+        <span style="font-family:'Space Grotesk',sans-serif;font-size:10px;color:#555;flex:1">${l.note||'—'}</span>
+      </div>`;
+    }).join('');
+  }catch(e){
+    el.innerHTML=`<div style="font-family:'DM Mono',monospace;font-size:9px;color:#C94A00">Error: ${e.message}</div>`;
+  }
 }
 
 // ─── Init ─────────────────────────────────────────────────────────────────────
@@ -866,6 +972,9 @@ document.addEventListener('DOMContentLoaded',()=>{
     const file=e.target.files?.[0];
     if(file) handleImageUpload(file);
   });
+
+  // Logs tab
+  document.getElementById('logsRefreshBtn')?.addEventListener('click', renderLogsTab);
 
   loadData();
 });

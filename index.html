@@ -24,6 +24,7 @@
         <button class="tab-btn" data-tab="search">⌕ SEARCH TM</button>
         <button class="tab-btn" data-tab="records">≡ ALL RECORDS</button>
         <button class="tab-btn" data-tab="assignment">◈ ASSIGNMENT</button>
+        <button class="tab-btn" data-tab="logs">📋 LOGS</button>
       </nav>
     </div>
   </header>
@@ -131,9 +132,10 @@
           </select>
           <select class="filter-select" id="filterType">
             <option value="">All Types</option>
-            <option value="SOLE">Sole</option>
-            <option value="PARTNER">Partner</option>
+            <option value="SOLE PROPRIETOR">Sole Proprietor</option>
+            <option value="PARTNERSHIP">Partnership</option>
             <option value="COMPANY">Company</option>
+            <option value="INDIVIDUAL">Individual</option>
           </select>
           <select class="filter-select" id="filterYear">
             <option value="">All Years</option>
@@ -173,6 +175,7 @@
                 <th>STAGE</th>
                 <th>STATUS</th>
                 <th>APP TYPE</th>
+                <th>DATE</th>
                 <th>CON. NAME</th>
                 <th>ACTIONS</th>
               </tr>
@@ -193,6 +196,31 @@
     <section class="tab-panel" id="tab-assignment">
       <div class="container container--wide">
         <div id="assignmentContent">
+          <div class="no-results"><div class="no-results-title">LOADING…</div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════════════════════════════
+         TAB 5 — LOGS
+    ═══════════════════════════════════════════════════════════════════ -->
+    <section class="tab-panel" id="tab-logs">
+      <div class="container container--wide">
+        <div class="records-toolbar">
+          <span style="font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:1px">ACTIVITY LOG</span>
+          <span class="records-count" id="logsCount"></span>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-left:auto">
+            <select class="filter-select" id="logsFilterAction" onchange="renderLogsTab()">
+              <option value="">All Actions</option>
+              <option value="CREATE">CREATE</option>
+              <option value="UPDATE">UPDATE</option>
+              <option value="DELETE">DELETE</option>
+              <option value="SYNC">SYNC</option>
+            </select>
+            <button class="btn-outline" id="logsRefreshBtn">↻ REFRESH</button>
+          </div>
+        </div>
+        <div id="logsContent">
           <div class="no-results"><div class="no-results-title">LOADING…</div></div>
         </div>
       </div>
@@ -314,7 +342,10 @@
             <label class="form-label">I · APP TYPE <span class="req">⭐</span></label>
             <select class="form-select" id="editAppType">
               <option value="">— Select —</option>
-              <option>SOLE</option><option>PARTNER</option><option>COMPANY</option>
+              <option value="SOLE PROPRIETOR">SOLE PROPRIETOR</option>
+              <option value="PARTNERSHIP">PARTNERSHIP</option>
+              <option value="COMPANY">COMPANY</option>
+              <option value="INDIVIDUAL">INDIVIDUAL</option>
             </select>
           </div>
           <div class="form-group">
@@ -326,8 +357,8 @@
             <input type="text" class="form-input" id="editAppSo" placeholder="Father's name" />
           </div>
           <div class="form-group">
-            <label class="form-label">L · APP CNIC <span class="req">⭐</span></label>
-            <input type="text" class="form-input" id="editAppCnic" placeholder="XXXXX-XXXXXXX-X" maxlength="15" />
+            <label class="form-label">L · CNIC / NTN / PASSPORT</label>
+            <input type="text" class="form-input" id="editAppCnic" placeholder="CNIC: XXXXX-XXXXXXX-X or NTN/Passport No" maxlength="20" />
           </div>
         </div>
 

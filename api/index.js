@@ -19,7 +19,6 @@ app.use('/uploads', express.static(UPLOADS_DIR));
 
 // ─── Multer: image upload ──────────────────────────────────────────────────
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, UPLOADS_DIR),
   destination: (req, file, cb) => {
     const fs = require('fs');
     fs.mkdirSync(UPLOADS_DIR, { recursive: true });
@@ -47,6 +46,49 @@ function addDays(dateStr, days) {
   if (isNaN(d)) return null;
   d.setDate(d.getDate() + days);
   return d.toISOString().split('T')[0];
+}
+
+// ─── Write log entry ─────────────────────────────────────────────────────────
+async function writeLog(trademark_id, action, old_values, new_values, note) {
+  try {
+    await pool.query(
+      `INSERT INTO logs (trademark_id, action, old_values, new_values, note)
+       VALUES ($1, $2, $3, $4, $5)`,
+      [
+        trademark_id || null,
+        action,
+        old_values  ? JSON.stringify(old_values)  : null,
+        new_values  ? JSON.stringify(new_values)  : null,
+        note || null,
+      ]
+    );
+  } catch (err) {
+    console.warn('⚠️  writeLog failed:', err.message);
+  }
+}
+
+// ─── Push row to Google Sheet via Apps Script ─────────────────────────────────
+async function pushToSheet(data, action) {
+  const url = process.env.APPS_SCRIPT_URL;
+  if (!url) return;
+  try {
+    const body = JSON.stringify({ action: action || 'upsert', ...data });
+    const lib  = url.startsWith('https') ? https : http;
+    await new Promise((resolve) => {
+      const req = lib.request(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(body) },
+      }, (res) => {
+        res.resume(); // drain
+        resolve();
+      });
+      req.on('error', (e) => { console.warn('⚠️  pushToSheet error:', e.message); resolve(); });
+      req.write(body);
+      req.end();
+    });
+  } catch (err) {
+    console.warn('⚠️  pushToSheet failed:', err.message);
+  }
 }
 
 // ─── Health ───────────────────────────────────────────────────────────────────
@@ -142,7 +184,12 @@ app.post('/api/trademarks', async (req, res) => {
         b.app_trade||null, b.app_add||null, b.year||null,
         b.con_name||null, b.con_add||null, b.img||null, b.no_img||null ]
     );
-    res.status(201).json({ success: true, id: rows[0].id });
+    const newId = rows[0].id;
+    const newData = { ...b, id: newId, expiry_date: expiry };
+    // Log & sync (best-effort, non-blocking)
+    writeLog(newId, 'CREATE', null, newData, `Created: ${b.app_name}`);
+    pushToSheet(newData, 'upsert');
+    res.status(201).json({ success: true, id: newId });
   } catch (err) {
     if (err.code === '23505') return res.status(409).json({ success: false, error: 'SR No already exists' });
     res.status(500).json({ success: false, error: err.message });
@@ -159,12 +206,33 @@ app.patch('/api/trademarks/:id', async (req, res) => {
     if (body.issue_date && !body.expiry_date) body.expiry_date = addDays(body.issue_date, 7);
     const fields = Object.keys(body).filter(k => allowed.includes(k));
     if (!fields.length) return res.status(400).json({ success: false, error: 'No valid fields' });
+
+    // Fetch old record before update (for diff logging)
+    let oldRecord = null;
+    try {
+      const { rows: oldRows } = await pool.query('SELECT * FROM trademarks WHERE id = $1', [req.params.id]);
+      if (oldRows.length) oldRecord = oldRows[0];
+    } catch (_) {}
+
     const sets = fields.map((f, i) => `${f} = $${i+1}`).join(', ');
     const { rowCount } = await pool.query(
       `UPDATE trademarks SET ${sets} WHERE id = $${fields.length+1}`,
       [...fields.map(f => body[f]), req.params.id]
     );
     if (!rowCount) return res.status(404).json({ success: false, error: 'Not found' });
+
+    // Build changed-fields summary for the log
+    const changedFields = fields.filter(f => oldRecord && String(oldRecord[f]||'') !== String(body[f]||''));
+    const note = changedFields.length
+      ? `Updated: ${changedFields.join(', ')}`
+      : 'Updated (no field changes detected)';
+
+    // Merge old + new for sheet push
+    const merged = { ...(oldRecord||{}), ...body };
+
+    writeLog(parseInt(req.params.id), 'UPDATE', oldRecord, body, note);
+    pushToSheet(merged, 'upsert');
+
     res.json({ success: true, message: 'Updated' });
   } catch (err) { res.status(500).json({ success: false, error: err.message }); }
 });
@@ -172,8 +240,21 @@ app.patch('/api/trademarks/:id', async (req, res) => {
 // ─── DELETE trademark by ID ───────────────────────────────────────────────────
 app.delete('/api/trademarks/:id', async (req, res) => {
   try {
+    // Fetch record before delete
+    let oldRecord = null;
+    try {
+      const { rows } = await pool.query('SELECT * FROM trademarks WHERE id = $1', [req.params.id]);
+      if (rows.length) oldRecord = rows[0];
+    } catch (_) {}
+
     const { rowCount } = await pool.query('DELETE FROM trademarks WHERE id = $1', [req.params.id]);
     if (!rowCount) return res.status(404).json({ success: false, error: 'Not found' });
+
+    writeLog(parseInt(req.params.id), 'DELETE', oldRecord, null,
+      `Deleted: ${oldRecord?.app_name || req.params.id}`);
+    // Notify sheet of deletion
+    if (oldRecord) pushToSheet({ sr_no: oldRecord.sr_no, id: oldRecord.id }, 'delete');
+
     res.json({ success: true });
   } catch (err) { res.status(500).json({ success: false, error: err.message }); }
 });
@@ -234,7 +315,6 @@ function fetchCSV(url) {
 
 function parseSheetCSV(text) {
   const lines = text.split('\n');
-  // Row 0 = frozen header — always skipped
   const headers = lines[0].trim().split(',').map(h => h.replace(/"/g,'').trim());
   const rows = [];
   for (let i = 1; i < lines.length; i++) {
@@ -311,7 +391,48 @@ app.post('/api/sync-sheets', async (req, res) => {
         if (rows[0]?.inserted) inserted++; else updated++;
       } catch { skipped++; }
     }
+    // Log the sync event
+    writeLog(null, 'SYNC', null, { inserted, updated, skipped },
+      `Sheet sync: +${inserted} new, ~${updated} updated, ${skipped} skipped`);
     res.json({ success: true, inserted, updated, skipped, total: records.length });
+  } catch (err) { res.status(500).json({ success: false, error: err.message }); }
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// LOGS ENDPOINTS
+// ═══════════════════════════════════════════════════════════════════════════
+
+// GET all logs (newest first, optional ?trademark_id=X and ?action=X filters)
+app.get('/api/logs', async (req, res) => {
+  try {
+    const { trademark_id, action, limit = 500, offset = 0 } = req.query;
+    let sql = `
+      SELECT l.id, l.trademark_id, l.action, l.changed_by, l.note,
+             l.old_values, l.new_values, l.created_at,
+             t.app_name, t.tm_no, t.sr_no
+      FROM logs l
+      LEFT JOIN trademarks t ON t.id = l.trademark_id
+      WHERE 1=1`;
+    const params = [];
+    let idx = 1;
+    if (trademark_id) { sql += ` AND l.trademark_id = $${idx++}`; params.push(parseInt(trademark_id)); }
+    if (action)       { sql += ` AND l.action = $${idx++}`;       params.push(action.toUpperCase()); }
+    sql += ` ORDER BY l.created_at DESC LIMIT $${idx} OFFSET $${idx+1}`;
+    params.push(parseInt(limit), parseInt(offset));
+    const { rows } = await pool.query(sql, params);
+    res.json({ success: true, count: rows.length, data: rows });
+  } catch (err) { res.status(500).json({ success: false, error: err.message }); }
+});
+
+// GET logs for a specific trademark
+app.get('/api/logs/:trademark_id', async (req, res) => {
+  try {
+    const { rows } = await pool.query(
+      `SELECT id, trademark_id, action, changed_by, note, old_values, new_values, created_at
+       FROM logs WHERE trademark_id = $1 ORDER BY created_at DESC LIMIT 100`,
+      [parseInt(req.params.trademark_id)]
+    );
+    res.json({ success: true, count: rows.length, data: rows });
   } catch (err) { res.status(500).json({ success: false, error: err.message }); }
 });
 
@@ -406,11 +527,12 @@ app.post('/api/assignments', async (req, res) => {
        RETURNING id`,
       [trademark_id, agent_name, agent_city, notes||null]
     );
-    // Also update trademark stage to ASSIGNED if not already
     await pool.query(
       `UPDATE trademarks SET stage='ASSIGNED', class_desc=$1 WHERE id=$2 AND (stage IS NULL OR stage NOT ILIKE '%ASSIGNED%')`,
       [`${agent_name} (${agent_city.slice(0,3)})`, trademark_id]
     );
+    writeLog(trademark_id, 'UPDATE', null, { agent_name, agent_city, status: 'Pending' },
+      `Assigned to ${agent_name} / ${agent_city}`);
     res.json({ success: true, id: rows[0].id });
   } catch (err) { res.status(500).json({ success: false, error: err.message }); }
 });
@@ -426,14 +548,15 @@ app.patch('/api/assignments/:id', async (req, res) => {
     const vals = [];
     let i = 1;
     for (const f of fields) { sets.push(`${f}=$${i++}`); vals.push(allowed[f]); }
-    // Auto-set completed_at when marking Complete
     if (status === 'Complete') { sets.push(`completed_at=NOW()`); }
     if (status && status !== 'Complete') { sets.push(`completed_at=NULL`); }
     vals.push(req.params.id);
-    const { rowCount } = await pool.query(
-      `UPDATE assignments SET ${sets.join(',')} WHERE id=$${i}`, vals
+    const { rowCount, rows: aRows } = await pool.query(
+      `UPDATE assignments SET ${sets.join(',')} WHERE id=$${i} RETURNING trademark_id`, vals
     );
     if (!rowCount) return res.status(404).json({ success: false, error: 'Not found' });
+    const tmId = aRows[0]?.trademark_id;
+    if (tmId) writeLog(tmId, 'UPDATE', null, allowed, `Assignment updated: ${fields.join(', ')}`);
     res.json({ success: true });
   } catch (err) { res.status(500).json({ success: false, error: err.message }); }
 });

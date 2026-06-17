@@ -1,5 +1,6 @@
 const { Pool } = require('pg');
-require('dotenv').config();
+const path = require('path');
+require('dotenv').config({ path: path.join(__dirname, '.env') });
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
@@ -118,6 +119,26 @@ async function runMigrations() {
         notes        TEXT,
         UNIQUE(trademark_id)
       )
+    `);
+
+    // Logs table — tracks every CREATE / UPDATE / DELETE / SYNC
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS logs (
+        id           SERIAL PRIMARY KEY,
+        trademark_id INTEGER REFERENCES trademarks(id) ON DELETE SET NULL,
+        action       VARCHAR(20)  NOT NULL,
+        changed_by   VARCHAR(50)  DEFAULT 'system',
+        old_values   JSONB,
+        new_values   JSONB,
+        note         TEXT,
+        created_at   TIMESTAMP    DEFAULT NOW()
+      )
+    `);
+    await client.query(`
+      CREATE INDEX IF NOT EXISTS idx_logs_trademark_id ON logs(trademark_id)
+    `);
+    await client.query(`
+      CREATE INDEX IF NOT EXISTS idx_logs_created_at ON logs(created_at DESC)
     `);
 
     // ── Deduplicate trademarks by sr_no (keep lowest id) ──────────────────────

@@ -168,6 +168,45 @@ https://docs.google.com/spreadsheets/d/e/2PACX-1vTelzP.../pub?gid=229416165&sing
 
 ---
 
+### Session 7 — Neon DB · Logs System · Sheets Write-back · Cleanup
+
+**Database:**
+- Switched to **Neon PostgreSQL** (cloud) — `api/.env` updated with new `DATABASE_URL`
+- Fixed `api/db.js` dotenv path to use `__dirname` so it loads correctly from any CWD
+- New `logs` table auto-created on startup: `id, trademark_id, action, old_values (JSONB), new_values (JSONB), note, created_at`
+- Indexes added: `idx_logs_trademark_id`, `idx_logs_created_at`
+
+**API (`api/index.js`):**
+- `writeLog(trademark_id, action, old, new, note)` — inserts into `logs` after every change
+- `pushToSheet(data, action)` — best-effort POST to Apps Script; never blocks the API response
+- `GET /api/logs` — all logs newest-first, `?action=` filter + `?trademark_id=` filter
+- `GET /api/logs/:trademark_id` — history for one specific record
+- UPDATE endpoint now fetches old record first and records changed field names in the note
+
+**Frontend (`app.js` + `index.html`):**
+- **📋 LOGS tab** (5th tab) — table: Date/Time · Action badge (color-coded) · Trademark · TM No · Note
+- Action filter dropdown on Logs tab + Refresh button
+- **Case History panel** inside every Search result card — collapsible, lazy-loaded on first expand
+- `toggleHistory()` caches result so API is only called once per card
+- **DATE column** added to All Records table
+- App Type options: `SOLE PROPRIETOR`, `PARTNERSHIP`, `COMPANY`, `INDIVIDUAL`
+- CNIC label → `CNIC / NTN / PASSPORT` (maxlength 20)
+
+**Apps Script (`scripts/apps-script-doPost.js`):**
+- Full replacement `doPost()` + `doGet()` + `_findRow()` + `_jsonResp()`
+- 22-column `CMS_COL` map: A=status_run … V=created_at
+- Upsert: searches by `sr_no` (col C) first, fallback `tm_no` (col D); updates or appends
+- Soft-delete: highlights row light-red, writes `[DELETED IN CMS]` in col U
+- All existing functions (TM-11, Folder Search, Duplicate Check) remain unchanged
+
+**Cleanup:**
+- Deleted: `zipFile.zip`, `temp-code.js`, `code.js`, `replit.nix`, `.replit`, `replit.md`
+- `.gitignore` updated: excludes `uploads/`, `*.zip`, `api/.env`, all `node_modules/`
+
+**Verified:** `✅ PostgreSQL connected successfully` · `✅ Schema migrations complete`
+
+---
+
 ## Queued / Upcoming Tasks
 
 | # | Task | Priority |
@@ -184,11 +223,18 @@ https://docs.google.com/spreadsheets/d/e/2PACX-1vTelzP.../pub?gid=229416165&sing
 | 10 | ~~4-tab rename (Dashboard/Search TM/All Records/Assignment)~~ | ✅ Done S6 |
 | 11 | ~~Assignment tab UI (hierarchy + agents)~~ | ✅ Done S6 |
 | 12 | ~~README.md~~ | ✅ Done S6 |
-| 13 | Full Assignment tracking (DB: assign to agent, timestamps, completion) | 🔴 Next Phase |
-| 14 | CSV/Excel file upload import UI | 🟡 Feature |
-| 15 | Expiry date alerts (7/30-day colour highlights) | 🟡 Feature |
-| 16 | Journal tab — IPO analytics / class breakdown | 🟢 Future |
-| 17 | Resume mobile app (Expo) | 🟢 Future |
+| 13 | ~~Neon PostgreSQL migration (replaced Replit DB)~~ | ✅ Done S7 |
+| 14 | ~~Logs table + Logs tab (all changes)~~ | ✅ Done S7 |
+| 15 | ~~In-record case history panel~~ | ✅ Done S7 |
+| 16 | ~~Sheets write-back via Apps Script (POST on CREATE/UPDATE)~~ | ✅ Done S7 |
+| 17 | ~~App Type values fixed to SOLE PROPRIETOR/PARTNERSHIP/COMPANY/INDIVIDUAL~~ | ✅ Done S7 |
+| 18 | ~~DATE column added to All Records table~~ | ✅ Done S7 |
+| 19 | Full Assignment tracking (DB: assign to agent, timestamps, completion) | 🔴 Next Phase |
+| 20 | CSV/Excel file upload import UI | 🟡 Feature |
+| 21 | Expiry date alerts (7/30-day colour highlights) | 🟡 Feature |
+| 22 | Google Drive image upload via Apps Script | 🟡 Feature |
+| 23 | Journal tab — IPO analytics / class breakdown | 🟢 Future |
+| 24 | Resume mobile app (Expo) | 🟢 Future |
 
 ---
 

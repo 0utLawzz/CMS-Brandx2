@@ -1,7 +1,33 @@
+# Dependencies
 node_modules/
+api/node_modules/
 mobile/node_modules/
-mobile/.expo/
-mobile/.expo-shared/
-mobile/dist/
-*.log
+
+# Environment variables — NEVER commit these
 .env
+api/.env
+*.env.local
+
+# Uploads (user files — too large for git, serve from disk)
+uploads/
+
+# Build / cache
+.expo/
+dist/
+.next/
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# Zip files
+*.zip
+
+# Logs
+*.log
+npm-debug.log*
+
+# Replit artifacts (no longer used)
+.replit
+replit.nix
+replit.md
