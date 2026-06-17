@@ -12,7 +12,7 @@ apiApp.use(express.static(path.join(__dirname), {
 }));
 
 // Fallback: serve index.html for any non-API path
-apiApp.get('*', (req, res) => {
+apiApp.get(/.*/, (req, res) => {
   if (!req.path.startsWith('/api/') && !req.path.startsWith('/uploads/')) {
     res.sendFile(path.join(__dirname, 'index.html'));
   } else {
