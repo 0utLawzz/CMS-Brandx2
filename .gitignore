@@ -32,3 +32,4 @@ npm-debug.log*
 replit.nix
 replit.md
 .vercel
+.env*

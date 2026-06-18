@@ -316,6 +316,32 @@ app.get('/api/audit-logs/:id', async (req, res) => {
   }
 });
 
+// ── GET global audit logs ─────────────────────────────────────────────────────
+app.get('/api/logs', async (req, res) => {
+  try {
+    const limit = parseInt(req.query.limit) || 500;
+    const { rows } = await pool.query(
+      `SELECT a.*, t.applicant_name, t.tm_no 
+       FROM audit_logs a 
+       LEFT JOIN trademarks t ON a.record_id = t.id 
+       ORDER BY a.changed_at DESC LIMIT $1`,
+      [limit]
+    );
+    
+    // Map the action field for frontend compatibility
+    const mappedRows = rows.map(r => {
+      let action = 'UPDATE';
+      if (r.field_name === 'created') action = 'CREATE';
+      if (r.field_name === 'archived' && r.new_value === 'true') action = 'DELETE';
+      if (r.changed_by === 'system' && r.field_name === 'created') action = 'SYNC';
+      return { ...r, action, note: \`Changed \${r.field_name}\` };
+    });
+    res.json({ success: true, count: mappedRows.length, data: mappedRows });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 // ── Dashboard stats ───────────────────────────────────────────────────────────
 app.get('/api/stats', async (req, res) => {
   try {

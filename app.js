@@ -314,15 +314,15 @@ function renderRecordsTable(){
     return `<tr class="${isSel?'tr-selected':''}">
       <td><input type="checkbox" class="row-check" data-id="${r.id}" ${isSel?'checked':''}></td>
       <td>${imgCell}</td>
-      <td class="td-case">${r.sr_no||'&#8212;'}</td>
+      <td class="td-date">${r.filing_date||'&#8212;'}</td>
+      <td class="td-case"><a href="https://drive.google.com/drive/search?q=${encodeURIComponent(r.folder_name||'')}" target="_blank" style="color:#2563EB;text-decoration:none" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">${r.folder_name||'&#8212;'}</a></td>
       <td class="td-tm">&#8482; ${r.tm_no||'&#8212;'}</td>
       <td class="td-name">${r.applicant_name||'&#8212;'}</td>
       <td><span class="td-cls">${r.class||'&#8212;'}</span></td>
       <td><div class="stage-badge-num" style="background:${sc};border-color:${sc}">${stageBadgeText(sn)}</div></td>
       <td><span style="font-family:'DM Mono',monospace;font-size:9px;color:${runColor};border:1.5px solid ${runColor};border-radius:3px;padding:1px 5px">${r.sub_stage||'&#8212;'}</span></td>
-      <td>${r.applicant_type?`<span class="td-city" style="color:#0A6B52;border-color:#0A6B52">${r.applicant_type}</span>`:'&#8212;'}</td>
-      <td class="td-date" style="max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${r.filing_date||''}">${r.filing_date||'&#8212;'}</td>
-      <td class="td-date" style="max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${r.consultant_name||''}">${r.consultant_name||'&#8212;'}</td>
+      <td class="td-name" style="font-size:10px">${r.assigned_person||'&#8212;'} <br/><span style="color:#888;font-size:9px">${r.assigned_city||''}</span></td>
+      <td class="td-name" style="font-size:10px;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${(r.notes||'').replace(/"/g, '&quot;')}">${r.notes||'&#8212;'}</td>
       <td><div class="action-cell">
         <button class="action-edit" onclick="openEditModal(${r.id})">✎</button>
         <button class="btn-assign" style="padding:3px 6px;font-size:9px" title="Assign to agent" onclick="openAssignModal(${r.id},'${(r.tm_no||'').replace(/'/g,"\\'")}','${(r.applicant_name||'').replace(/'/g,"\\'")}')">⊕</button>
@@ -863,7 +863,7 @@ async function renderTrademarkLogs(trademarkId, containerId){
   if(!el) return;
   el.innerHTML=`<div style="font-family:'DM Mono',monospace;font-size:9px;color:#888;padding:6px 0">Loading history…</div>`;
   try{
-    const res=await fetch(`${API}/logs/${trademarkId}`);
+    const res=await fetch(`${API}/audit-logs/${trademarkId}`);
     const j=await res.json();
     if(!j.success) throw new Error(j.error);
     const logs=j.data;

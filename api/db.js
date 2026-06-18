@@ -124,6 +124,7 @@ async function runMigrations() {
       await client.query(`CREATE INDEX IF NOT EXISTS ${name} ON trademarks(${col})`);
     }
     await client.query(`CREATE INDEX IF NOT EXISTS idx_audit_record_id ON audit_logs(record_id)`);
+    await client.query(`CREATE UNIQUE INDEX IF NOT EXISTS idx_tm_no_unique ON trademarks(tm_no) WHERE tm_no IS NOT NULL AND tm_no != ''`);
 
     // ── Auto-update updated_at trigger ────────────────────────────────────────────
     await client.query(`
