@@ -334,7 +334,7 @@ app.get('/api/logs', async (req, res) => {
       if (r.field_name === 'created') action = 'CREATE';
       if (r.field_name === 'archived' && r.new_value === 'true') action = 'DELETE';
       if (r.changed_by === 'system' && r.field_name === 'created') action = 'SYNC';
-      return { ...r, action, note: \`Changed \${r.field_name}\` };
+      return { ...r, action, note: `Changed ${r.field_name}` };
     });
     res.json({ success: true, count: mappedRows.length, data: mappedRows });
   } catch (err) {
