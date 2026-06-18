@@ -3,497 +3,443 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>BrandEx Law — Trademark Portal</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Grotesk:wght@400;500;600;700&family=DM+Mono:wght@500&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css" />
+  <title>BrandEx CMS — Trademark Case Management</title>
+  <meta name="description" content="Brandex Law Associates — Trademark Case Management System. Track, manage and monitor trademark applications." />
+  <link rel="icon" href="/favicon.png" type="image/png" />
+  <link rel="stylesheet" href="/styles.css" />
 </head>
 <body>
-  <header class="header">
-    <div class="header-inner">
-      <div class="logo-group">
-        <div class="logo-box"><span class="logo-b">B</span><span class="logo-dot">.</span></div>
-        <div>
-          <div class="brand-name">BRANDEX LAW</div>
-          <div class="brand-sub">TRADEMARK PORTAL · PK</div>
-        </div>
-      </div>
-      <nav class="tab-nav" id="tabNav">
-        <button class="tab-btn active" data-tab="dashboard">▣ DASHBOARD</button>
-        <button class="tab-btn" data-tab="search">⌕ SEARCH TM</button>
-        <button class="tab-btn" data-tab="records">≡ ALL RECORDS</button>
-        <button class="tab-btn" data-tab="assignment">◈ ASSIGNMENT</button>
-        <button class="tab-btn" data-tab="logs">📋 LOGS</button>
-      </nav>
+
+<div id="app">
+  <!-- ── Sidebar ──────────────────────────────────────────────── -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <img src="/favicon.png" alt="BrandEx Logo" class="logo-img" onerror="this.style.display='none'" />
+      <div class="brand-name">BrandEx</div>
+      <div class="brand-sub">Law Associates</div>
     </div>
-  </header>
 
-  <main class="main">
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Main</div>
+      <button class="nav-item active" id="nav-dashboard" onclick="showPage('dashboard')">
+        <span class="nav-icon">📊</span> Dashboard
+      </button>
+      <button class="nav-item" id="nav-records" onclick="showPage('records')">
+        <span class="nav-icon">📋</span> Records
+      </button>
 
-    <!-- ══════════════════════════════════════════════════════════════════
-         TAB 1 — DASHBOARD
-    ═══════════════════════════════════════════════════════════════════ -->
-    <section class="tab-panel active" id="tab-dashboard">
-      <div class="container">
+      <div class="nav-section-label">Actions</div>
+      <button class="nav-item" onclick="openAddModal()">
+        <span class="nav-icon">➕</span> New Case
+      </button>
+      <button class="nav-item" onclick="syncSheets()">
+        <span class="nav-icon">🔄</span> Sync Sheets
+      </button>
 
-        <div class="dash-toolbar">
-          <span class="status-chip ok" id="statusChip">
-            <span class="status-dot"></span>
-            <span id="statusText">Connecting…</span>
-          </span>
-          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
-            <button class="btn-outline" id="refreshBtn">↻ REFRESH</button>
-            <button class="btn-outline" id="syncBtn">⟳ SYNC SHEETS</button>
-            <button class="btn-orange-sm" id="addNewBtn">+ ADD NEW</button>
-          </div>
-        </div>
+      <div class="nav-section-label">System</div>
+      <button class="nav-item" onclick="showPage('archived')">
+        <span class="nav-icon">🗄️</span> Archived
+      </button>
+    </nav>
 
-        <div class="chart-card" id="chartCard" style="display:none">
-          <div class="chart-header">
-            <span class="chart-title">STAGE DISTRIBUTION</span>
-            <span class="chart-total" id="chartTotal">—</span>
-          </div>
-          <div id="stageBars" class="stage-bars"></div>
-        </div>
+    <div class="sidebar-footer">
+      <div class="text-xs text-gray">BrandEx CMS v2.0</div>
+    </div>
+  </aside>
 
-        <div class="stats-grid" id="statsGrid">
-          <div class="stat-tile"><span class="stat-val" id="s-total"      style="color:#1a1a1a">—</span><span class="stat-label">TOTAL</span></div>
-          <div class="stat-tile"><span class="stat-val" id="s-run"        style="color:#2563EB">—</span><span class="stat-label">RUN</span></div>
-          <div class="stat-tile"><span class="stat-val" id="s-processing" style="color:#D4A800">—</span><span class="stat-label">PROCESSING</span></div>
-          <div class="stat-tile"><span class="stat-val" id="s-done"       style="color:#0D9970">—</span><span class="stat-label">DONE</span></div>
-          <div class="stat-tile"><span class="stat-val" id="s-s1"         style="color:#C94A00">—</span><span class="stat-label">STAGE 1</span></div>
-          <div class="stat-tile"><span class="stat-val" id="s-s2"         style="color:#0A6B52">—</span><span class="stat-label">STAGE 2</span></div>
-          <div class="stat-tile"><span class="stat-val" id="s-s3"         style="color:#D4A800">—</span><span class="stat-label">STAGE 3</span></div>
-          <div class="stat-tile"><span class="stat-val" id="s-s4"         style="color:#0D9970">—</span><span class="stat-label">STAGE 4</span></div>
-        </div>
-
+  <!-- ── Main ─────────────────────────────────────────────────── -->
+  <div class="main">
+    <!-- Topbar -->
+    <header class="topbar">
+      <div class="flex items-center gap-3">
+        <button class="sidebar-toggle" onclick="toggleSidebar()" id="sidebar-toggle-btn" aria-label="Toggle sidebar">☰</button>
+        <h1 class="topbar-title" id="page-title">Dashboard</h1>
       </div>
-    </section>
+      <div class="topbar-actions">
+        <button class="btn btn-sm btn-ghost" onclick="syncSheets()" id="sync-btn">🔄 Sync</button>
+        <button class="btn btn-sm btn-primary" onclick="openAddModal()">+ New Case</button>
+      </div>
+    </header>
 
-    <!-- ══════════════════════════════════════════════════════════════════
-         TAB 2 — SEARCH TM
-    ═══════════════════════════════════════════════════════════════════ -->
-    <section class="tab-panel" id="tab-search">
-      <div class="container">
-        <div class="search-card">
-          <div class="search-eyebrow">TRADEMARK LOOKUP — SEARCH BY TM NUMBER, NAME, CNIC OR SR. NO</div>
-          <div class="search-row">
-            <input type="text" class="search-input" id="searchInput"
-              placeholder="TM Number, App Name, CNIC or SR. No…" autocomplete="off" spellcheck="false" />
-            <button class="btn-orange" id="searchBtn">SEARCH</button>
+    <!-- ── Pages ──────────────────────────────────────────────── -->
+    <main class="content-area">
+
+      <!-- DASHBOARD PAGE -->
+      <div id="page-dashboard">
+        <!-- KPI Row -->
+        <div class="kpi-grid" id="kpi-grid">
+          <div class="kpi-card" style="--accent:var(--gold-400)">
+            <div class="kpi-icon">📁</div>
+            <div class="kpi-value" id="stat-total">—</div>
+            <div class="kpi-label">Total Cases</div>
           </div>
-          <div class="search-status-row">
-            <span style="font-family:'DM Mono',monospace;font-size:9px;color:#888" id="searchCount"></span>
-            <button class="btn-orange-sm" id="addNewBtn2">+ ADD NEW</button>
+          <div class="kpi-card" style="--accent:var(--stage1)">
+            <div class="kpi-icon">🔵</div>
+            <div class="kpi-value" id="stat-active">—</div>
+            <div class="kpi-label">Active Cases</div>
+          </div>
+          <div class="kpi-card" style="--accent:var(--warning)">
+            <div class="kpi-icon">⚖️</div>
+            <div class="kpi-value" id="stat-hearings">—</div>
+            <div class="kpi-label">Hearings Pending</div>
+          </div>
+          <div class="kpi-card" style="--accent:var(--danger)">
+            <div class="kpi-icon">⚔️</div>
+            <div class="kpi-value" id="stat-opposition">—</div>
+            <div class="kpi-label">Opposition Cases</div>
+          </div>
+          <div class="kpi-card" style="--accent:var(--stage4)">
+            <div class="kpi-icon">🏆</div>
+            <div class="kpi-value" id="stat-certs">—</div>
+            <div class="kpi-label">Certificates Pending</div>
+          </div>
+          <div class="kpi-card" style="--accent:var(--gray-500)">
+            <div class="kpi-icon">🗄️</div>
+            <div class="kpi-value" id="stat-archived">—</div>
+            <div class="kpi-label">Archived</div>
           </div>
         </div>
-        <div id="searchResults">
-          <div class="no-results">
-            <div class="no-results-title">START SEARCHING</div>
-            <p class="no-results-hint">Enter TM Number, applicant name, CNIC or serial number above.</p>
+
+        <div class="dashboard-grid">
+          <!-- Stage Breakdown -->
+          <div class="card">
+            <div class="section-header">
+              <div class="section-title">Cases by Stage</div>
+            </div>
+            <div class="stage-bars" id="stage-bars">
+              <div class="text-gray text-sm">Loading…</div>
+            </div>
+          </div>
+
+          <!-- City Breakdown -->
+          <div class="card">
+            <div class="section-header">
+              <div class="section-title">Cases by City</div>
+            </div>
+            <div class="stage-bars" id="city-bars">
+              <div class="text-gray text-sm">Loading…</div>
+            </div>
+          </div>
+
+          <!-- Consultant Breakdown -->
+          <div class="card">
+            <div class="section-header">
+              <div class="section-title">Cases by Consultant</div>
+            </div>
+            <div class="stage-bars" id="consultant-bars">
+              <div class="text-gray text-sm">Loading…</div>
+            </div>
+          </div>
+
+          <!-- Assigned Person -->
+          <div class="card">
+            <div class="section-header">
+              <div class="section-title">Cases by Assigned Person</div>
+            </div>
+            <div class="stage-bars" id="person-bars">
+              <div class="text-gray text-sm">Loading…</div>
+            </div>
           </div>
         </div>
       </div>
-    </section>
 
-    <!-- ══════════════════════════════════════════════════════════════════
-         TAB 3 — ALL RECORDS
-    ═══════════════════════════════════════════════════════════════════ -->
-    <section class="tab-panel" id="tab-records">
-      <div class="container container--wide">
-
-        <!-- Toolbar row 1: text filter + counts + buttons -->
-        <div class="records-toolbar">
-          <input type="text" class="filter-input" id="filterInput" placeholder="Filter any field…" autocomplete="off" />
-          <span class="records-count" id="recordsCount">— records</span>
-          <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-left:auto">
-            <button class="btn-outline" id="exportBtn">↓ EXPORT CSV</button>
-            <button class="btn-orange-sm" id="addNewBtn3">+ ADD NEW</button>
+      <!-- RECORDS PAGE -->
+      <div id="page-records" class="hidden screen-only">
+        <div class="search-bar-wrap">
+          <div class="search-input-wrap">
+            <span class="search-icon">🔍</span>
+            <input type="text" class="search-input" id="search-input"
+              placeholder="Search by TM No, SR No, Applicant, CNIC, Class, Consultant…"
+              oninput="debounceSearch()" />
           </div>
+          <button class="btn btn-ghost btn-sm" onclick="toggleFilters()" id="filter-toggle-btn">
+            🎛 Filters
+          </button>
+          <button class="btn btn-ghost btn-sm" onclick="exportCSV()">
+            ⬇ Export
+          </button>
         </div>
 
-        <!-- Toolbar row 2: filter dropdowns + sort -->
-        <div class="filter-toolbar">
-          <select class="filter-select" id="filterStage">
+        <!-- Filters -->
+        <div id="filters-row" class="filters-row hidden">
+          <select class="filter-select" id="f-stage" onchange="applyFilters()">
             <option value="">All Stages</option>
-            <option value="1">Stage 1</option>
-            <option value="2">Stage 2</option>
-            <option value="3">Stage 3</option>
-            <option value="4">Stage 4</option>
-            <option value="-1">Stopped</option>
-            <option value="-2">Copyright</option>
+            <option>Stage 1 – Application</option>
+            <option>Stage 2 – Examination</option>
+            <option>Stage 3 – Publication</option>
+            <option>Stage 4 – Registration</option>
           </select>
-          <select class="filter-select" id="filterStatus">
-            <option value="">All Status</option>
-            <option value="Run">Run</option>
-            <option value="Processing">Processing</option>
-            <option value="Done">Done</option>
+          <select class="filter-select" id="f-sub-stage" onchange="applyFilters()">
+            <option value="">All Sub-Stages</option>
           </select>
-          <select class="filter-select" id="filterType">
-            <option value="">All Types</option>
-            <option value="SOLE PROPRIETOR">Sole Proprietor</option>
-            <option value="PARTNERSHIP">Partnership</option>
-            <option value="COMPANY">Company</option>
-            <option value="INDIVIDUAL">Individual</option>
+          <select class="filter-select" id="f-person" onchange="applyFilters()">
+            <option value="">All Persons</option>
+            <option>UZMA</option>
+            <option>FAISAL</option>
+            <option>RASHID</option>
+            <option>SULMAN</option>
           </select>
-          <select class="filter-select" id="filterYear">
+          <select class="filter-select" id="f-city" onchange="applyFilters()">
+            <option value="">All Cities</option>
+            <option>KARACHI</option>
+            <option>LAHORE</option>
+            <option>ISLAMABAD</option>
+            <option>PESHAWAR</option>
+          </select>
+          <select class="filter-select" id="f-year" onchange="applyFilters()">
             <option value="">All Years</option>
-            <option>2020</option><option>2021</option><option>2022</option>
-            <option>2023</option><option>2024</option><option>2025</option><option>2026</option>
           </select>
-          <div class="sort-group">
-            <span class="sort-label">SORT</span>
-            <button class="sort-btn active" data-sort="created_at">NEWEST</button>
-            <button class="sort-btn" data-sort="app_name">NAME</button>
-            <button class="sort-btn" data-sort="stage">STAGE</button>
-            <button class="sort-btn" data-sort="status_run">STATUS</button>
-          </div>
+          <button class="btn btn-ghost btn-sm" onclick="clearFilters()">✕ Clear</button>
         </div>
-
-        <!-- Bulk action bar (hidden until rows selected) -->
-        <div class="bulk-bar" id="bulkBar" style="display:none">
-          <span id="bulkCount" style="font-family:'DM Mono',monospace;font-size:11px"></span>
-          <button class="btn-danger" id="bulkDelBtn">✕ DELETE SELECTED</button>
-          <button class="btn-outline" id="bulkClrBtn" style="padding:5px 12px;font-size:10px">CLEAR</button>
-        </div>
-
-        <!-- Pagination bar -->
-        <div id="paginationBar" style="margin-bottom:8px"></div>
 
         <!-- Table -->
-        <div class="table-wrap">
-          <table class="records-table" id="recordsTable">
-            <thead>
-              <tr>
-                <th><input type="checkbox" id="selectAll" /></th>
-                <th style="width:30px">IMG</th>
-                <th>SR. NO</th>
-                <th>TM NO</th>
-                <th>APP NAME</th>
-                <th>CLASS</th>
-                <th>STAGE</th>
-                <th>STATUS</th>
-                <th>APP TYPE</th>
-                <th>DATE</th>
-                <th>CON. NAME</th>
-                <th>ACTIONS</th>
-              </tr>
-            </thead>
-            <tbody id="recordsTbody"></tbody>
-          </table>
-        </div>
-
-        <!-- Bottom pagination -->
-        <div id="paginationBarBottom" style="margin-top:10px"></div>
-
-      </div>
-    </section>
-
-    <!-- ══════════════════════════════════════════════════════════════════
-         TAB 4 — ASSIGNMENT
-    ═══════════════════════════════════════════════════════════════════ -->
-    <section class="tab-panel" id="tab-assignment">
-      <div class="container container--wide">
-        <div id="assignmentContent">
-          <div class="no-results"><div class="no-results-title">LOADING…</div></div>
+        <div class="card" style="padding:0;">
+          <div class="table-wrap">
+            <table id="records-table">
+              <thead>
+                <tr>
+                  <th onclick="sortBy('filing_date')">Filing Date <span class="sort-icon" data-col="filing_date"></span></th>
+                  <th onclick="sortBy('sr_no')">SR No <span class="sort-icon" data-col="sr_no"></span></th>
+                  <th onclick="sortBy('tm_no')">TM No <span class="sort-icon" data-col="tm_no"></span></th>
+                  <th onclick="sortBy('applicant_name')">Applicant Name <span class="sort-icon" data-col="applicant_name"></span></th>
+                  <th onclick="sortBy('class')">Class</th>
+                  <th onclick="sortBy('stage')">Stage</th>
+                  <th>Sub Stage</th>
+                  <th onclick="sortBy('assigned_person')">Person</th>
+                  <th onclick="sortBy('assigned_city')">City</th>
+                  <th style="width:80px;text-align:center;">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="records-tbody">
+                <tr class="loading-row"><td colspan="10"><div class="spinner"></div></td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="pagination" style="padding:16px 20px;" id="pagination-wrap">
+            <div class="pagination-info" id="pagination-info"></div>
+            <div class="pagination-controls" id="pagination-controls"></div>
+          </div>
         </div>
       </div>
-    </section>
 
-    <!-- ══════════════════════════════════════════════════════════════════
-         TAB 5 — LOGS
-    ═══════════════════════════════════════════════════════════════════ -->
-    <section class="tab-panel" id="tab-logs">
-      <div class="container container--wide">
-        <div class="records-toolbar">
-          <span style="font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:1px">ACTIVITY LOG</span>
-          <span class="records-count" id="logsCount"></span>
-          <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-left:auto">
-            <select class="filter-select" id="logsFilterAction" onchange="renderLogsTab()">
-              <option value="">All Actions</option>
-              <option value="CREATE">CREATE</option>
-              <option value="UPDATE">UPDATE</option>
-              <option value="DELETE">DELETE</option>
-              <option value="SYNC">SYNC</option>
-            </select>
-            <button class="btn-outline" id="logsRefreshBtn">↻ REFRESH</button>
+      <!-- ARCHIVED PAGE -->
+      <div id="page-archived" class="hidden screen-only">
+        <div class="card" style="padding:0; margin-top:0">
+          <div class="table-wrap">
+            <table id="archived-table">
+              <thead>
+                <tr>
+                  <th>Filing Date</th><th>SR No</th><th>TM No</th>
+                  <th>Applicant Name</th><th>Class</th><th>Stage</th>
+                  <th style="width:80px;text-align:center;">Restore</th>
+                </tr>
+              </thead>
+              <tbody id="archived-tbody">
+                <tr class="loading-row"><td colspan="7"><div class="spinner"></div></td></tr>
+              </tbody>
+            </table>
           </div>
-        </div>
-        <div id="logsContent">
-          <div class="no-results"><div class="no-results-title">LOADING…</div></div>
         </div>
       </div>
-    </section>
 
-  </main>
+    </main>
+  </div><!-- /.main -->
 
-  <!-- ═══════════════════════════════════════════════════════════════════════
-       EDIT / ADD MODAL
-  ══════════════════════════════════════════════════════════════════════════ -->
-  <div class="modal-overlay" id="editModal">
-    <div class="modal-sheet modal-sheet--wide">
-      <div class="modal-header">
-        <div>
-          <span class="modal-title" id="modalTitle">EDIT RECORD</span>
-          <span class="modal-case" id="modalCase"></span>
-        </div>
-        <button class="modal-close-btn" id="modalClose">✕</button>
+  <!-- ══════════════════════════════════════════════════════════
+       SLIDE PANEL — Record Detail / Edit
+       ══════════════════════════════════════════════════════════ -->
+  <div class="panel-overlay" id="panel-overlay" onclick="closePanel()"></div>
+  <aside class="slide-panel" id="slide-panel" role="dialog" aria-modal="true">
+    <div class="panel-header">
+      <div>
+        <div class="panel-title" id="panel-title">Case Detail</div>
+        <div class="panel-subtitle" id="panel-subtitle"></div>
       </div>
-      <div class="modal-notice" id="modalNotice">📡 Changes save directly to database.</div>
-
-      <div class="modal-body">
-
-        <div class="form-section-label">A–B · STATUS &amp; STAGE</div>
-        <div class="form-grid">
-          <div class="form-group">
-            <label class="form-label">A · STATUS <span class="req">⭐</span></label>
-            <select class="form-select" id="editStatusRun">
-              <option value="">— Select —</option>
-              <option>Run</option><option>Processing</option><option>Done</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label class="form-label">B · STAGE <span class="req">⭐</span></label>
-            <select class="form-select" id="editStage">
-              <option value="">— Select —</option>
-              <optgroup label="── STAGE 1">
-                <option>STAGE 1</option>
-                <option>APPLICATION FILED</option>
-                <option>ACKNOWLEDGMENT</option>
-                <option>EXAMINATION</option>
-              </optgroup>
-              <optgroup label="── STAGE 2">
-                <option>STAGE 2</option>
-                <option>ASSIGNED</option>
-                <option>ACCEPTED</option>
-                <option>HEARING</option>
-              </optgroup>
-              <optgroup label="── STAGE 3">
-                <option>STAGE 3</option>
-                <option>PUBLISHED</option>
-                <option>OPPO: WITHDRAWN</option>
-                <option>OPPO: FILED</option>
-                <option>OPPO: RECEIVED</option>
-                <option>DEMAND NOTE RECEIVED</option>
-                <option>DEMAND NOTE PAID</option>
-              </optgroup>
-              <optgroup label="── STAGE 4">
-                <option>STAGE 4</option>
-                <option>CERTIFICATE RECEIVED</option>
-                <option>CERTIFICATE DISPATCH</option>
-                <option>COMPLETE</option>
-              </optgroup>
-              <optgroup label="── STOPPED">
-                <option>STOPPED</option>
-                <option>ABANDONED</option>
-                <option>HOLD</option>
-                <option>REFUSED</option>
-                <option>NOTE</option>
-              </optgroup>
-              <optgroup label="── COPYRIGHT">
-                <option>COPYRIGHT</option>
-                <option>COPYRIGHT FILED</option>
-                <option>COPYRIGHT IN NEWSPAPERS</option>
-                <option>COPYRIGHT ACKNOWLEDGEMENT</option>
-                <option>COPYRIGHT EXAMINATION</option>
-                <option>COPYRIGHT CERTIFICATE RECEIVED</option>
-                <option>COPYRIGHT CERTIFICATE DISPATCHED</option>
-              </optgroup>
-            </select>
-          </div>
-        </div>
-
-        <div class="form-section-label">C–F · IDENTITY &amp; DATE</div>
-        <div class="form-grid">
-          <div class="form-group">
-            <label class="form-label">C · SERIAL NO</label>
-            <input type="text" class="form-input" id="editSrNo" placeholder="PB-RWP-… (auto-generated)" />
-          </div>
-          <div class="form-group">
-            <label class="form-label">D · TM NUMBER</label>
-            <input type="text" class="form-input" id="editTmNo" placeholder="Trademark number" />
-          </div>
-          <div class="form-group">
-            <label class="form-label">E · FOLDER NAME</label>
-            <input type="text" class="form-input" id="editFolder" placeholder="Google Drive folder name" />
-          </div>
-          <div class="form-group">
-            <label class="form-label">F · DATE (LONG)</label>
-            <input type="text" class="form-input" id="editDateL" placeholder="e.g. 01-MAY-2026" />
-          </div>
-        </div>
-
-        <div class="form-section-label">G–H · CLASS</div>
-        <div class="form-grid">
-          <div class="form-group">
-            <label class="form-label">G · CLASS (01–45) <span class="req">⭐</span></label>
-            <select class="form-select" id="editClass"></select>
-          </div>
-          <div class="form-group form-full">
-            <label class="form-label">H · CLASS DESCRIPTION</label>
-            <input type="text" class="form-input" id="editClassDesc" placeholder="Goods &amp; services description" />
-          </div>
-        </div>
-
-        <div class="form-section-label">I–L · APPLICANT DETAILS</div>
-        <div class="form-grid">
-          <div class="form-group">
-            <label class="form-label">I · APP TYPE <span class="req">⭐</span></label>
-            <select class="form-select" id="editAppType">
-              <option value="">— Select —</option>
-              <option value="SOLE PROPRIETOR">SOLE PROPRIETOR</option>
-              <option value="PARTNERSHIP">PARTNERSHIP</option>
-              <option value="COMPANY">COMPANY</option>
-              <option value="INDIVIDUAL">INDIVIDUAL</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label class="form-label">J · APP NAME <span class="req">⭐</span></label>
-            <input type="text" class="form-input" id="editAppName" placeholder="Applicant full name" />
-          </div>
-          <div class="form-group">
-            <label class="form-label">K · FATHER'S NAME (S/O)</label>
-            <input type="text" class="form-input" id="editAppSo" placeholder="Father's name" />
-          </div>
-          <div class="form-group">
-            <label class="form-label">L · CNIC / NTN / PASSPORT</label>
-            <input type="text" class="form-input" id="editAppCnic" placeholder="CNIC: XXXXX-XXXXXXX-X or NTN/Passport No" maxlength="20" />
-          </div>
-        </div>
-
-        <div class="form-section-label">M–N · DATES</div>
-        <div class="form-grid">
-          <div class="form-group">
-            <label class="form-label">M · ISSUE DATE</label>
-            <input type="text" class="form-input" id="editIssueDate" placeholder="01-MAY-2026" />
-          </div>
-          <div class="form-group">
-            <label class="form-label">N · EXPIRY DATE <span style="font-size:9px;color:#0A6B52">(auto +7 days)</span></label>
-            <input type="text" class="form-input" id="editExpiryDate" placeholder="Auto from issue date" readonly style="background:#f5f5f0" />
-          </div>
-        </div>
-
-        <div class="form-section-label">O–Q · TRADE &amp; ADDRESS</div>
-        <div class="form-grid">
-          <div class="form-group">
-            <label class="form-label">O · BUSINESS / TRADE NAME</label>
-            <input type="text" class="form-input" id="editAppTrade" placeholder="Registered trade/brand name" />
-          </div>
-          <div class="form-group">
-            <label class="form-label">Q · YEAR</label>
-            <select class="form-select" id="editYear">
-              <option value="">— Select —</option>
-              <option>2020</option><option>2021</option><option>2022</option>
-              <option>2023</option><option>2024</option><option>2025</option><option>2026</option>
-            </select>
-          </div>
-          <div class="form-group form-full">
-            <label class="form-label">P · APPLICANT ADDRESS</label>
-            <textarea class="form-textarea" id="editAppAdd" rows="2" placeholder="Full address of applicant"></textarea>
-          </div>
-        </div>
-
-        <div class="form-section-label">R–S · CONSULTANT</div>
-        <div class="form-grid">
-          <div class="form-group">
-            <label class="form-label">R · CONSULTANT NAME</label>
-            <input type="text" class="form-input" id="editConName" placeholder="Consultant full name" />
-          </div>
-          <div class="form-group form-full">
-            <label class="form-label">S · CONSULTANT ADDRESS</label>
-            <textarea class="form-textarea" id="editConAdd" rows="2" placeholder="Consultant address"></textarea>
-          </div>
-        </div>
-
-        <div class="form-section-label">T–U · TRADEMARK IMAGE</div>
-        <div class="form-grid">
-          <div class="form-group">
-            <label class="form-label">T · UPLOAD MARK IMAGE</label>
-            <input type="file" class="form-input" id="imgUpload" accept="image/*" style="padding:6px" />
-            <span style="font-family:'DM Mono',monospace;font-size:9px;color:#888;margin-top:3px">— or paste Drive ID below</span>
-          </div>
-          <div class="form-group">
-            <label class="form-label">T · GOOGLE DRIVE IMAGE ID</label>
-            <input type="text" class="form-input" id="editImg" placeholder="Drive file ID or auto-filled on upload" />
-          </div>
-          <div class="form-group">
-            <label class="form-label">U · FALLBACK TEXT (NO IMAGE)</label>
-            <input type="text" class="form-input" id="editNoImg" placeholder="e.g. WORDMARK / DEVICE MARK" />
-          </div>
-        </div>
-        <div id="imgPreview" style="display:none;margin-top:8px">
-          <img id="imgPreviewEl" src="" alt="Preview" style="max-width:140px;max-height:140px;border:3px solid #0C0C0C;border-radius:4px" />
-        </div>
-
-      </div>
-
-      <div class="modal-footer">
-        <button class="btn-outline" id="modalCancel">CANCEL</button>
-        <button class="btn-orange" id="modalSave">SAVE TO DATABASE</button>
-      </div>
+      <button class="btn btn-icon" onclick="closePanel()" aria-label="Close">✕</button>
     </div>
-  </div>
 
-  <!-- ═══════════════════════════════════════════════════════════════════════
-       ASSIGN MODAL
-  ════════════════════════════════════════════════════════════════════════ -->
-  <div class="modal-overlay" id="assignModal">
-    <div class="modal-sheet">
+    <div class="tabs" style="padding:0 24px; margin-bottom:0; border-bottom:1px solid rgba(255,255,255,0.06);">
+      <button class="tab active" id="tab-detail" onclick="switchTab('detail')">Detail</button>
+      <button class="tab" id="tab-edit" onclick="switchTab('edit')">Edit</button>
+      <button class="tab" id="tab-audit" onclick="switchTab('audit')">Audit Log</button>
+      <button class="tab" id="tab-print-tab" onclick="printRecord()">🖨 Print</button>
+    </div>
+
+    <div class="panel-body" id="panel-body">
+      <!-- Filled dynamically -->
+    </div>
+
+    <div class="panel-footer" id="panel-footer">
+      <button class="btn btn-danger btn-sm" id="archive-btn" onclick="archiveCurrentRecord()">🗄 Archive</button>
+      <button class="btn btn-secondary btn-sm" onclick="closePanel()">Close</button>
+      <button class="btn btn-primary btn-sm hidden" id="save-btn" onclick="saveEdit()">💾 Save Changes</button>
+    </div>
+  </aside>
+
+  <!-- ══════════════════════════════════════════════════════════
+       MODAL — Add New Case
+       ══════════════════════════════════════════════════════════ -->
+  <div class="modal-overlay" id="add-modal-overlay" onclick="closeAddModalOnBg(event)">
+    <div class="modal" role="dialog" aria-modal="true">
       <div class="modal-header">
-        <div>
-          <span class="modal-title" id="assignModalTitle">ASSIGN RECORD</span>
-          <span class="modal-case" id="assignModalCase"></span>
-        </div>
-        <button class="modal-close-btn" id="assignModalClose">✕</button>
+        <h2 class="modal-title">New Trademark Case</h2>
+        <button class="btn btn-icon" onclick="closeAddModal()" aria-label="Close">✕</button>
       </div>
-      <div class="modal-notice" id="assignModalNotice">Select an agent and city to assign this record.</div>
       <div class="modal-body">
-        <div class="form-grid">
+        <form id="add-form" class="form-grid" onsubmit="submitAddForm(event)">
+          <!-- Applicant Info -->
+          <div style="grid-column:1/-1" class="detail-section-title">Applicant Information</div>
+
+          <div class="form-group full">
+            <label class="form-label">Applicant Name <span class="required">*</span></label>
+            <input type="text" class="form-control" name="applicant_name" required placeholder="Full legal name" />
+          </div>
           <div class="form-group">
-            <label class="form-label">AGENT <span class="req">*</span></label>
-            <select class="form-select" id="assignAgent">
-              <option value="">— Select agent —</option>
+            <label class="form-label">Son/Daughter/Wife Of</label>
+            <input type="text" class="form-control" name="applicant_so" placeholder="Father/Husband name" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">CNIC</label>
+            <input type="text" class="form-control" name="applicant_cnic" placeholder="00000-0000000-0" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Applicant Type</label>
+            <select class="form-control" name="applicant_type">
+              <option value="">Select type</option>
+              <option>SOLE</option>
+              <option>PARTNER</option>
+              <option>COMPANY</option>
+            </select>
+          </div>
+          <div class="form-group full">
+            <label class="form-label">Address</label>
+            <textarea class="form-control" name="applicant_address" rows="2" placeholder="Complete address"></textarea>
+          </div>
+
+          <!-- TM Info -->
+          <div style="grid-column:1/-1" class="detail-section-title mt-3">Trademark Information</div>
+
+          <div class="form-group">
+            <label class="form-label">TM Number</label>
+            <input type="text" class="form-control" name="tm_no" placeholder="e.g. 123456" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">SR Number</label>
+            <input type="text" class="form-control" name="sr_no" placeholder="Case/SR number" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Trade Mark / Brand Name</label>
+            <input type="text" class="form-control" name="tm_trade" placeholder="Brand name" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Class</label>
+            <input type="text" class="form-control" name="class" placeholder="e.g. 25" />
+          </div>
+          <div class="form-group full">
+            <label class="form-label">Class Description</label>
+            <textarea class="form-control" name="class_desc" rows="2" placeholder="Goods/services description"></textarea>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Filing Date</label>
+            <input type="date" class="form-control" name="filing_date" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Year</label>
+            <input type="text" class="form-control" name="year" placeholder="e.g. 2024" maxlength="4" />
+          </div>
+
+          <!-- Stage -->
+          <div style="grid-column:1/-1" class="detail-section-title mt-3">Stage & Assignment</div>
+
+          <div class="form-group">
+            <label class="form-label">Stage</label>
+            <select class="form-control" name="stage" id="add-stage" onchange="populateSubStage('add-sub-stage','add-stage')">
+              <option value="">Select Stage</option>
+              <option>Stage 1 – Application</option>
+              <option>Stage 2 – Examination</option>
+              <option>Stage 3 – Publication</option>
+              <option>Stage 4 – Registration</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Sub Stage</label>
+            <select class="form-control" name="sub_stage" id="add-sub-stage">
+              <option value="">Select Sub Stage</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Assigned Person</label>
+            <select class="form-control" name="assigned_person">
+              <option value="">Select Person</option>
               <option>UZMA</option>
-              <option>FASIAL</option>
+              <option>FAISAL</option>
               <option>RASHID</option>
               <option>SULMAN</option>
             </select>
           </div>
           <div class="form-group">
-            <label class="form-label">CITY <span class="req">*</span></label>
-            <select class="form-select" id="assignCity">
-              <option value="">— Select city —</option>
+            <label class="form-label">Assigned City</label>
+            <select class="form-control" name="assigned_city">
+              <option value="">Select City</option>
               <option>KARACHI</option>
               <option>LAHORE</option>
               <option>ISLAMABAD</option>
+              <option>PESHAWAR</option>
             </select>
+          </div>
+
+          <!-- Consultant -->
+          <div style="grid-column:1/-1" class="detail-section-title mt-3">Consultant</div>
+
+          <div class="form-group">
+            <label class="form-label">Consultant Name</label>
+            <input type="text" class="form-control" name="consultant_name" placeholder="Consultant name" />
+          </div>
+          <div class="form-group full">
+            <label class="form-label">Consultant Address</label>
+            <textarea class="form-control" name="consultant_address" rows="2" placeholder="Consultant address"></textarea>
+          </div>
+
+          <!-- Dates & Notes -->
+          <div style="grid-column:1/-1" class="detail-section-title mt-3">Additional Info</div>
+
+          <div class="form-group">
+            <label class="form-label">Issue Date</label>
+            <input type="date" class="form-control" name="issue_date" />
           </div>
           <div class="form-group">
-            <label class="form-label">STATUS</label>
-            <select class="form-select" id="assignStatus">
-              <option value="Pending">Pending</option>
-              <option value="In Progress">In Progress</option>
-              <option value="Complete">Complete</option>
-            </select>
+            <label class="form-label">Expiry Date</label>
+            <input type="date" class="form-control" name="expiry_date" />
           </div>
-          <div class="form-group form-full">
-            <label class="form-label">NOTES</label>
-            <textarea class="form-textarea" id="assignNotes" rows="2" placeholder="Optional notes about this assignment…"></textarea>
+          <div class="form-group">
+            <label class="form-label">Folder Name</label>
+            <input type="text" class="form-control" name="folder_name" placeholder="Physical folder ref" />
           </div>
-        </div>
-        <div id="assignRecordPreview" style="display:none;margin-top:10px;padding:10px 14px;background:var(--bg);border:2px solid var(--bg2);border-radius:4px">
-          <span style="font-family:'DM Mono',monospace;font-size:9px;color:#888">RECORD</span>
-          <div id="assignRecordInfo" style="font-family:'Space Grotesk',sans-serif;font-size:13px;font-weight:600;margin-top:3px"></div>
-        </div>
+          <div class="form-group full">
+            <label class="form-label">Notes</label>
+            <textarea class="form-control" name="notes" rows="2" placeholder="Any remarks…"></textarea>
+          </div>
+        </form>
       </div>
       <div class="modal-footer">
-        <button class="btn-outline" id="assignModalCancel">CANCEL</button>
-        <button class="btn-orange" id="assignModalSave">ASSIGN</button>
+        <button class="btn btn-secondary" onclick="closeAddModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="document.getElementById('add-form').requestSubmit()">
+          ➕ Create Case
+        </button>
       </div>
     </div>
   </div>
 
-  <script src="app.js"></script>
+  <!-- ══════════════════════════════════════════════════════════
+       PRINT VIEW (hidden on screen, visible on print)
+       ══════════════════════════════════════════════════════════ -->
+  <div id="print-view"></div>
+
+  <!-- Toast container -->
+  <div id="toast-container"></div>
+
+</div><!-- /#app -->
+
+<script src="/app.js"></script>
 </body>
 </html>
