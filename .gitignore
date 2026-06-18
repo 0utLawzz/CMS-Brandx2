@@ -33,3 +33,5 @@ replit.nix
 replit.md
 .vercel
 .env*
+
+cred.json

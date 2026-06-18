@@ -1,7 +1,6 @@
 const path    = require('path');
 const express = require('express');
 const apiApp  = require('./api/index');
-const { testConnection, runMigrations } = require('./api/db');
 
 const PORT = 5000; // WebView always on 5000
 
@@ -21,8 +20,6 @@ apiApp.get(/.*/, (req, res) => {
 });
 
 // ─── Start ───────────────────────────────────────────────────────────────────
-apiApp.listen(PORT, '0.0.0.0', async () => {
+apiApp.listen(PORT, '0.0.0.0', () => {
   console.log(`BrandEx running on http://0.0.0.0:${PORT}`);
-  await testConnection();
-  await runMigrations();
 });
