@@ -36,6 +36,8 @@ async function runMigrations() {
 
     // ── Add new columns if they don't exist (safe for existing tables) ───────────
     const newCols = [
+      ['created_at',         'TIMESTAMP DEFAULT NOW()'],
+      ['updated_at',         'TIMESTAMP DEFAULT NOW()'],
       ['filing_date',        'VARCHAR(60)'],
       ['sr_no',              'VARCHAR(60)'],
       ['tm_no',              'VARCHAR(30)'],

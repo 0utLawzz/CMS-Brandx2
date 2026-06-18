@@ -1,9 +1,9 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>BrandEx Law ΓÇö Trademark Portal</title>
+  <title>BrandEx Law — Trademark Portal</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Grotesk:wght@400;500;600;700&family=DM+Mono:wght@500&display=swap" rel="stylesheet" />
@@ -16,35 +16,35 @@
         <div class="logo-box"><span class="logo-b">B</span><span class="logo-dot">.</span></div>
         <div>
           <div class="brand-name">BRANDEX LAW</div>
-          <div class="brand-sub">TRADEMARK PORTAL ┬╖ PK</div>
+          <div class="brand-sub">TRADEMARK PORTAL · PK</div>
         </div>
       </div>
       <nav class="tab-nav" id="tabNav">
-        <button class="tab-btn active" data-tab="dashboard">Γûú DASHBOARD</button>
-        <button class="tab-btn" data-tab="search">Γîò SEARCH TM</button>
-        <button class="tab-btn" data-tab="records">Γëí ALL RECORDS</button>
-        <button class="tab-btn" data-tab="assignment">Γùê ASSIGNMENT</button>
-        <button class="tab-btn" data-tab="logs">≡ƒôï LOGS</button>
+        <button class="tab-btn active" data-tab="dashboard">▣ DASHBOARD</button>
+        <button class="tab-btn" data-tab="search">⌕ SEARCH TM</button>
+        <button class="tab-btn" data-tab="records">≡ ALL RECORDS</button>
+        <button class="tab-btn" data-tab="assignment">◈ ASSIGNMENT</button>
+        <button class="tab-btn" data-tab="logs">📋 LOGS</button>
       </nav>
     </div>
   </header>
 
   <main class="main">
 
-    <!-- ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
-         TAB 1 ΓÇö DASHBOARD
-    ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ -->
+    <!-- ══════════════════════════════════════════════════════════════════
+         TAB 1 — DASHBOARD
+    ═══════════════════════════════════════════════════════════════════ -->
     <section class="tab-panel active" id="tab-dashboard">
       <div class="container">
 
         <div class="dash-toolbar">
           <span class="status-chip ok" id="statusChip">
             <span class="status-dot"></span>
-            <span id="statusText">ConnectingΓÇª</span>
+            <span id="statusText">Connecting…</span>
           </span>
           <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
-            <button class="btn-outline" id="refreshBtn">Γå╗ REFRESH</button>
-            <button class="btn-outline" id="syncBtn">Γƒ│ SYNC SHEETS</button>
+            <button class="btn-outline" id="refreshBtn">↻ REFRESH</button>
+            <button class="btn-outline" id="syncBtn">⟳ SYNC SHEETS</button>
             <button class="btn-orange-sm" id="addNewBtn">+ ADD NEW</button>
           </div>
         </div>
@@ -52,35 +52,35 @@
         <div class="chart-card" id="chartCard" style="display:none">
           <div class="chart-header">
             <span class="chart-title">STAGE DISTRIBUTION</span>
-            <span class="chart-total" id="chartTotal">ΓÇö</span>
+            <span class="chart-total" id="chartTotal">—</span>
           </div>
           <div id="stageBars" class="stage-bars"></div>
         </div>
 
         <div class="stats-grid" id="statsGrid">
-          <div class="stat-tile"><span class="stat-val" id="s-total"      style="color:#1a1a1a">ΓÇö</span><span class="stat-label">TOTAL</span></div>
-          <div class="stat-tile"><span class="stat-val" id="s-run"        style="color:#2563EB">ΓÇö</span><span class="stat-label">RUN</span></div>
-          <div class="stat-tile"><span class="stat-val" id="s-processing" style="color:#D4A800">ΓÇö</span><span class="stat-label">PROCESSING</span></div>
-          <div class="stat-tile"><span class="stat-val" id="s-done"       style="color:#0D9970">ΓÇö</span><span class="stat-label">DONE</span></div>
-          <div class="stat-tile"><span class="stat-val" id="s-s1"         style="color:#C94A00">ΓÇö</span><span class="stat-label">STAGE 1</span></div>
-          <div class="stat-tile"><span class="stat-val" id="s-s2"         style="color:#0A6B52">ΓÇö</span><span class="stat-label">STAGE 2</span></div>
-          <div class="stat-tile"><span class="stat-val" id="s-s3"         style="color:#D4A800">ΓÇö</span><span class="stat-label">STAGE 3</span></div>
-          <div class="stat-tile"><span class="stat-val" id="s-s4"         style="color:#0D9970">ΓÇö</span><span class="stat-label">STAGE 4</span></div>
+          <div class="stat-tile"><span class="stat-val" id="s-total"      style="color:#1a1a1a">—</span><span class="stat-label">TOTAL</span></div>
+          <div class="stat-tile"><span class="stat-val" id="s-run"        style="color:#2563EB">—</span><span class="stat-label">RUN</span></div>
+          <div class="stat-tile"><span class="stat-val" id="s-processing" style="color:#D4A800">—</span><span class="stat-label">PROCESSING</span></div>
+          <div class="stat-tile"><span class="stat-val" id="s-done"       style="color:#0D9970">—</span><span class="stat-label">DONE</span></div>
+          <div class="stat-tile"><span class="stat-val" id="s-s1"         style="color:#C94A00">—</span><span class="stat-label">STAGE 1</span></div>
+          <div class="stat-tile"><span class="stat-val" id="s-s2"         style="color:#0A6B52">—</span><span class="stat-label">STAGE 2</span></div>
+          <div class="stat-tile"><span class="stat-val" id="s-s3"         style="color:#D4A800">—</span><span class="stat-label">STAGE 3</span></div>
+          <div class="stat-tile"><span class="stat-val" id="s-s4"         style="color:#0D9970">—</span><span class="stat-label">STAGE 4</span></div>
         </div>
 
       </div>
     </section>
 
-    <!-- ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
-         TAB 2 ΓÇö SEARCH TM
-    ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ -->
+    <!-- ══════════════════════════════════════════════════════════════════
+         TAB 2 — SEARCH TM
+    ═══════════════════════════════════════════════════════════════════ -->
     <section class="tab-panel" id="tab-search">
       <div class="container">
         <div class="search-card">
-          <div class="search-eyebrow">TRADEMARK LOOKUP ΓÇö SEARCH BY TM NUMBER, NAME, CNIC OR SR. NO</div>
+          <div class="search-eyebrow">TRADEMARK LOOKUP — SEARCH BY TM NUMBER, NAME, CNIC OR SR. NO</div>
           <div class="search-row">
             <input type="text" class="search-input" id="searchInput"
-              placeholder="TM Number, App Name, CNIC or SR. NoΓÇª" autocomplete="off" spellcheck="false" />
+              placeholder="TM Number, App Name, CNIC or SR. No…" autocomplete="off" spellcheck="false" />
             <button class="btn-orange" id="searchBtn">SEARCH</button>
           </div>
           <div class="search-status-row">
@@ -97,18 +97,18 @@
       </div>
     </section>
 
-    <!-- ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
-         TAB 3 ΓÇö ALL RECORDS
-    ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ -->
+    <!-- ══════════════════════════════════════════════════════════════════
+         TAB 3 — ALL RECORDS
+    ═══════════════════════════════════════════════════════════════════ -->
     <section class="tab-panel" id="tab-records">
       <div class="container container--wide">
 
         <!-- Toolbar row 1: text filter + counts + buttons -->
         <div class="records-toolbar">
-          <input type="text" class="filter-input" id="filterInput" placeholder="Filter any fieldΓÇª" autocomplete="off" />
-          <span class="records-count" id="recordsCount">ΓÇö records</span>
+          <input type="text" class="filter-input" id="filterInput" placeholder="Filter any field…" autocomplete="off" />
+          <span class="records-count" id="recordsCount">— records</span>
           <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-left:auto">
-            <button class="btn-outline" id="exportBtn">Γåô EXPORT CSV</button>
+            <button class="btn-outline" id="exportBtn">↓ EXPORT CSV</button>
             <button class="btn-orange-sm" id="addNewBtn3">+ ADD NEW</button>
           </div>
         </div>
@@ -154,7 +154,7 @@
         <!-- Bulk action bar (hidden until rows selected) -->
         <div class="bulk-bar" id="bulkBar" style="display:none">
           <span id="bulkCount" style="font-family:'DM Mono',monospace;font-size:11px"></span>
-          <button class="btn-danger" id="bulkDelBtn">Γ£ò DELETE SELECTED</button>
+          <button class="btn-danger" id="bulkDelBtn">✕ DELETE SELECTED</button>
           <button class="btn-outline" id="bulkClrBtn" style="padding:5px 12px;font-size:10px">CLEAR</button>
         </div>
 
@@ -190,20 +190,20 @@
       </div>
     </section>
 
-    <!-- ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
-         TAB 4 ΓÇö ASSIGNMENT
-    ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ -->
+    <!-- ══════════════════════════════════════════════════════════════════
+         TAB 4 — ASSIGNMENT
+    ═══════════════════════════════════════════════════════════════════ -->
     <section class="tab-panel" id="tab-assignment">
       <div class="container container--wide">
         <div id="assignmentContent">
-          <div class="no-results"><div class="no-results-title">LOADINGΓÇª</div></div>
+          <div class="no-results"><div class="no-results-title">LOADING…</div></div>
         </div>
       </div>
     </section>
 
-    <!-- ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
-         TAB 5 ΓÇö LOGS
-    ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ -->
+    <!-- ══════════════════════════════════════════════════════════════════
+         TAB 5 — LOGS
+    ═══════════════════════════════════════════════════════════════════ -->
     <section class="tab-panel" id="tab-logs">
       <div class="container container--wide">
         <div class="records-toolbar">
@@ -217,20 +217,20 @@
               <option value="DELETE">DELETE</option>
               <option value="SYNC">SYNC</option>
             </select>
-            <button class="btn-outline" id="logsRefreshBtn">Γå╗ REFRESH</button>
+            <button class="btn-outline" id="logsRefreshBtn">↻ REFRESH</button>
           </div>
         </div>
         <div id="logsContent">
-          <div class="no-results"><div class="no-results-title">LOADINGΓÇª</div></div>
+          <div class="no-results"><div class="no-results-title">LOADING…</div></div>
         </div>
       </div>
     </section>
 
   </main>
 
-  <!-- ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
+  <!-- ═══════════════════════════════════════════════════════════════════════
        EDIT / ADD MODAL
-  ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ -->
+  ══════════════════════════════════════════════════════════════════════════ -->
   <div class="modal-overlay" id="editModal">
     <div class="modal-sheet modal-sheet--wide">
       <div class="modal-header">
@@ -238,38 +238,38 @@
           <span class="modal-title" id="modalTitle">EDIT RECORD</span>
           <span class="modal-case" id="modalCase"></span>
         </div>
-        <button class="modal-close-btn" id="modalClose">Γ£ò</button>
+        <button class="modal-close-btn" id="modalClose">✕</button>
       </div>
-      <div class="modal-notice" id="modalNotice">≡ƒôí Changes save directly to database.</div>
+      <div class="modal-notice" id="modalNotice">📡 Changes save directly to database.</div>
 
       <div class="modal-body">
 
-        <div class="form-section-label">AΓÇôB ┬╖ STATUS &amp; STAGE</div>
+        <div class="form-section-label">A–B · STATUS &amp; STAGE</div>
         <div class="form-grid">
           <div class="form-group">
-            <label class="form-label">A ┬╖ STATUS <span class="req">Γ¡É</span></label>
+            <label class="form-label">A · STATUS <span class="req">⭐</span></label>
             <select class="form-select" id="editStatusRun">
-              <option value="">ΓÇö Select ΓÇö</option>
+              <option value="">— Select —</option>
               <option>Run</option><option>Processing</option><option>Done</option>
             </select>
           </div>
           <div class="form-group">
-            <label class="form-label">B ┬╖ STAGE <span class="req">Γ¡É</span></label>
+            <label class="form-label">B · STAGE <span class="req">⭐</span></label>
             <select class="form-select" id="editStage">
-              <option value="">ΓÇö Select ΓÇö</option>
-              <optgroup label="ΓöÇΓöÇ STAGE 1">
+              <option value="">— Select —</option>
+              <optgroup label="── STAGE 1">
                 <option>STAGE 1</option>
                 <option>APPLICATION FILED</option>
                 <option>ACKNOWLEDGMENT</option>
                 <option>EXAMINATION</option>
               </optgroup>
-              <optgroup label="ΓöÇΓöÇ STAGE 2">
+              <optgroup label="── STAGE 2">
                 <option>STAGE 2</option>
                 <option>ASSIGNED</option>
                 <option>ACCEPTED</option>
                 <option>HEARING</option>
               </optgroup>
-              <optgroup label="ΓöÇΓöÇ STAGE 3">
+              <optgroup label="── STAGE 3">
                 <option>STAGE 3</option>
                 <option>PUBLISHED</option>
                 <option>OPPO: WITHDRAWN</option>
@@ -278,20 +278,20 @@
                 <option>DEMAND NOTE RECEIVED</option>
                 <option>DEMAND NOTE PAID</option>
               </optgroup>
-              <optgroup label="ΓöÇΓöÇ STAGE 4">
+              <optgroup label="── STAGE 4">
                 <option>STAGE 4</option>
                 <option>CERTIFICATE RECEIVED</option>
                 <option>CERTIFICATE DISPATCH</option>
                 <option>COMPLETE</option>
               </optgroup>
-              <optgroup label="ΓöÇΓöÇ STOPPED">
+              <optgroup label="── STOPPED">
                 <option>STOPPED</option>
                 <option>ABANDONED</option>
                 <option>HOLD</option>
                 <option>REFUSED</option>
                 <option>NOTE</option>
               </optgroup>
-              <optgroup label="ΓöÇΓöÇ COPYRIGHT">
+              <optgroup label="── COPYRIGHT">
                 <option>COPYRIGHT</option>
                 <option>COPYRIGHT FILED</option>
                 <option>COPYRIGHT IN NEWSPAPERS</option>
@@ -304,44 +304,44 @@
           </div>
         </div>
 
-        <div class="form-section-label">CΓÇôF ┬╖ IDENTITY &amp; DATE</div>
+        <div class="form-section-label">C–F · IDENTITY &amp; DATE</div>
         <div class="form-grid">
           <div class="form-group">
-            <label class="form-label">C ┬╖ SERIAL NO</label>
-            <input type="text" class="form-input" id="editSrNo" placeholder="PB-RWP-ΓÇª (auto-generated)" />
+            <label class="form-label">C · SERIAL NO</label>
+            <input type="text" class="form-input" id="editSrNo" placeholder="PB-RWP-… (auto-generated)" />
           </div>
           <div class="form-group">
-            <label class="form-label">D ┬╖ TM NUMBER</label>
+            <label class="form-label">D · TM NUMBER</label>
             <input type="text" class="form-input" id="editTmNo" placeholder="Trademark number" />
           </div>
           <div class="form-group">
-            <label class="form-label">E ┬╖ FOLDER NAME</label>
+            <label class="form-label">E · FOLDER NAME</label>
             <input type="text" class="form-input" id="editFolder" placeholder="Google Drive folder name" />
           </div>
           <div class="form-group">
-            <label class="form-label">F ┬╖ DATE (LONG)</label>
+            <label class="form-label">F · DATE (LONG)</label>
             <input type="text" class="form-input" id="editDateL" placeholder="e.g. 01-MAY-2026" />
           </div>
         </div>
 
-        <div class="form-section-label">GΓÇôH ┬╖ CLASS</div>
+        <div class="form-section-label">G–H · CLASS</div>
         <div class="form-grid">
           <div class="form-group">
-            <label class="form-label">G ┬╖ CLASS (01ΓÇô45) <span class="req">Γ¡É</span></label>
+            <label class="form-label">G · CLASS (01–45) <span class="req">⭐</span></label>
             <select class="form-select" id="editClass"></select>
           </div>
           <div class="form-group form-full">
-            <label class="form-label">H ┬╖ CLASS DESCRIPTION</label>
+            <label class="form-label">H · CLASS DESCRIPTION</label>
             <input type="text" class="form-input" id="editClassDesc" placeholder="Goods &amp; services description" />
           </div>
         </div>
 
-        <div class="form-section-label">IΓÇôL ┬╖ APPLICANT DETAILS</div>
+        <div class="form-section-label">I–L · APPLICANT DETAILS</div>
         <div class="form-grid">
           <div class="form-group">
-            <label class="form-label">I ┬╖ APP TYPE <span class="req">Γ¡É</span></label>
+            <label class="form-label">I · APP TYPE <span class="req">⭐</span></label>
             <select class="form-select" id="editAppType">
-              <option value="">ΓÇö Select ΓÇö</option>
+              <option value="">— Select —</option>
               <option value="SOLE PROPRIETOR">SOLE PROPRIETOR</option>
               <option value="PARTNERSHIP">PARTNERSHIP</option>
               <option value="COMPANY">COMPANY</option>
@@ -349,76 +349,76 @@
             </select>
           </div>
           <div class="form-group">
-            <label class="form-label">J ┬╖ APP NAME <span class="req">Γ¡É</span></label>
+            <label class="form-label">J · APP NAME <span class="req">⭐</span></label>
             <input type="text" class="form-input" id="editAppName" placeholder="Applicant full name" />
           </div>
           <div class="form-group">
-            <label class="form-label">K ┬╖ FATHER'S NAME (S/O)</label>
+            <label class="form-label">K · FATHER'S NAME (S/O)</label>
             <input type="text" class="form-input" id="editAppSo" placeholder="Father's name" />
           </div>
           <div class="form-group">
-            <label class="form-label">L ┬╖ CNIC / NTN / PASSPORT</label>
+            <label class="form-label">L · CNIC / NTN / PASSPORT</label>
             <input type="text" class="form-input" id="editAppCnic" placeholder="CNIC: XXXXX-XXXXXXX-X or NTN/Passport No" maxlength="20" />
           </div>
         </div>
 
-        <div class="form-section-label">MΓÇôN ┬╖ DATES</div>
+        <div class="form-section-label">M–N · DATES</div>
         <div class="form-grid">
           <div class="form-group">
-            <label class="form-label">M ┬╖ ISSUE DATE</label>
+            <label class="form-label">M · ISSUE DATE</label>
             <input type="text" class="form-input" id="editIssueDate" placeholder="01-MAY-2026" />
           </div>
           <div class="form-group">
-            <label class="form-label">N ┬╖ EXPIRY DATE <span style="font-size:9px;color:#0A6B52">(auto +7 days)</span></label>
+            <label class="form-label">N · EXPIRY DATE <span style="font-size:9px;color:#0A6B52">(auto +7 days)</span></label>
             <input type="text" class="form-input" id="editExpiryDate" placeholder="Auto from issue date" readonly style="background:#f5f5f0" />
           </div>
         </div>
 
-        <div class="form-section-label">OΓÇôQ ┬╖ TRADE &amp; ADDRESS</div>
+        <div class="form-section-label">O–Q · TRADE &amp; ADDRESS</div>
         <div class="form-grid">
           <div class="form-group">
-            <label class="form-label">O ┬╖ BUSINESS / TRADE NAME</label>
+            <label class="form-label">O · BUSINESS / TRADE NAME</label>
             <input type="text" class="form-input" id="editAppTrade" placeholder="Registered trade/brand name" />
           </div>
           <div class="form-group">
-            <label class="form-label">Q ┬╖ YEAR</label>
+            <label class="form-label">Q · YEAR</label>
             <select class="form-select" id="editYear">
-              <option value="">ΓÇö Select ΓÇö</option>
+              <option value="">— Select —</option>
               <option>2020</option><option>2021</option><option>2022</option>
               <option>2023</option><option>2024</option><option>2025</option><option>2026</option>
             </select>
           </div>
           <div class="form-group form-full">
-            <label class="form-label">P ┬╖ APPLICANT ADDRESS</label>
+            <label class="form-label">P · APPLICANT ADDRESS</label>
             <textarea class="form-textarea" id="editAppAdd" rows="2" placeholder="Full address of applicant"></textarea>
           </div>
         </div>
 
-        <div class="form-section-label">RΓÇôS ┬╖ CONSULTANT</div>
+        <div class="form-section-label">R–S · CONSULTANT</div>
         <div class="form-grid">
           <div class="form-group">
-            <label class="form-label">R ┬╖ CONSULTANT NAME</label>
+            <label class="form-label">R · CONSULTANT NAME</label>
             <input type="text" class="form-input" id="editConName" placeholder="Consultant full name" />
           </div>
           <div class="form-group form-full">
-            <label class="form-label">S ┬╖ CONSULTANT ADDRESS</label>
+            <label class="form-label">S · CONSULTANT ADDRESS</label>
             <textarea class="form-textarea" id="editConAdd" rows="2" placeholder="Consultant address"></textarea>
           </div>
         </div>
 
-        <div class="form-section-label">TΓÇôU ┬╖ TRADEMARK IMAGE</div>
+        <div class="form-section-label">T–U · TRADEMARK IMAGE</div>
         <div class="form-grid">
           <div class="form-group">
-            <label class="form-label">T ┬╖ UPLOAD MARK IMAGE</label>
+            <label class="form-label">T · UPLOAD MARK IMAGE</label>
             <input type="file" class="form-input" id="imgUpload" accept="image/*" style="padding:6px" />
-            <span style="font-family:'DM Mono',monospace;font-size:9px;color:#888;margin-top:3px">ΓÇö or paste Drive ID below</span>
+            <span style="font-family:'DM Mono',monospace;font-size:9px;color:#888;margin-top:3px">— or paste Drive ID below</span>
           </div>
           <div class="form-group">
-            <label class="form-label">T ┬╖ GOOGLE DRIVE IMAGE ID</label>
+            <label class="form-label">T · GOOGLE DRIVE IMAGE ID</label>
             <input type="text" class="form-input" id="editImg" placeholder="Drive file ID or auto-filled on upload" />
           </div>
           <div class="form-group">
-            <label class="form-label">U ┬╖ FALLBACK TEXT (NO IMAGE)</label>
+            <label class="form-label">U · FALLBACK TEXT (NO IMAGE)</label>
             <input type="text" class="form-input" id="editNoImg" placeholder="e.g. WORDMARK / DEVICE MARK" />
           </div>
         </div>
@@ -435,9 +435,9 @@
     </div>
   </div>
 
-  <!-- ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
+  <!-- ═══════════════════════════════════════════════════════════════════════
        ASSIGN MODAL
-  ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ -->
+  ════════════════════════════════════════════════════════════════════════ -->
   <div class="modal-overlay" id="assignModal">
     <div class="modal-sheet">
       <div class="modal-header">
@@ -445,7 +445,7 @@
           <span class="modal-title" id="assignModalTitle">ASSIGN RECORD</span>
           <span class="modal-case" id="assignModalCase"></span>
         </div>
-        <button class="modal-close-btn" id="assignModalClose">Γ£ò</button>
+        <button class="modal-close-btn" id="assignModalClose">✕</button>
       </div>
       <div class="modal-notice" id="assignModalNotice">Select an agent and city to assign this record.</div>
       <div class="modal-body">
@@ -453,7 +453,7 @@
           <div class="form-group">
             <label class="form-label">AGENT <span class="req">*</span></label>
             <select class="form-select" id="assignAgent">
-              <option value="">ΓÇö Select agent ΓÇö</option>
+              <option value="">— Select agent —</option>
               <option>UZMA</option>
               <option>FASIAL</option>
               <option>RASHID</option>
@@ -463,7 +463,7 @@
           <div class="form-group">
             <label class="form-label">CITY <span class="req">*</span></label>
             <select class="form-select" id="assignCity">
-              <option value="">ΓÇö Select city ΓÇö</option>
+              <option value="">— Select city —</option>
               <option>KARACHI</option>
               <option>LAHORE</option>
               <option>ISLAMABAD</option>
@@ -479,7 +479,7 @@
           </div>
           <div class="form-group form-full">
             <label class="form-label">NOTES</label>
-            <textarea class="form-textarea" id="assignNotes" rows="2" placeholder="Optional notes about this assignmentΓÇª"></textarea>
+            <textarea class="form-textarea" id="assignNotes" rows="2" placeholder="Optional notes about this assignment…"></textarea>
           </div>
         </div>
         <div id="assignRecordPreview" style="display:none;margin-top:10px;padding:10px 14px;background:var(--bg);border:2px solid var(--bg2);border-radius:4px">

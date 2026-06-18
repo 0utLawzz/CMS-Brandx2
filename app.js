@@ -1,9 +1,9 @@
-﻿// ΓöÇΓöÇΓöÇ Config ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+// ─── Config ──────────────────────────────────────────────────────────────────
 const API = '/api';
 const RUN_COLORS   = { Run:'#2563EB', Processing:'#D4A800', Done:'#0D9970' };
 const AVATAR_COLORS = ['#C94A00','#0A6B52','#D4A800','#0D9970','#8B2FC9','#2563EB','#DC2626'];
 
-// ΓöÇΓöÇΓöÇ State ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+// ─── State ───────────────────────────────────────────────────────────────────
 let allRecords    = [];
 let sortKey       = 'created_at';
 let currentPage   = 1;
@@ -14,7 +14,7 @@ let isNewRecord   = false;
 let lastSearchQuery = '';
 const selectedIds = new Set();
 
-// ΓöÇΓöÇΓöÇ Helpers ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+// ─── Helpers ─────────────────────────────────────────────────────────────────
 function hashCode(str){ let h=0; for(const c of str){h=((h<<5)-h)+c.charCodeAt(0);h|=0;} return Math.abs(h); }
 function avatarInitials(name){
   const w=(name||'TM').replace(/[^a-zA-Z0-9\s]/g,'').trim().split(/\s+/).filter(Boolean);
@@ -54,7 +54,7 @@ function getStageNum(stage){
 
 function stageBadgeText(sn){
   if(sn===-1) return 'X';
-  if(sn===-2) return '┬⌐';
+  if(sn===-2) return '©';
   if(sn>0) return String(sn);
   return '?';
 }
@@ -89,7 +89,7 @@ function getImageSrc(img, sz='80'){
   return `https://drive.google.com/thumbnail?id=${img}&sz=w${sz}`;
 }
 
-// ΓöÇΓöÇΓöÇ Stats & Chart ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+// ─── Stats & Chart ────────────────────────────────────────────────────────────
 async function loadStats(){
   try{
     const r=await fetch(`${API}/stats`);
@@ -124,12 +124,12 @@ async function loadStats(){
   }catch(e){console.warn('Stats:',e);}
 }
 
-// ΓöÇΓöÇΓöÇ Load records ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+// ─── Load records ─────────────────────────────────────────────────────────────
 async function loadData(){
   const chip=document.getElementById('statusChip');
   const st=document.getElementById('statusText');
   chip.className='status-chip';
-  st.textContent='Connecting to databaseΓÇª';
+  st.textContent='Connecting to database…';
   try{
     const res=await fetch(`${API}/trademarks?limit=5000`);
     const j=await res.json();
@@ -145,7 +145,7 @@ async function loadData(){
   }
 }
 
-// ΓöÇΓöÇΓöÇ Search card ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+// ─── Search card ──────────────────────────────────────────────────────────────
 function renderCard(rec){
   const sn=getStageNum(rec.stage||'');
   const sc=stageBadgeColor(sn);
@@ -164,12 +164,12 @@ function renderCard(rec){
     ['TRADE NAME',rec.tm_trade],['APP ADDRESS',rec.applicant_address],['YEAR',rec.year],
     ['CON. NAME',rec.consultant_name],['CON. ADDRESS',rec.consultant_address],
     ['IMG',rec.img],['NO IMG TEXT',rec.notes],
-  ].map(([k,v])=>`<div class="kv-row"><span class="kv-key">${k}</span><span class="kv-val">${v||'ΓÇö'}</span></div>`).join('');
+  ].map(([k,v])=>`<div class="kv-row"><span class="kv-key">${k}</span><span class="kv-val">${v||'—'}</span></div>`).join('');
 
   return `
   <div class="result-card" id="${id}">
     <div class="card-top-row">
-      <span style="font-family:'DM Mono',monospace;font-size:9px;color:#888">${rec.sr_no||'ΓÇö'}</span>
+      <span style="font-family:'DM Mono',monospace;font-size:9px;color:#888">${rec.sr_no||'—'}</span>
       <div style="display:flex;gap:6px;align-items:center">
         ${rec.year?`<span class="card-city">${rec.year}</span>`:''}
         ${rec.sub_stage?`<span style="font-family:'DM Mono',monospace;font-size:9px;color:${runColor};border:1.5px solid ${runColor};border-radius:3px;padding:1px 5px">${rec.sub_stage.toUpperCase()}</span>`:''}
@@ -184,7 +184,7 @@ function renderCard(rec){
         <div class="card-name">${rec.applicant_name||'Untitled Mark'}</div>
         <div class="card-tm-row">
           <span class="card-tm-icon">&#8482;</span>
-          <span class="card-tm-no">${rec.tm_no||'ΓÇö'}</span>
+          <span class="card-tm-no">${rec.tm_no||'—'}</span>
           ${rec.class?`<span class="card-class">CL ${rec.class}</span>`:''}
           ${rec.applicant_type?`<span class="card-class" style="color:#0A6B52;border-color:#0A6B52">${rec.applicant_type}</span>`:''}
         </div>
@@ -220,7 +220,7 @@ function toggleKV(kvId,btn){
   const el=document.getElementById(kvId);
   const hidden=el.style.display==='none';
   el.style.display=hidden?'block':'none';
-  btn.textContent=hidden?'Γû▓ HIDE FIELDS':'Γû╝ ALL FIELDS';
+  btn.textContent=hidden?'▲ HIDE FIELDS':'▼ ALL FIELDS';
 }
 
 function toggleHistory(histId,trademarkId,btn){
@@ -228,14 +228,14 @@ function toggleHistory(histId,trademarkId,btn){
   if(!el) return;
   const hidden=el.style.display==='none';
   el.style.display=hidden?'block':'none';
-  btn.textContent=hidden?'Γû▓ HIDE':'Γû╝ SHOW';
+  btn.textContent=hidden?'▲ HIDE':'▼ SHOW';
   if(hidden && !el.dataset.loaded){
     el.dataset.loaded='1';
     renderTrademarkLogs(trademarkId,histId);
   }
 }
 
-// ΓöÇΓöÇΓöÇ Search ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+// ─── Search ───────────────────────────────────────────────────────────────────
 function doSearch(){
   const q=(document.getElementById('searchInput').value||'').trim().toLowerCase();
   lastSearchQuery=q;
@@ -266,7 +266,7 @@ function doSearch(){
   el.innerHTML=hdr+matches.map(renderCard).join('');
 }
 
-// ΓöÇΓöÇΓöÇ Records table ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+// ─── Records table ────────────────────────────────────────────────────────────
 function getFilteredRows(){
   const q=(document.getElementById('filterInput')?document.getElementById('filterInput').value:'').trim().toLowerCase();
   let rows=[...allRecords];
@@ -324,9 +324,9 @@ function renderRecordsTable(){
       <td class="td-date" style="max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${r.filing_date||''}">${r.filing_date||'&#8212;'}</td>
       <td class="td-date" style="max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${r.consultant_name||''}">${r.consultant_name||'&#8212;'}</td>
       <td><div class="action-cell">
-        <button class="action-edit" onclick="openEditModal(${r.id})">Γ£Ä</button>
-        <button class="btn-assign" style="padding:3px 6px;font-size:9px" title="Assign to agent" onclick="openAssignModal(${r.id},'${(r.tm_no||'').replace(/'/g,"\\'")}','${(r.applicant_name||'').replace(/'/g,"\\'")}')">Γèò</button>
-        <button class="action-del"  onclick="deleteRec(${r.id},'${(r.applicant_name||'').replace(/'/g,"\\'")}',false)">Γ£ò</button>
+        <button class="action-edit" onclick="openEditModal(${r.id})">✎</button>
+        <button class="btn-assign" style="padding:3px 6px;font-size:9px" title="Assign to agent" onclick="openAssignModal(${r.id},'${(r.tm_no||'').replace(/'/g,"\\'")}','${(r.applicant_name||'').replace(/'/g,"\\'")}')">⊕</button>
+        <button class="action-del"  onclick="deleteRec(${r.id},'${(r.applicant_name||'').replace(/'/g,"\\'")}',false)">✕</button>
       </div></td>
     </tr>`;
   }).join('');
@@ -348,7 +348,7 @@ function renderRecordsTable(){
   updateBulkBar();
 }
 
-// ΓöÇΓöÇΓöÇ Pagination ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+// ─── Pagination ───────────────────────────────────────────────────────────────
 function renderPagination(total,totalPages,containerId){
   const el=document.getElementById(containerId);
   if(!el) return;
@@ -360,11 +360,11 @@ function renderPagination(total,totalPages,containerId){
     nums+=`<button class="pg-btn${p===currentPage?' active':''}" onclick="gotoPage(${p})">${p}</button>`;
   }
   el.innerHTML=`<div class="pagination-row">
-    <span class="pg-info">${start.toLocaleString()}ΓÇô${end.toLocaleString()} of ${total.toLocaleString()}</span>
+    <span class="pg-info">${start.toLocaleString()}–${end.toLocaleString()} of ${total.toLocaleString()}</span>
     <div class="pg-pages">
-      <button class="pg-btn" onclick="gotoPage(${currentPage-1})" ${currentPage<=1?'disabled':''}>ΓÇ╣</button>
+      <button class="pg-btn" onclick="gotoPage(${currentPage-1})" ${currentPage<=1?'disabled':''}>‹</button>
       ${nums}
-      <button class="pg-btn" onclick="gotoPage(${currentPage+1})" ${currentPage>=totalPages?'disabled':''}>ΓÇ║</button>
+      <button class="pg-btn" onclick="gotoPage(${currentPage+1})" ${currentPage>=totalPages?'disabled':''}>›</button>
     </div>
     <div class="pg-sizes">
       <span class="sort-label">PER PAGE</span>
@@ -375,7 +375,7 @@ function renderPagination(total,totalPages,containerId){
 function gotoPage(p){currentPage=Math.max(1,p);renderRecordsTable();}
 function setPageSize(n){pageSize=n;currentPage=1;renderRecordsTable();}
 
-// ΓöÇΓöÇΓöÇ Bulk actions ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+// ─── Bulk actions ─────────────────────────────────────────────────────────────
 function updateBulkBar(){
   const bar=document.getElementById('bulkBar');
   if(!bar) return;
@@ -401,7 +401,7 @@ async function bulkDelete(){
 }
 function bulkClear(){selectedIds.clear();renderRecordsTable();}
 
-// ΓöÇΓöÇΓöÇ Delete ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+// ─── Delete ───────────────────────────────────────────────────────────────────
 async function deleteRec(id,name,fromSearch=false){
   if(!confirm(`Delete "${name}" (ID ${id})?\n\nThis will permanently remove it.`)) return;
   try{
@@ -416,7 +416,7 @@ async function deleteRec(id,name,fromSearch=false){
   }catch(e){alert('Delete failed: '+e.message);}
 }
 
-// ΓöÇΓöÇΓöÇ Export CSV ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+// ─── Export CSV ───────────────────────────────────────────────────────────────
 function exportCSV(){
   const rows=getFilteredRows();
   const cols=['id','sr_no','tm_no','applicant_name','class','class_desc','stage','sub_stage',
@@ -430,23 +430,23 @@ function exportCSV(){
   a.click();
 }
 
-// ΓöÇΓöÇΓöÇ Sync from Google Sheets ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+// ─── Sync from Google Sheets ──────────────────────────────────────────────────
 async function syncFromSheets(){
   const btn=document.getElementById('syncBtn');
   if(!btn) return;
   const orig=btn.textContent;
-  btn.textContent='ΓÅ│ SYNCINGΓÇª';btn.disabled=true;
+  btn.textContent='⏳ SYNCING…';btn.disabled=true;
   try{
     const res=await fetch(`${API}/sync-sheets`,{method:'POST'});
     const j=await res.json();
     if(!j.success) throw new Error(j.error||'Sync failed');
-    alert(`Γ£à Sync complete!\nNew records: ${j.inserted} | Skipped: ${j.skipped}`);
+    alert(`✅ Sync complete!\nNew records: ${j.inserted} | Skipped: ${j.skipped}`);
     await loadData();
   }catch(e){alert('Sync failed: '+e.message);}
   finally{btn.textContent=orig;btn.disabled=false;}
 }
 
-// ΓöÇΓöÇΓöÇ Image upload ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+// ─── Image upload ─────────────────────────────────────────────────────────────
 async function handleImageUpload(file){
   if(!file) return;
   const fd=new FormData();
@@ -461,7 +461,7 @@ async function handleImageUpload(file){
   }catch(e){alert('Upload failed: '+e.message);}
 }
 
-// ΓöÇΓöÇΓöÇ Assignment system ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+// ─── Assignment system ────────────────────────────────────────────────────────
 let assignmentFilter = { agent:'', status:'', city:'' };
 let assigningTrademarkId = null;
 let editingAssignmentId  = null;
@@ -472,7 +472,7 @@ const AGENTS = ['UZMA','FASIAL','RASHID','SULMAN'];
 async function renderAssignmentTab(){
   const el=document.getElementById('assignmentContent');
   if(!el) return;
-  el.innerHTML=`<div style="padding:40px;text-align:center;font-family:'DM Mono',monospace;font-size:11px;color:#888">Loading assignmentsΓÇª</div>`;
+  el.innerHTML=`<div style="padding:40px;text-align:center;font-family:'DM Mono',monospace;font-size:11px;color:#888">Loading assignments…</div>`;
 
   try{
     const [statsRes,assignRes,unassignedRes]=await Promise.all([
@@ -545,7 +545,7 @@ async function renderAssignmentTab(){
           <option value="">All Cities</option>
           ${['KARACHI','LAHORE','ISLAMABAD'].map(c=>`<option${assignmentFilter.city===c?' selected':''}>${c}</option>`).join('')}
         </select>
-        ${(assignmentFilter.agent||assignmentFilter.status||assignmentFilter.city)?`<button class="btn-outline" style="padding:5px 10px;font-size:9px" onclick="clearAssignFilters()">Γ£ò CLEAR</button>`:''}
+        ${(assignmentFilter.agent||assignmentFilter.status||assignmentFilter.city)?`<button class="btn-outline" style="padding:5px 10px;font-size:9px" onclick="clearAssignFilters()">✕ CLEAR</button>`:''}
         <span style="font-family:'DM Mono',monospace;font-size:10px;color:#888;margin-left:auto">${filtered.length} record${filtered.length!==1?'s':''}</span>
       </div>
 
@@ -557,18 +557,18 @@ async function renderAssignmentTab(){
             <th>AGENT</th><th>CITY</th><th>STATUS</th><th>DATE</th><th>ACTIONS</th>
           </tr></thead>
           <tbody>
-            ${!filtered.length?`<tr><td colspan="9" style="text-align:center;padding:30px;color:#888;font-family:'DM Mono',monospace;font-size:11px">NO ASSIGNMENTS${(assignmentFilter.agent||assignmentFilter.status||assignmentFilter.city)?' ΓÇö clear filters to see all':' YET'}</td></tr>`:''}
+            ${!filtered.length?`<tr><td colspan="9" style="text-align:center;padding:30px;color:#888;font-family:'DM Mono',monospace;font-size:11px">NO ASSIGNMENTS${(assignmentFilter.agent||assignmentFilter.status||assignmentFilter.city)?' — clear filters to see all':' YET'}</td></tr>`:''}
             ${filtered.map(a=>{
               const sn=getStageNum(a.stage||'');
               const sc=stageBadgeColor(sn);
               const stc=STATUS_COLORS[a.status]||'#888';
-              const dt=a.assigned_at?new Date(a.assigned_at).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}):'ΓÇö';
+              const dt=a.assigned_at?new Date(a.assigned_at).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}):'—';
               const safe_tm   =(a.tm_no||'').replace(/'/g,"\\'");
               const safe_name =(a.applicant_name||'').replace(/'/g,"\\'");
               return `<tr>
-                <td class="td-tm">Γäó ${a.tm_no||'ΓÇö'}</td>
-                <td class="td-name">${a.applicant_name||'ΓÇö'}</td>
-                <td><span class="td-cls">${a.class||'ΓÇö'}</span></td>
+                <td class="td-tm">™ ${a.tm_no||'—'}</td>
+                <td class="td-name">${a.applicant_name||'—'}</td>
+                <td><span class="td-cls">${a.class||'—'}</span></td>
                 <td><div class="stage-badge-num" style="background:${sc}">${stageBadgeText(sn)}</div></td>
                 <td style="font-family:'DM Mono',monospace;font-size:11px;font-weight:600">${a.agent_name}</td>
                 <td style="font-family:'DM Mono',monospace;font-size:10px;color:#555">${a.agent_city}</td>
@@ -576,11 +576,11 @@ async function renderAssignmentTab(){
                 <td class="td-date">${dt}</td>
                 <td><div class="action-cell" style="gap:4px;flex-wrap:wrap">
                   ${a.status!=='Complete'
-                    ?`<button class="btn-assign-complete" onclick="completeAssignment(${a.id})">Γ£ô</button>`
-                    :`<span style="font-family:'DM Mono',monospace;font-size:9px;color:#0D9970;padding:2px 4px">Γ£ô</span>`
+                    ?`<button class="btn-assign-complete" onclick="completeAssignment(${a.id})">✓</button>`
+                    :`<span style="font-family:'DM Mono',monospace;font-size:9px;color:#0D9970;padding:2px 4px">✓</span>`
                   }
-                  <button class="action-edit" title="Reassign" onclick="openAssignModal(${a.trademark_id},'${safe_tm}','${safe_name}',${a.id},'${a.agent_name}','${a.agent_city}','${a.status}')">Γƒ│</button>
-                  <button class="action-del" onclick="removeAssignment(${a.id},'${safe_name}')">Γ£ò</button>
+                  <button class="action-edit" title="Reassign" onclick="openAssignModal(${a.trademark_id},'${safe_tm}','${safe_name}',${a.id},'${a.agent_name}','${a.agent_city}','${a.status}')">⟳</button>
+                  <button class="action-del" onclick="removeAssignment(${a.id},'${safe_name}')">✕</button>
                 </div></td>
               </tr>`;
             }).join('')}
@@ -592,7 +592,7 @@ async function renderAssignmentTab(){
       ${unassigned.length?`
       <div class="assign-panel">
         <div class="assign-panel-title" style="color:#C94A00">
-          UNASSIGNED QUEUE ΓÇö ${unassigned.length} record${unassigned.length!==1?'s':''} in ASSIGNED stage without a formal assignment
+          UNASSIGNED QUEUE — ${unassigned.length} record${unassigned.length!==1?'s':''} in ASSIGNED stage without a formal assignment
         </div>
         <div class="table-wrap" style="margin-top:10px">
           <table class="records-table">
@@ -603,12 +603,12 @@ async function renderAssignmentTab(){
                 const safe_tm   =(r.tm_no||'').replace(/'/g,"\\'");
                 const safe_name =(r.applicant_name||'').replace(/'/g,"\\'");
                 return `<tr>
-                  <td class="td-tm">Γäó ${r.tm_no||'ΓÇö'}</td>
-                  <td class="td-name">${r.applicant_name||'ΓÇö'}</td>
-                  <td><span class="td-cls">${r.class||'ΓÇö'}</span></td>
+                  <td class="td-tm">™ ${r.tm_no||'—'}</td>
+                  <td class="td-name">${r.applicant_name||'—'}</td>
+                  <td><span class="td-cls">${r.class||'—'}</span></td>
                   <td><div class="stage-badge-num" style="background:${stageBadgeColor(sn)}">${stageBadgeText(sn)}</div></td>
-                  <td style="font-family:'DM Mono',monospace;font-size:9px;color:#C94A00">${cleanStageText(r.class_desc||'')||'ΓÇö'}</td>
-                  <td><button class="btn-assign" onclick="openAssignModal(${r.id},'${safe_tm}','${safe_name}')">Γèò ASSIGN</button></td>
+                  <td style="font-family:'DM Mono',monospace;font-size:9px;color:#C94A00">${cleanStageText(r.class_desc||'')||'—'}</td>
+                  <td><button class="btn-assign" onclick="openAssignModal(${r.id},'${safe_tm}','${safe_name}')">⊕ ASSIGN</button></td>
                 </tr>`;
               }).join('')}
             </tbody>
@@ -627,7 +627,7 @@ function filterAssignByStatus(s){ assignmentFilter.status=s; renderAssignmentTab
 function filterAssignByCity(c){ assignmentFilter.city=c; renderAssignmentTab(); }
 function clearAssignFilters(){ assignmentFilter={agent:'',status:'',city:''}; renderAssignmentTab(); }
 
-// ΓöÇΓöÇΓöÇ Assign modal ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+// ─── Assign modal ─────────────────────────────────────────────────────────────
 function openAssignModal(trademarkId,tmNo,appName,assignId,agent,city,status){
   assigningTrademarkId=trademarkId;
   editingAssignmentId=assignId||null;
@@ -639,7 +639,7 @@ function openAssignModal(trademarkId,tmNo,appName,assignId,agent,city,status){
   document.getElementById('assignNotes').value='';
   const preview=document.getElementById('assignRecordPreview');
   const info=document.getElementById('assignRecordInfo');
-  if(appName){preview.style.display='block';info.textContent=appName+(tmNo?` ┬╖ TM ${tmNo}` :'');}
+  if(appName){preview.style.display='block';info.textContent=appName+(tmNo?` · TM ${tmNo}` :'');}
   else preview.style.display='none';
   document.getElementById('assignModal').classList.add('open');
 }
@@ -657,7 +657,7 @@ async function saveAssignment(){
   const notes =document.getElementById('assignNotes').value.trim();
   if(!agent||!city){alert('Select an agent and city.');return;}
   const btn=document.getElementById('assignModalSave');
-  btn.textContent='SAVINGΓÇª';btn.disabled=true;
+  btn.textContent='SAVING…';btn.disabled=true;
   try{
     let j;
     if(editingAssignmentId){
@@ -693,11 +693,11 @@ async function removeAssignment(id,appName){
   }catch(e){alert('Failed: '+e.message);}
 }
 
-// ΓöÇΓöÇΓöÇ Edit / Add modal ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+// ─── Edit / Add modal ─────────────────────────────────────────────────────────
 function populateClassSelect(){
   const sel=document.getElementById('editClass');
   if(!sel) return;
-  sel.innerHTML='<option value="">ΓÇö Select class ΓÇö</option>';
+  sel.innerHTML='<option value="">— Select class —</option>';
   for(let i=1;i<=45;i++) sel.innerHTML+=`<option value="${String(i).padStart(2,'0')}">${String(i).padStart(2,'0')}</option>`;
 }
 
@@ -708,7 +708,7 @@ function openEditModal(id){
   editingRecord=rec;
   document.getElementById('modalTitle').textContent='EDIT RECORD';
   document.getElementById('modalCase').textContent=rec.sr_no||'';
-  document.getElementById('modalNotice').textContent='≡ƒôí Changes save directly to database.';
+  document.getElementById('modalNotice').textContent='📡 Changes save directly to database.';
   fillModalForm(rec);
   document.getElementById('editModal').classList.add('open');
 }
@@ -717,7 +717,7 @@ function openAddModal(){
   isNewRecord=true;editingRecord=null;
   document.getElementById('modalTitle').textContent='ADD NEW RECORD';
   document.getElementById('modalCase').textContent='';
-  document.getElementById('modalNotice').textContent='≡ƒôí New record will be saved to database.';
+  document.getElementById('modalNotice').textContent='📡 New record will be saved to database.';
   fillModalForm({});
   document.getElementById('editSrNo').value=genSrNo();
   document.getElementById('editModal').classList.add('open');
@@ -759,9 +759,9 @@ async function saveEdit(){
     year:gv('editYear'),consultant_name:gv('editConName'),
     consultant_address:gv('editConAdd'),img:gv('editImg'),notes:gv('editNoImg'),
   };
-  if(!data.applicant_name){alert('App Name (J) is required Γ¡É');return;}
+  if(!data.applicant_name){alert('App Name (J) is required ⭐');return;}
   const btn=document.getElementById('modalSave');
-  btn.textContent='SAVINGΓÇª';btn.disabled=true;
+  btn.textContent='SAVING…';btn.disabled=true;
   try{
     let j;
     if(isNewRecord){
@@ -790,7 +790,7 @@ function updateImgPreview(src){
   else if(wrap) wrap.style.display='none';
 }
 
-// ΓöÇΓöÇΓöÇ Tab switching ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+// ─── Tab switching ────────────────────────────────────────────────────────────
 function switchTab(id){
   document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active',b.dataset.tab===id));
   document.querySelectorAll('.tab-panel').forEach(p=>p.classList.toggle('active',p.id==='tab-'+id));
@@ -799,11 +799,11 @@ function switchTab(id){
   if(id==='logs')       renderLogsTab();
 }
 
-// ΓöÇΓöÇΓöÇ Logs tab ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+// ─── Logs tab ─────────────────────────────────────────────────────────────────
 const ACTION_COLORS = { CREATE:'#0D9970', UPDATE:'#2563EB', DELETE:'#DC2626', SYNC:'#8B2FC9' };
 
 function formatLogDate(dt){
-  if(!dt) return 'ΓÇö';
+  if(!dt) return '—';
   const d=new Date(dt);
   return d.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'})+' '
         +d.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
@@ -814,7 +814,7 @@ async function renderLogsTab(){
   const countEl=document.getElementById('logsCount');
   if(!el) return;
   const actionFilter=document.getElementById('logsFilterAction')?.value||'';
-  el.innerHTML=`<div style="padding:30px;text-align:center;font-family:'DM Mono',monospace;font-size:11px;color:#888">Loading logsΓÇª</div>`;
+  el.innerHTML=`<div style="padding:30px;text-align:center;font-family:'DM Mono',monospace;font-size:11px;color:#888">Loading logs…</div>`;
   try{
     const url=`${API}/logs?limit=500${actionFilter?'&action='+actionFilter:''}`;
     const res=await fetch(url);
@@ -839,14 +839,14 @@ async function renderLogsTab(){
           <tbody>
             ${logs.map(l=>{
               const ac=ACTION_COLORS[l.action]||'#888';
-              const tm=l.applicant_name||(l.new_values?.applicant_name)||'ΓÇö';
-              const tmNo=l.tm_no||(l.new_values?.tm_no)||'ΓÇö';
+              const tm=l.applicant_name||(l.new_values?.applicant_name)||'—';
+              const tmNo=l.tm_no||(l.new_values?.tm_no)||'—';
               return `<tr>
                 <td class="td-date" style="white-space:nowrap">${formatLogDate(l.created_at)}</td>
                 <td><span style="font-family:'DM Mono',monospace;font-size:9px;color:${ac};border:1.5px solid ${ac};border-radius:3px;padding:2px 7px;font-weight:600">${l.action}</span></td>
                 <td class="td-name">${tm}</td>
                 <td class="td-tm" style="font-size:10px">${tmNo}</td>
-                <td style="font-family:'DM Mono',monospace;font-size:9px;color:#555;max-width:300px">${l.note||'ΓÇö'}</td>
+                <td style="font-family:'DM Mono',monospace;font-size:9px;color:#555;max-width:300px">${l.note||'—'}</td>
               </tr>`;
             }).join('')}
           </tbody>
@@ -857,11 +857,11 @@ async function renderLogsTab(){
   }
 }
 
-// ΓöÇΓöÇΓöÇ Trademark log history (used in search cards + edit modal) ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+// ─── Trademark log history (used in search cards + edit modal) ────────────────
 async function renderTrademarkLogs(trademarkId, containerId){
   const el=document.getElementById(containerId);
   if(!el) return;
-  el.innerHTML=`<div style="font-family:'DM Mono',monospace;font-size:9px;color:#888;padding:6px 0">Loading historyΓÇª</div>`;
+  el.innerHTML=`<div style="font-family:'DM Mono',monospace;font-size:9px;color:#888;padding:6px 0">Loading history…</div>`;
   try{
     const res=await fetch(`${API}/logs/${trademarkId}`);
     const j=await res.json();
@@ -876,7 +876,7 @@ async function renderTrademarkLogs(trademarkId, containerId){
       return `<div style="display:flex;gap:8px;align-items:flex-start;padding:4px 0;border-bottom:1px solid #f0e8d0">
         <span style="font-family:'DM Mono',monospace;font-size:8px;color:${ac};border:1px solid ${ac};border-radius:2px;padding:1px 5px;white-space:nowrap;flex-shrink:0">${l.action}</span>
         <span style="font-family:'DM Mono',monospace;font-size:8px;color:#888;white-space:nowrap;flex-shrink:0">${formatLogDate(l.created_at)}</span>
-        <span style="font-family:'Space Grotesk',sans-serif;font-size:10px;color:#555;flex:1">${l.note||'ΓÇö'}</span>
+        <span style="font-family:'Space Grotesk',sans-serif;font-size:10px;color:#555;flex:1">${l.note||'—'}</span>
       </div>`;
     }).join('');
   }catch(e){
@@ -884,7 +884,7 @@ async function renderTrademarkLogs(trademarkId, containerId){
   }
 }
 
-// ΓöÇΓöÇΓöÇ Init ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+// ─── Init ─────────────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded',()=>{
   populateClassSelect();
 
@@ -978,4 +978,3 @@ document.addEventListener('DOMContentLoaded',()=>{
 
   loadData();
 });
-

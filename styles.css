@@ -1,6 +1,6 @@
-﻿/* ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
-   BrandEx Law ΓÇö Neo-Brutalism Theme
-   ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ */
+/* ═══════════════════════════════════════════════════════════════════════════
+   BrandEx Law — Neo-Brutalism Theme
+   ═══════════════════════════════════════════════════════════════════════════ */
 
 :root {
   --bg:       #F5EDD8;
@@ -25,7 +25,7 @@
 html { scroll-behavior: smooth; }
 body { background: var(--bg); font-family: var(--font-body); color: var(--black); min-height: 100vh; }
 
-/* ΓöÇΓöÇΓöÇ Header ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */
+/* ─── Header ──────────────────────────────────────────────────────────────── */
 .header {
   background: var(--black);
   border-bottom: 3px solid var(--orange);
@@ -48,7 +48,7 @@ body { background: var(--bg); font-family: var(--font-body); color: var(--black)
 .brand-name { font-family: var(--font-head); font-size: 24px; color: white; letter-spacing: 2px; line-height: 1.1; }
 .brand-sub { font-family: var(--font-mono); font-size: 9px; color: #0D9970; letter-spacing: 2px; }
 
-/* ΓöÇΓöÇΓöÇ Tab Nav ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */
+/* ─── Tab Nav ─────────────────────────────────────────────────────────────── */
 .tab-nav { display: flex; gap: 6px; flex-wrap: wrap; }
 .tab-btn {
   font-family: var(--font-mono); font-size: 10px; letter-spacing: 1px;
@@ -63,14 +63,14 @@ body { background: var(--bg); font-family: var(--font-body); color: var(--black)
   background: rgba(201,74,0,0.12);
 }
 
-/* ΓöÇΓöÇΓöÇ Main layout ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */
+/* ─── Main layout ─────────────────────────────────────────────────────────── */
 .main { min-height: calc(100vh - 70px); }
 .tab-panel { display: none; padding: 20px 0 60px; }
 .tab-panel.active { display: block; }
 .container { max-width: 860px; margin: 0 auto; padding: 0 20px; }
 .container--wide { max-width: 1280px; margin: 0 auto; padding: 0 20px; }
 
-/* ΓöÇΓöÇΓöÇ Stage Chart ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */
+/* ─── Stage Chart ─────────────────────────────────────────────────────────── */
 .chart-card {
   background: var(--white); border: 3px solid var(--black); border-radius: 6px;
   padding: 16px 18px; margin-bottom: 16px; box-shadow: var(--shadow);
@@ -96,7 +96,7 @@ body { background: var(--bg); font-family: var(--font-body); color: var(--black)
 .bar-fill { height: 100%; transition: width 0.5s ease; border-radius: 1px; min-width: 2px; }
 .bar-count { font-family: var(--font-head); font-size: 18px; width: 44px; text-align: right; flex-shrink: 0; }
 
-/* ΓöÇΓöÇΓöÇ Stat Tiles ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */
+/* ─── Stat Tiles ──────────────────────────────────────────────────────────── */
 .stats-grid {
   display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 16px;
 }
@@ -109,7 +109,7 @@ body { background: var(--bg); font-family: var(--font-body); color: var(--black)
 .stat-val { font-family: var(--font-head); font-size: 28px; line-height: 1; }
 .stat-label { font-family: var(--font-mono); font-size: 8px; color: var(--gray); letter-spacing: 0.8px; text-transform: uppercase; }
 
-/* ΓöÇΓöÇΓöÇ Search Card ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */
+/* ─── Search Card ─────────────────────────────────────────────────────────── */
 .search-card {
   background: var(--white); border: 3px solid var(--black); border-radius: 6px;
   padding: 16px; margin-bottom: 18px; box-shadow: var(--shadow);
@@ -156,7 +156,7 @@ body { background: var(--bg); font-family: var(--font-body); color: var(--black)
 .status-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--teal-lt); flex-shrink: 0; }
 .status-chip.error .status-dot { background: var(--orange); }
 
-/* ΓöÇΓöÇΓöÇ Trademark Search Cards ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */
+/* ─── Trademark Search Cards ──────────────────────────────────────────────── */
 .result-card {
   background: var(--white); border: 3px solid var(--black); border-radius: 6px;
   padding: 16px; margin-bottom: 14px; box-shadow: var(--shadow);
@@ -244,7 +244,7 @@ body { background: var(--bg); font-family: var(--font-body); color: var(--black)
 .no-results-title { font-family: var(--font-head); font-size: 26px; letter-spacing: 2px; margin-bottom: 6px; }
 .no-results-hint { font-family: var(--font-body); font-size: 14px; color: var(--gray); }
 
-/* ΓöÇΓöÇΓöÇ Records Table ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */
+/* ─── Records Table ───────────────────────────────────────────────────────── */
 .records-toolbar {
   display: flex; gap: 10px; align-items: center; flex-wrap: wrap;
   padding: 12px 0; margin-bottom: 12px; border-bottom: 2.5px solid var(--black);
@@ -326,7 +326,7 @@ body { background: var(--bg); font-family: var(--font-body); color: var(--black)
 .tr-deleted { opacity: 0.3; pointer-events: none; }
 .tr-selected { background: rgba(201,74,0,0.06) !important; }
 
-/* ΓöÇΓöÇΓöÇ Journal ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */
+/* ─── Journal ─────────────────────────────────────────────────────────────── */
 .journal-wrap { padding-top: 40px; display: flex; flex-direction: column; align-items: center; max-width: 700px; }
 .coming-stamp {
   background: var(--yellow); border: 3px solid var(--black); border-radius: 6px;
@@ -346,7 +346,7 @@ body { background: var(--bg); font-family: var(--font-body); color: var(--black)
 .j-card b { font-family: var(--font-mono); font-size: 10px; color: var(--orange); letter-spacing: 1px; text-transform: uppercase; display: block; margin-bottom: 4px; }
 .j-card p { font-family: var(--font-body); font-size: 13px; color: var(--dim); line-height: 1.5; }
 
-/* ΓöÇΓöÇΓöÇ Edit Modal ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */
+/* ─── Edit Modal ──────────────────────────────────────────────────────────── */
 .modal-overlay {
   display: none; position: fixed; inset: 0; z-index: 200;
   background: rgba(12,12,12,0.65);
@@ -401,27 +401,27 @@ body { background: var(--bg); font-family: var(--font-body); color: var(--black)
 }
 @media (max-width: 540px) { .form-grid { grid-template-columns: 1fr; } }
 
-/* ΓöÇΓöÇΓöÇ Utility / scrollbar ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */
+/* ─── Utility / scrollbar ─────────────────────────────────────────────────── */
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: var(--bg2); }
 ::-webkit-scrollbar-thumb { background: var(--gray); border-radius: 3px; }
 input[type=checkbox] { cursor: pointer; width: 15px; height: 15px; accent-color: var(--orange); }
 
-/* ΓöÇΓöÇΓöÇ Dashboard toolbar ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */
+/* ─── Dashboard toolbar ────────────────────────────────────────────────────── */
 .dash-toolbar {
   display: flex; align-items: center; justify-content: space-between;
   flex-wrap: wrap; gap: 10px; padding: 14px 0; margin-bottom: 14px;
   border-bottom: 2.5px solid var(--black);
 }
 
-/* ΓöÇΓöÇΓöÇ Stage badge number (table) ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */
+/* ─── Stage badge number (table) ──────────────────────────────────────────── */
 .stage-badge-num {
   display: inline-flex; align-items: center; justify-content: center;
   width: 26px; height: 26px; border-radius: 3px; border: 1.5px solid var(--black);
   font-family: var(--font-head); font-size: 15px; color: white; font-weight: 700;
 }
 
-/* ΓöÇΓöÇΓöÇ Filter toolbar ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */
+/* ─── Filter toolbar ──────────────────────────────────────────────────────── */
 .filter-toolbar {
   display: flex; gap: 8px; flex-wrap: wrap; align-items: center;
   padding: 8px 0 12px; border-bottom: 1.5px solid var(--bg2); margin-bottom: 8px;
@@ -433,7 +433,7 @@ input[type=checkbox] { cursor: pointer; width: 15px; height: 15px; accent-color:
 }
 .filter-select:focus { border-color: var(--orange); }
 
-/* ΓöÇΓöÇΓöÇ Bulk bar ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */
+/* ─── Bulk bar ─────────────────────────────────────────────────────────────── */
 .bulk-bar {
   display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
   background: rgba(201,74,0,0.06); border: 2px solid var(--orange);
@@ -446,7 +446,7 @@ input[type=checkbox] { cursor: pointer; width: 15px; height: 15px; accent-color:
 }
 .btn-danger:hover { background: #a00; transform: translate(-1px,-1px); box-shadow: 3px 3px 0 var(--black); }
 
-/* ΓöÇΓöÇΓöÇ Pagination ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */
+/* ─── Pagination ───────────────────────────────────────────────────────────── */
 .pagination-row {
   display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 4px 0;
 }
@@ -462,7 +462,7 @@ input[type=checkbox] { cursor: pointer; width: 15px; height: 15px; accent-color:
 .pg-btn.active { background: var(--black); border-color: var(--black); color: var(--orange); }
 .pg-btn:disabled { opacity: 0.35; cursor: default; }
 
-/* ΓöÇΓöÇΓöÇ Assignment tab ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */
+/* ─── Assignment tab ──────────────────────────────────────────────────────── */
 .assign-header { margin-bottom: 16px; padding: 14px 0; border-bottom: 2.5px solid var(--black); }
 .assign-stat-row { display: flex; gap: 12px; flex-wrap: wrap; }
 .assign-stat {
@@ -523,7 +523,7 @@ input[type=checkbox] { cursor: pointer; width: 15px; height: 15px; accent-color:
   font-family: var(--font-body); font-size: 12px; color: var(--dim); line-height: 1.5;
 }
 
-/* ΓöÇΓöÇΓöÇ Assignment system (full) ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */
+/* ─── Assignment system (full) ─────────────────────────────────────────────── */
 .assign-filter-bar {
   display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
   padding: 8px 0 12px; border-bottom: 1.5px solid var(--bg2); margin-bottom: 12px;
