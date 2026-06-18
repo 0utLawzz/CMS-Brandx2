@@ -1,80 +1,57 @@
 # BrandEx API — Setup Guide
 
-This is the Node.js + MySQL backend API for BrandEx Law Trademark Portal.
-It replaces Google Sheets with your secure Hostinger MySQL database.
+This is the Node.js + PostgreSQL backend API and SPA Frontend for BrandEx Law Trademark Portal.
+The database has been fully migrated to Neon PostgreSQL.
 
 ---
 
-## Step 1 — Set Up the Database on Hostinger
+## The Frontend Theme (Neo-Brutalism)
 
-1. Open **Hostinger hPanel** → **Websites** → **MySQL Databases**
-2. Open **phpMyAdmin** for `u472671597_test2`
-3. Click the **SQL** tab at the top
-4. Copy the entire contents of `api/schema.sql` and paste it there
-5. Click **Go** — this creates the `trademarks` table
+**IMPORTANT: Do NOT change the frontend theme.**
 
----
+The application strictly adheres to the **Neo-Brutalism Theme | BrandEx Law Edition Version 1.0**.
+All future modifications must obey these rules:
 
-## Step 2 — Configure Your Credentials
-
-1. Copy `api/.env.example` to `api/.env`
-2. Fill in your Hostinger MySQL details:
-
-```
-DB_HOST=your-mysql-hostname (check Hostinger panel, looks like: mysql.hostinger.com or an IP)
-DB_PORT=3306
-DB_NAME=u472671597_test2
-DB_USER=u472671597_antig
-DB_PASS=your-actual-password
-PORT=3000
-```
-
----
-
-## Step 3 — Migrate Your Google Sheets Data
-
-Once credentials are set, run this **one time**:
-
-```
-cd api
-npm install
-node migrate-from-sheets.js
-```
-
-This pulls all records from Google Sheets and inserts them into MySQL.
-It is safe to run multiple times — duplicates are skipped.
-
----
-
-## Step 4 — Run the API
-
-```
-cd api
-node index.js
-```
-
-The API runs on `http://localhost:3000`.
+1. **Color Palette:**
+   - Near-Black (`#0C0C0C`), Warm Cream (`#F0E8D0`), Deep Cream (`#E8DFC7`), Off-White (`#232323`), Burnt Orange (`#C94A00`), Dark Teal (`#0A6B52`), Bright Teal (`#0D9970`), Bold Yellow (`#D4A800`).
+2. **Typography:**
+   - `Bebas Neue` for Display/Headings.
+   - `Space Grotesk` for Body.
+   - `DM Mono` for Labels/Code.
+3. **Borders & Shadows:**
+   - Zero gradients, zero blurs. Shadows must be hard, e.g. `5px 5px 0 #0C0C0C`.
+   - Borders are solid `#0C0C0C` (2px or 3px). 
+   - Hard corners default (`0px` radius). `6px` max for buttons/cards.
+4. **Interactions:**
+   - Hover = LIFT `translate(-x, -y)` and shadow grows.
+   - Click = PRESS `translate(+x, +y)` and shadow shrinks to 0.
 
 ---
 
 ## API Endpoints
 
+The API is fully mapped to the `trademarks` and `audit_logs` tables in PostgreSQL.
+
 | Method | Endpoint | What it does |
 |--------|----------|-------------|
 | GET | `/api/health` | Check if API + DB are working |
-| GET | `/api/trademarks` | Get all records (supports `?search=`, `?status=`, `?city=`) |
-| GET | `/api/trademarks/:caseNo` | Get one record by case number |
-| GET | `/api/stats` | Get dashboard statistics |
-| POST | `/api/trademarks` | Add a new trademark record |
-| PATCH | `/api/trademarks/:caseNo` | Edit a record |
-| DELETE | `/api/trademarks/:caseNo` | Delete a record |
-| POST | `/api/import` | Bulk import records |
+| GET | `/api/trademarks` | Get paginated records (supports filters like `?stage=`, `?assigned_person=`, etc) |
+| GET | `/api/trademarks/:id` | Get single record |
+| POST | `/api/trademarks` | Create new trademark |
+| PATCH | `/api/trademarks/:id` | Edit a record (auto-logs to `audit_logs`) |
+| DELETE | `/api/trademarks/:id` | Soft-delete a record (`archived = true`) |
+| GET | `/api/assignments` | Gets records currently assigned to someone |
+| GET | `/api/assignments/stats`| Gets assignment stats |
+| POST | `/api/assignments` | Assign a trademark |
 
 ---
 
-## Deploying to Hostinger
+## Running Locally
 
-1. Upload the `api/` folder to your Hostinger Node.js hosting
-2. Set environment variables in Hostinger's **Node.js** panel
-3. Set the **start command** to: `node index.js`
-4. Your API will be live at your Hostinger domain (e.g. `https://yourdomain.com/api/`)
+1. Make sure you have the `.env` in `api/` with `DATABASE_URL` pointing to your Neon database.
+2. `npm install` in the root folder.
+3. Start the server using:
+   ```bash
+   node server.js
+   ```
+4. Access `http://localhost:5000`

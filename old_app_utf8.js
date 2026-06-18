@@ -8,7 +8,7 @@ let allRecords    = [];
 let sortKey       = 'created_at';
 let currentPage   = 1;
 let pageSize      = 100;
-let activeFilters = { stage:'', sub_stage:'', applicant_type:'', year:'' };
+let activeFilters = { stage:'', status_run:'', app_type:'', year:'' };
 let editingRecord = null;
 let isNewRecord   = false;
 let lastSearchQuery = '';
@@ -149,21 +149,21 @@ async function loadData(){
 function renderCard(rec){
   const sn=getStageNum(rec.stage||'');
   const sc=stageBadgeColor(sn);
-  const runColor=RUN_COLORS[rec.sub_stage]||'#888';
+  const runColor=RUN_COLORS[rec.status_run]||'#888';
   const imgSrc=getImageSrc(rec.img);
-  const initials=avatarInitials(rec.applicant_name);
-  const avColor=avatarColor(rec.applicant_name);
+  const initials=avatarInitials(rec.app_name);
+  const avColor=avatarColor(rec.app_name);
   const id='card_'+rec.id;
   const stageLabel=cleanStageText(rec.stage||'');
 
   const kvRows=[
     ['SR. NO',rec.sr_no],['TM NO',rec.tm_no],['FOLDER',rec.folder_name],
-    ['DATE',rec.filing_date],['CLASS',rec.class],['CLASS DESC',rec.class_desc],
-    ['APP TYPE',rec.applicant_type],['APP NAME',rec.applicant_name],["FATHER'S NAME",rec.applicant_so],
-    ['CNIC',rec.applicant_cnic],['ISSUE DATE',rec.issue_date],['EXPIRY DATE',rec.expiry_date],
-    ['TRADE NAME',rec.tm_trade],['APP ADDRESS',rec.applicant_address],['YEAR',rec.year],
-    ['CON. NAME',rec.consultant_name],['CON. ADDRESS',rec.consultant_address],
-    ['IMG',rec.img],['NO IMG TEXT',rec.notes],
+    ['DATE',rec.date_l],['CLASS',rec.class],['CLASS DESC',rec.class_desc],
+    ['APP TYPE',rec.app_type],['APP NAME',rec.app_name],["FATHER'S NAME",rec.app_so],
+    ['CNIC',rec.app_cnic],['ISSUE DATE',rec.issue_date],['EXPIRY DATE',rec.expiry_date],
+    ['TRADE NAME',rec.app_trade],['APP ADDRESS',rec.app_add],['YEAR',rec.year],
+    ['CON. NAME',rec.con_name],['CON. ADDRESS',rec.con_add],
+    ['IMG',rec.img],['NO IMG TEXT',rec.no_img],
   ].map(([k,v])=>`<div class="kv-row"><span class="kv-key">${k}</span><span class="kv-val">${v||'ΓÇö'}</span></div>`).join('');
 
   return `
@@ -172,7 +172,7 @@ function renderCard(rec){
       <span style="font-family:'DM Mono',monospace;font-size:9px;color:#888">${rec.sr_no||'ΓÇö'}</span>
       <div style="display:flex;gap:6px;align-items:center">
         ${rec.year?`<span class="card-city">${rec.year}</span>`:''}
-        ${rec.sub_stage?`<span style="font-family:'DM Mono',monospace;font-size:9px;color:${runColor};border:1.5px solid ${runColor};border-radius:3px;padding:1px 5px">${rec.sub_stage.toUpperCase()}</span>`:''}
+        ${rec.status_run?`<span style="font-family:'DM Mono',monospace;font-size:9px;color:${runColor};border:1.5px solid ${runColor};border-radius:3px;padding:1px 5px">${rec.status_run.toUpperCase()}</span>`:''}
       </div>
     </div>
     <div class="card-main">
@@ -181,15 +181,15 @@ function renderCard(rec){
         :`<div class="avatar" style="background:${avColor}"><span>${initials}</span><span class="avatar-tm">&#8482;</span></div>`
       }
       <div class="card-info">
-        <div class="card-name">${rec.applicant_name||'Untitled Mark'}</div>
+        <div class="card-name">${rec.app_name||'Untitled Mark'}</div>
         <div class="card-tm-row">
           <span class="card-tm-icon">&#8482;</span>
           <span class="card-tm-no">${rec.tm_no||'ΓÇö'}</span>
           ${rec.class?`<span class="card-class">CL ${rec.class}</span>`:''}
-          ${rec.applicant_type?`<span class="card-class" style="color:#0A6B52;border-color:#0A6B52">${rec.applicant_type}</span>`:''}
+          ${rec.app_type?`<span class="card-class" style="color:#0A6B52;border-color:#0A6B52">${rec.app_type}</span>`:''}
         </div>
-        ${rec.tm_trade?`<div style="font-family:'Space Grotesk',sans-serif;font-size:11px;color:#555;font-style:italic;margin-top:2px">${rec.tm_trade}</div>`:''}
-        ${rec.applicant_cnic?`<div style="font-family:'DM Mono',monospace;font-size:9px;color:#888;margin-top:2px">CNIC/NTN: ${rec.applicant_cnic}</div>`:''}
+        ${rec.app_trade?`<div style="font-family:'Space Grotesk',sans-serif;font-size:11px;color:#555;font-style:italic;margin-top:2px">${rec.app_trade}</div>`:''}
+        ${rec.app_cnic?`<div style="font-family:'DM Mono',monospace;font-size:9px;color:#888;margin-top:2px">CNIC/NTN: ${rec.app_cnic}</div>`:''}
       </div>
       <div class="card-stage-box" style="background:${sc};border-color:${sc}">
         <span class="card-stage-text" style="color:white">${stageBadgeText(sn)}</span>
@@ -198,11 +198,11 @@ function renderCard(rec){
     ${stageLabel?`<div class="card-status-bar" style="border-color:${sc}">
       <span class="card-status-label" style="color:${sc}">${stageLabel.toUpperCase()}</span>
     </div>`:''}
-    ${rec.consultant_name?`<div style="font-family:'DM Mono',monospace;font-size:9px;color:#0A6B52;margin-top:4px;padding:3px 8px;background:rgba(10,107,82,0.06);border:1.5px solid rgba(10,107,82,0.2);border-radius:3px;display:inline-block">CON: ${rec.consultant_name}</div>`:''}
+    ${rec.con_name?`<div style="font-family:'DM Mono',monospace;font-size:9px;color:#0A6B52;margin-top:4px;padding:3px 8px;background:rgba(10,107,82,0.06);border:1.5px solid rgba(10,107,82,0.2);border-radius:3px;display:inline-block">CON: ${rec.con_name}</div>`:''}
     <div class="card-actions">
       <button class="expand-btn" onclick="toggleKV('kv_${id}',this)">&#9660; ALL FIELDS</button>
       <button class="edit-btn"   onclick="openEditModal(${rec.id})">&#9998; EDIT</button>
-      <button class="action-del" style="padding:5px 10px;font-size:10px" onclick="deleteRec(${rec.id},'${(rec.applicant_name||'').replace(/'/g,"\\'")}',true)">&#10005;</button>
+      <button class="action-del" style="padding:5px 10px;font-size:10px" onclick="deleteRec(${rec.id},'${(rec.app_name||'').replace(/'/g,"\\'")}',true)">&#10005;</button>
     </div>
     <div id="kv_${id}" class="kv-table" style="display:none">${kvRows}</div>
     <!-- History panel -->
@@ -248,11 +248,11 @@ function doSearch(){
   }
   const matches=allRecords.filter(r=>
     (r.tm_no||'').toLowerCase().includes(q)||
-    (r.applicant_name||'').toLowerCase().includes(q)||
+    (r.app_name||'').toLowerCase().includes(q)||
     (r.sr_no||'').toLowerCase().includes(q)||
-    (r.applicant_cnic||'').toLowerCase().includes(q)||
-    (r.tm_trade||'').toLowerCase().includes(q)||
-    (r.consultant_name||'').toLowerCase().includes(q)
+    (r.app_cnic||'').toLowerCase().includes(q)||
+    (r.app_trade||'').toLowerCase().includes(q)||
+    (r.con_name||'').toLowerCase().includes(q)
   );
   if(countEl) countEl.textContent=matches.length+' result'+(matches.length!==1?'s':'');
   if(!matches.length){
@@ -272,13 +272,13 @@ function getFilteredRows(){
   let rows=[...allRecords];
   if(q) rows=rows.filter(r=>Object.values(r).some(v=>(v||'').toString().toLowerCase().includes(q)));
   if(activeFilters.stage!=='')      rows=rows.filter(r=>getStageNum(r.stage||'')==parseInt(activeFilters.stage));
-  if(activeFilters.sub_stage) rows=rows.filter(r=>(r.sub_stage||'')==activeFilters.sub_stage);
-  if(activeFilters.applicant_type)   rows=rows.filter(r=>(r.applicant_type||'')==activeFilters.applicant_type);
+  if(activeFilters.status_run) rows=rows.filter(r=>(r.status_run||'')==activeFilters.status_run);
+  if(activeFilters.app_type)   rows=rows.filter(r=>(r.app_type||'')==activeFilters.app_type);
   if(activeFilters.year)       rows=rows.filter(r=>(r.year||'')==activeFilters.year);
   rows.sort((a,b)=>{
-    if(sortKey==='applicant_name')   return (a.applicant_name||'').localeCompare(b.applicant_name||'');
+    if(sortKey==='app_name')   return (a.app_name||'').localeCompare(b.app_name||'');
     if(sortKey==='stage')      return getStageNum(b.stage||'')-getStageNum(a.stage||'');
-    if(sortKey==='sub_stage') return (a.sub_stage||'').localeCompare(b.sub_stage||'');
+    if(sortKey==='status_run') return (a.status_run||'').localeCompare(b.status_run||'');
     return new Date(b.created_at||0)-new Date(a.created_at||0);
   });
   return rows;
@@ -305,7 +305,7 @@ function renderRecordsTable(){
   tbody.innerHTML=pageRows.map(r=>{
     const sn=getStageNum(r.stage||'');
     const sc=stageBadgeColor(sn);
-    const runColor=RUN_COLORS[r.sub_stage]||'#888';
+    const runColor=RUN_COLORS[r.status_run]||'#888';
     const isSel=selectedIds.has(r.id);
     const imgSrc=getImageSrc(r.img,'40');
     const imgCell=imgSrc
@@ -316,17 +316,17 @@ function renderRecordsTable(){
       <td>${imgCell}</td>
       <td class="td-case">${r.sr_no||'&#8212;'}</td>
       <td class="td-tm">&#8482; ${r.tm_no||'&#8212;'}</td>
-      <td class="td-name">${r.applicant_name||'&#8212;'}</td>
+      <td class="td-name">${r.app_name||'&#8212;'}</td>
       <td><span class="td-cls">${r.class||'&#8212;'}</span></td>
       <td><div class="stage-badge-num" style="background:${sc};border-color:${sc}">${stageBadgeText(sn)}</div></td>
-      <td><span style="font-family:'DM Mono',monospace;font-size:9px;color:${runColor};border:1.5px solid ${runColor};border-radius:3px;padding:1px 5px">${r.sub_stage||'&#8212;'}</span></td>
-      <td>${r.applicant_type?`<span class="td-city" style="color:#0A6B52;border-color:#0A6B52">${r.applicant_type}</span>`:'&#8212;'}</td>
-      <td class="td-date" style="max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${r.filing_date||''}">${r.filing_date||'&#8212;'}</td>
-      <td class="td-date" style="max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${r.consultant_name||''}">${r.consultant_name||'&#8212;'}</td>
+      <td><span style="font-family:'DM Mono',monospace;font-size:9px;color:${runColor};border:1.5px solid ${runColor};border-radius:3px;padding:1px 5px">${r.status_run||'&#8212;'}</span></td>
+      <td>${r.app_type?`<span class="td-city" style="color:#0A6B52;border-color:#0A6B52">${r.app_type}</span>`:'&#8212;'}</td>
+      <td class="td-date" style="max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${r.date_l||''}">${r.date_l||'&#8212;'}</td>
+      <td class="td-date" style="max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${r.con_name||''}">${r.con_name||'&#8212;'}</td>
       <td><div class="action-cell">
         <button class="action-edit" onclick="openEditModal(${r.id})">Γ£Ä</button>
-        <button class="btn-assign" style="padding:3px 6px;font-size:9px" title="Assign to agent" onclick="openAssignModal(${r.id},'${(r.tm_no||'').replace(/'/g,"\\'")}','${(r.applicant_name||'').replace(/'/g,"\\'")}')">Γèò</button>
-        <button class="action-del"  onclick="deleteRec(${r.id},'${(r.applicant_name||'').replace(/'/g,"\\'")}',false)">Γ£ò</button>
+        <button class="btn-assign" style="padding:3px 6px;font-size:9px" title="Assign to agent" onclick="openAssignModal(${r.id},'${(r.tm_no||'').replace(/'/g,"\\'")}','${(r.app_name||'').replace(/'/g,"\\'")}')">Γèò</button>
+        <button class="action-del"  onclick="deleteRec(${r.id},'${(r.app_name||'').replace(/'/g,"\\'")}',false)">Γ£ò</button>
       </div></td>
     </tr>`;
   }).join('');
@@ -419,9 +419,9 @@ async function deleteRec(id,name,fromSearch=false){
 // ΓöÇΓöÇΓöÇ Export CSV ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 function exportCSV(){
   const rows=getFilteredRows();
-  const cols=['id','sr_no','tm_no','applicant_name','class','class_desc','stage','sub_stage',
-              'applicant_type','applicant_so','applicant_cnic','issue_date','expiry_date','tm_trade',
-              'applicant_address','year','consultant_name','consultant_address','filing_date','folder_name','img','notes'];
+  const cols=['id','sr_no','tm_no','app_name','class','class_desc','stage','status_run',
+              'app_type','app_so','app_cnic','issue_date','expiry_date','app_trade',
+              'app_add','year','con_name','con_add','date_l','folder_name','img','no_img'];
   const esc=v=>'"'+(v||'').toString().replace(/"/g,'""')+'"';
   const csv=[cols.join(','),...rows.map(r=>cols.map(c=>esc(r[c])).join(','))].join('\n');
   const a=document.createElement('a');
@@ -564,10 +564,10 @@ async function renderAssignmentTab(){
               const stc=STATUS_COLORS[a.status]||'#888';
               const dt=a.assigned_at?new Date(a.assigned_at).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}):'ΓÇö';
               const safe_tm   =(a.tm_no||'').replace(/'/g,"\\'");
-              const safe_name =(a.applicant_name||'').replace(/'/g,"\\'");
+              const safe_name =(a.app_name||'').replace(/'/g,"\\'");
               return `<tr>
                 <td class="td-tm">Γäó ${a.tm_no||'ΓÇö'}</td>
-                <td class="td-name">${a.applicant_name||'ΓÇö'}</td>
+                <td class="td-name">${a.app_name||'ΓÇö'}</td>
                 <td><span class="td-cls">${a.class||'ΓÇö'}</span></td>
                 <td><div class="stage-badge-num" style="background:${sc}">${stageBadgeText(sn)}</div></td>
                 <td style="font-family:'DM Mono',monospace;font-size:11px;font-weight:600">${a.agent_name}</td>
@@ -601,10 +601,10 @@ async function renderAssignmentTab(){
               ${unassigned.slice(0,50).map(r=>{
                 const sn=getStageNum(r.stage||'');
                 const safe_tm   =(r.tm_no||'').replace(/'/g,"\\'");
-                const safe_name =(r.applicant_name||'').replace(/'/g,"\\'");
+                const safe_name =(r.app_name||'').replace(/'/g,"\\'");
                 return `<tr>
                   <td class="td-tm">Γäó ${r.tm_no||'ΓÇö'}</td>
-                  <td class="td-name">${r.applicant_name||'ΓÇö'}</td>
+                  <td class="td-name">${r.app_name||'ΓÇö'}</td>
                   <td><span class="td-cls">${r.class||'ΓÇö'}</span></td>
                   <td><div class="stage-badge-num" style="background:${stageBadgeColor(sn)}">${stageBadgeText(sn)}</div></td>
                   <td style="font-family:'DM Mono',monospace;font-size:9px;color:#C94A00">${cleanStageText(r.class_desc||'')||'ΓÇö'}</td>
@@ -725,16 +725,16 @@ function openAddModal(){
 
 function fillModalForm(rec){
   const f=(id,val)=>{const el=document.getElementById(id);if(el)el.value=val||'';};
-  f('editStatusRun',rec.sub_stage);f('editStage',rec.stage);
+  f('editStatusRun',rec.status_run);f('editStage',rec.stage);
   f('editSrNo',rec.sr_no);f('editTmNo',rec.tm_no);
-  f('editFolder',rec.folder_name);f('editDateL',rec.filing_date);
+  f('editFolder',rec.folder_name);f('editDateL',rec.date_l);
   f('editClass',rec.class);f('editClassDesc',rec.class_desc);
-  f('editAppType',rec.applicant_type);f('editAppName',rec.applicant_name);
-  f('editAppSo',rec.applicant_so);f('editAppCnic',rec.applicant_cnic);
+  f('editAppType',rec.app_type);f('editAppName',rec.app_name);
+  f('editAppSo',rec.app_so);f('editAppCnic',rec.app_cnic);
   f('editIssueDate',rec.issue_date);f('editExpiryDate',rec.expiry_date);
-  f('editAppTrade',rec.tm_trade);f('editAppAdd',rec.applicant_address);
-  f('editYear',rec.year);f('editConName',rec.consultant_name);
-  f('editConAdd',rec.consultant_address);f('editImg',rec.img);f('editNoImg',rec.notes);
+  f('editAppTrade',rec.app_trade);f('editAppAdd',rec.app_add);
+  f('editYear',rec.year);f('editConName',rec.con_name);
+  f('editConAdd',rec.con_add);f('editImg',rec.img);f('editNoImg',rec.no_img);
   updateImgPreview(rec.img);
   const iu=document.getElementById('imgUpload');if(iu)iu.value='';
 }
@@ -748,18 +748,18 @@ const gv=id=>{const el=document.getElementById(id);return el?el.value.trim():'';
 
 async function saveEdit(){
   const data={
-    sub_stage:gv('editStatusRun'),stage:gv('editStage'),
+    status_run:gv('editStatusRun'),stage:gv('editStage'),
     sr_no:gv('editSrNo'),tm_no:gv('editTmNo'),
-    folder_name:gv('editFolder'),filing_date:gv('editDateL'),
+    folder_name:gv('editFolder'),date_l:gv('editDateL'),
     class:gv('editClass'),class_desc:gv('editClassDesc'),
-    applicant_type:gv('editAppType'),applicant_name:gv('editAppName'),
-    applicant_so:gv('editAppSo'),applicant_cnic:gv('editAppCnic'),
+    app_type:gv('editAppType'),app_name:gv('editAppName'),
+    app_so:gv('editAppSo'),app_cnic:gv('editAppCnic'),
     issue_date:gv('editIssueDate'),expiry_date:gv('editExpiryDate'),
-    tm_trade:gv('editAppTrade'),applicant_address:gv('editAppAdd'),
-    year:gv('editYear'),consultant_name:gv('editConName'),
-    consultant_address:gv('editConAdd'),img:gv('editImg'),notes:gv('editNoImg'),
+    app_trade:gv('editAppTrade'),app_add:gv('editAppAdd'),
+    year:gv('editYear'),con_name:gv('editConName'),
+    con_add:gv('editConAdd'),img:gv('editImg'),no_img:gv('editNoImg'),
   };
-  if(!data.applicant_name){alert('App Name (J) is required Γ¡É');return;}
+  if(!data.app_name){alert('App Name (J) is required Γ¡É');return;}
   const btn=document.getElementById('modalSave');
   btn.textContent='SAVINGΓÇª';btn.disabled=true;
   try{
@@ -839,7 +839,7 @@ async function renderLogsTab(){
           <tbody>
             ${logs.map(l=>{
               const ac=ACTION_COLORS[l.action]||'#888';
-              const tm=l.applicant_name||(l.new_values?.applicant_name)||'ΓÇö';
+              const tm=l.app_name||(l.new_values?.app_name)||'ΓÇö';
               const tmNo=l.tm_no||(l.new_values?.tm_no)||'ΓÇö';
               return `<tr>
                 <td class="td-date" style="white-space:nowrap">${formatLogDate(l.created_at)}</td>
@@ -910,8 +910,8 @@ document.addEventListener('DOMContentLoaded',()=>{
     const el=document.getElementById(id);
     if(el) el.addEventListener('change',()=>{
       activeFilters.stage      = document.getElementById('filterStage')?.value??'';
-      activeFilters.sub_stage = document.getElementById('filterStatus')?.value??'';
-      activeFilters.applicant_type   = document.getElementById('filterType')?.value??'';
+      activeFilters.status_run = document.getElementById('filterStatus')?.value??'';
+      activeFilters.app_type   = document.getElementById('filterType')?.value??'';
       activeFilters.year       = document.getElementById('filterYear')?.value??'';
       currentPage=1;renderRecordsTable();
     });
@@ -978,4 +978,3 @@ document.addEventListener('DOMContentLoaded',()=>{
 
   loadData();
 });
-

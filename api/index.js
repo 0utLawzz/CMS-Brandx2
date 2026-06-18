@@ -511,6 +511,91 @@ if (require.main === module) {
     await testConnection();
     await runMigrations();
   });
-}
+}// ── ASSIGNMENTS (MAPPED TO TRADEMARKS) ───────────────────────────────────────
+app.get('/api/assignments/stats', async (req, res) => {
+  try {
+    const { rows } = await pool.query(`
+      SELECT 
+        COUNT(*) as total,
+        COUNT(*) FILTER (WHERE sub_stage = 'Pending') as pending,
+        COUNT(*) FILTER (WHERE sub_stage = 'In Progress') as in_progress,
+        COUNT(*) FILTER (WHERE sub_stage = 'Complete') as complete
+      FROM trademarks 
+      WHERE assigned_person IS NOT NULL AND assigned_person != '' AND archived = FALSE
+    `);
+    res.json({ success: true, data: rows[0] });
+  } catch (err) { res.status(500).json({ success: false, error: err.message }); }
+});
+
+app.get('/api/assignments', async (req, res) => {
+  try {
+    const { rows } = await pool.query(`
+      SELECT id, id as trademark_id, tm_no, applicant_name as app_name, class, stage, 
+             assigned_person as agent_name, assigned_city as agent_city, 
+             sub_stage as status, updated_at as assigned_at
+      FROM trademarks
+      WHERE assigned_person IS NOT NULL AND assigned_person != '' AND archived = FALSE
+      ORDER BY updated_at DESC
+    `);
+    res.json({ success: true, data: rows });
+  } catch (err) { res.status(500).json({ success: false, error: err.message }); }
+});
+
+app.get('/api/assignments/unassigned', async (req, res) => {
+  try {
+    const { rows } = await pool.query(`
+      SELECT * FROM trademarks 
+      WHERE (assigned_person IS NULL OR assigned_person = '') 
+        AND stage ILIKE '%Stage 2%' AND archived = FALSE
+    `);
+    // Alias applicant_name to app_name for the frontend
+    const mapped = rows.map(r => ({...r, app_name: r.applicant_name}));
+    res.json({ success: true, data: mapped });
+  } catch (err) { res.status(500).json({ success: false, error: err.message }); }
+});
+
+app.post('/api/assignments', async (req, res) => {
+  try {
+    const { trademark_id, agent_name, agent_city, notes } = req.body;
+    await pool.query(
+      `UPDATE trademarks 
+       SET assigned_person = $1, assigned_city = $2, sub_stage = 'Pending' 
+       WHERE id = $3`,
+      [agent_name, agent_city, trademark_id]
+    );
+    res.json({ success: true });
+  } catch (err) { res.status(500).json({ success: false, error: err.message }); }
+});
+
+app.patch('/api/assignments/:id', async (req, res) => {
+  try {
+    const { agent_name, agent_city, status, notes } = req.body;
+    let sets = []; let vals = []; let idx = 1;
+    if (agent_name !== undefined) { sets.push(`assigned_person = $${idx++}`); vals.push(agent_name); }
+    if (agent_city !== undefined) { sets.push(`assigned_city = $${idx++}`); vals.push(agent_city); }
+    if (status !== undefined)     { sets.push(`sub_stage = $${idx++}`); vals.push(status); }
+    
+    if (!sets.length) return res.json({ success: true });
+    
+    vals.push(req.params.id);
+    await pool.query(
+      `UPDATE trademarks SET ${sets.join(', ')} WHERE id = $${idx}`,
+      vals
+    );
+    res.json({ success: true });
+  } catch (err) { res.status(500).json({ success: false, error: err.message }); }
+});
+
+app.delete('/api/assignments/:id', async (req, res) => {
+  try {
+    await pool.query(
+      `UPDATE trademarks 
+       SET assigned_person = NULL, assigned_city = NULL, sub_stage = NULL 
+       WHERE id = $1`,
+      [req.params.id]
+    );
+    res.json({ success: true });
+  } catch (err) { res.status(500).json({ success: false, error: err.message }); }
+});
 
 module.exports = app;
