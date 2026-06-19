@@ -10,10 +10,18 @@ let spreadsheetId = process.env.SHEET_ID;
 // If we have a Service Account configured, initialize the Google Auth client
 if (process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL && process.env.GOOGLE_PRIVATE_KEY) {
   try {
+    let privateKey = process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, '\n');
+    if (privateKey.startsWith('"') && privateKey.endsWith('"')) {
+      privateKey = privateKey.slice(1, -1);
+    }
+    if (privateKey.startsWith("'") && privateKey.endsWith("'")) {
+      privateKey = privateKey.slice(1, -1);
+    }
+
     const auth = new google.auth.GoogleAuth({
       credentials: {
-        client_email: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
-        private_key: process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, '\n'), // Handle escaped newlines
+        client_email: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL.replace(/['"]/g, ''),
+        private_key: privateKey,
       },
       scopes: SCOPES,
     });
