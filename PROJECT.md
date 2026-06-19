@@ -238,6 +238,19 @@ https://docs.google.com/spreadsheets/d/e/2PACX-1vTelzP.../pub?gid=229416165&sing
 
 ---
 
+### Session 8 — Database Disconnection & Full Sheets Integration
+**Issue:** User encountered PostgreSQL warnings and `package.json` missing errors locally, because the local branch was behind the remote repository which had already removed the PostgreSQL dependencies.
+**Changes Pulled from Remote:**
+- **PostgreSQL Removed:** Deleted `api/db.js`, `api/schema.sql`, and `api/schema_v2.sql`. The system now completely relies on Google Sheets via `api/sheets.js`.
+- **API Server Updates:** `api/index.js` completely rewritten to fetch, insert, update, and soft-delete records directly against Google Sheets using `google-auth-library` and `googleapis`.
+- **Audit Logs:** Audit logs are now written to a separate sheet `Logs!A:G` instead of a PostgreSQL table.
+- **Node Environment Fixes:** Added `api/package.json` and `api/package-lock.json` so `npm` inside `api/` works properly.
+
+**Result:** The application now runs fully on Google Sheets and no longer connects to PostgreSQL. Local repository is synced with remote.
+
+
+---
+
 ## Known Constraints
 
 - **Hostinger MySQL** — Port 3306 is firewalled from Replit cloud IPs. Cannot be used from this environment. Use PostgreSQL instead.
