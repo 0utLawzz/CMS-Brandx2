@@ -1,7 +1,7 @@
 # BrandEx Law — Trademark Portal
 
 A web-based trademark management system for BrandEx Law (Pakistan).
-Neo-brutalism UI · PostgreSQL database · REST API · Google Sheets sync
+Neo-brutalism UI · Google Sheets database · REST API
 
 ---
 
@@ -9,7 +9,7 @@ Neo-brutalism UI · PostgreSQL database · REST API · Google Sheets sync
 
 ### Prerequisites
 - Node.js 18+
-- PostgreSQL Database (Neon)
+- Google Cloud Service Account (for Sheets API)
 
 ### Installation
 
@@ -44,8 +44,10 @@ Open `http://localhost:5000` in your browser.
 Create `api/.env` with the following:
 
 ```env
-# Neon PostgreSQL connection string
-DATABASE_URL=postgresql://user:pass@host:5432/dbname?sslmode=require
+# Google Sheets Integration
+SHEET_ID=your-google-sheet-id
+GOOGLE_SERVICE_ACCOUNT_EMAIL=your-service-account-email@...
+GOOGLE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n"
 
 # API Server
 PORT=3000
@@ -68,8 +70,7 @@ CMS-Brandx2/
 │
 ├── api/
 │   ├── index.js            ← Express REST API (port 3000)
-│   ├── db.js               ← PostgreSQL pool + auto-migrations
-│   ├── reset-db.js         ← Script to reset the database to 0
+│   ├── sheets.js           ← Google Sheets API client
 │   ├── .env                ← Local credentials (gitignored)
 │   ├── package.json        ← API deps: express, pg, cors, dotenv, multer
 │
@@ -108,7 +109,7 @@ Table: `trademarks`
 | U | no_img | VARCHAR(255) | Fallback text if no image |
 | — | created_at | TIMESTAMP | Auto-set on insert |
 
-Schema is **auto-created** on API startup via `runMigrations()` in `api/db.js`.
+Schema is managed directly in Google Sheets. The `Trademarks` sheet requires headers matching the schema.
 
 ---
 
@@ -119,5 +120,5 @@ Schema is **auto-created** on API startup via `runMigrations()` in `api/db.js`.
 | Frontend | Vanilla HTML/CSS/JS · Neo-brutalism design |
 | Web server | Node.js built-in `http` module |
 | API | Express.js 5 |
-| Database | PostgreSQL (Neon) |
+| Database | Google Sheets |
 | File upload | Multer |

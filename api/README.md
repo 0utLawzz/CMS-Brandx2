@@ -1,7 +1,7 @@
 # BrandEx API — Setup Guide
 
-This is the Node.js + PostgreSQL backend API and SPA Frontend for BrandEx Law Trademark Portal.
-The database has been fully migrated to Neon PostgreSQL.
+This is the Node.js + Google Sheets backend API and SPA Frontend for BrandEx Law Trademark Portal.
+The database has been fully migrated to Google Sheets.
 
 ---
 
@@ -30,7 +30,7 @@ All future modifications must obey these rules:
 
 ## API Endpoints
 
-The API is fully mapped to the `trademarks` and `audit_logs` tables in PostgreSQL.
+The API is fully mapped to the `Trademarks` and `Logs` sheets in Google Sheets.
 
 | Method | Endpoint | What it does |
 |--------|----------|-------------|
@@ -48,7 +48,7 @@ The API is fully mapped to the `trademarks` and `audit_logs` tables in PostgreSQ
 
 ## Running Locally
 
-1. Make sure you have the `.env` in `api/` with `DATABASE_URL` pointing to your Neon database.
+1. Make sure you have the `.env` in `api/` with `SHEET_ID`, `GOOGLE_SERVICE_ACCOUNT_EMAIL`, and `GOOGLE_PRIVATE_KEY`.
 2. `npm install` in the root folder.
 3. Start the server using:
    ```bash
