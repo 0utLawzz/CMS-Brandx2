@@ -3,7 +3,12 @@ const express  = require('express');
 const cors     = require('cors');
 const path     = require('path');
 const multer   = require('multer');
-require('dotenv').config({ path: path.join(__dirname, '.env') });
+// Load .env only when running locally (Vercel injects env vars automatically)
+const fs = require('fs');
+const envPath = path.join(__dirname, '.env');
+if (fs.existsSync(envPath)) {
+  require('dotenvx').config({ path: envPath });
+}
 
 const { getSheetsClient, spreadsheetId } = require('./sheets');
 
