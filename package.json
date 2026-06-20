@@ -1,23 +1,19 @@
 {
   "name": "brandex-portal",
   "version": "1.0.0",
-  "description": "BrandEx Law — Trademark Portal (WebView + Mobile)",
+  "description": "BrandEx Law — Trademark Portal",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "mobile": "cd mobile && npx expo start --tunnel"
+    "dev": "node server.js"
   },
   "license": "ISC",
   "dependencies": {
-    "adm-zip": "^0.5.17",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
+    "@dotenvx/dotenvx": "^1.35.0",
     "express": "^5.2.1",
     "googleapis": "^173.0.0",
-    "multer": "^2.2.0",
-    "mysql2": "^3.22.5",
-    "pg": "^8.21.0",
-    "ssh2": "^1.17.0",
-    "vercel": "^50.41.0"
+    "multer": "^2.2.0"
   }
 }

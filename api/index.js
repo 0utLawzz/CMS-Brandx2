@@ -3,11 +3,12 @@ const express  = require('express');
 const cors     = require('cors');
 const path     = require('path');
 const multer   = require('multer');
+const fs       = require('fs');
+
 // Load .env only when running locally (Vercel injects env vars automatically)
-const fs = require('fs');
 const envPath = path.join(__dirname, '.env');
 if (fs.existsSync(envPath)) {
-  require('dotenvx').config({ path: envPath });
+  require('@dotenvx/dotenvx').config({ path: envPath });
 }
 
 const { getSheetsClient, spreadsheetId } = require('./sheets');
@@ -24,7 +25,6 @@ app.use('/uploads', express.static(UPLOADS_DIR));
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    const fs = require('fs');
     fs.mkdirSync(UPLOADS_DIR, { recursive: true });
     cb(null, UPLOADS_DIR);
   },
@@ -43,33 +43,48 @@ const upload = multer({
   },
 });
 
-// ── Stage / Sub-Stage Definitions ────────────────────────────────────────────
+// ── Field Definitions (for {{tag}} system) ────────────────────────────────────
+const FIELD_DEFS = [
+  { key: 'sr_no',               tag: '{{sr_no}}',               label: 'Serial No' },
+  { key: 'tm_no',               tag: '{{tm_no}}',               label: 'TM Number' },
+  { key: 'filing_date',         tag: '{{filing_date}}',         label: 'Filing Date' },
+  { key: 'folder_name',         tag: '{{folder_name}}',         label: 'Folder Name' },
+  { key: 'applicant_name',      tag: '{{applicant_name}}',      label: 'Applicant Name' },
+  { key: 'applicant_so',        tag: '{{applicant_so}}',        label: "Father's Name (S/O)" },
+  { key: 'applicant_cnic',      tag: '{{applicant_cnic}}',      label: 'CNIC / NTN / Passport' },
+  { key: 'applicant_type',      tag: '{{applicant_type}}',      label: 'Applicant Type' },
+  { key: 'applicant_address',   tag: '{{applicant_address}}',   label: 'Applicant Address' },
+  { key: 'class',               tag: '{{class}}',               label: 'Class (01–45)' },
+  { key: 'class_desc',          tag: '{{class_desc}}',          label: 'Class Description' },
+  { key: 'tm_trade',            tag: '{{tm_trade}}',            label: 'Trade / Brand Name' },
+  { key: 'consultant_name',     tag: '{{consultant_name}}',     label: 'Consultant Name' },
+  { key: 'consultant_address',  tag: '{{consultant_address}}',  label: 'Consultant Address' },
+  { key: 'stage',               tag: '{{stage}}',               label: 'Stage' },
+  { key: 'sub_stage',           tag: '{{sub_stage}}',           label: 'Sub-Stage / Status' },
+  { key: 'assigned_person',     tag: '{{assigned_person}}',     label: 'Assigned Person' },
+  { key: 'assigned_city',       tag: '{{assigned_city}}',       label: 'Assigned City' },
+  { key: 'issue_date',          tag: '{{issue_date}}',          label: 'Issue Date' },
+  { key: 'expiry_date',         tag: '{{expiry_date}}',         label: 'Expiry Date' },
+  { key: 'year',                tag: '{{year}}',                label: 'Year' },
+  { key: 'img',                 tag: '{{img}}',                 label: 'Image / Drive ID' },
+  { key: 'notes',               tag: '{{notes}}',               label: 'Notes' },
+];
+
+// ── Stage / Sub-Stage Definitions ─────────────────────────────────────────────
 const STAGES = {
   'Stage 1 – Application': [
-    'Application Prepared',
-    'Application Filed',
-    'TM Assigned',
-    'Acknowledgement Received',
-    'Examination Received',
+    'Application Prepared', 'Application Filed', 'TM Assigned',
+    'Acknowledgement Received', 'Examination Received',
   ],
   'Stage 2 – Examination': [
-    'Assigned',
-    'Under Review',
-    'Hearing Scheduled',
-    'Hearing Completed',
-    'Approved',
+    'Assigned', 'Under Review', 'Hearing Scheduled', 'Hearing Completed', 'Approved',
   ],
   'Stage 3 – Publication': [
-    'Published In Journal',
-    'Waiting Period',
-    'Demand Note Received',
-    'Demand Note Paid',
-    'Opposition',
+    'Published In Journal', 'Waiting Period', 'Demand Note Received',
+    'Demand Note Paid', 'Opposition',
   ],
   'Stage 4 – Registration': [
-    'Certificate Received',
-    'Certificate Dispatched',
-    'Closed',
+    'Certificate Received', 'Certificate Dispatched', 'Closed',
   ],
 };
 
@@ -78,7 +93,7 @@ const ALLOWED_FIELDS = [
   'applicant_type','applicant_address','class','class_desc','tm_trade',
   'consultant_name','consultant_address','stage','sub_stage',
   'assigned_person','assigned_city','issue_date','expiry_date',
-  'folder_name','img','notes','year','archived'
+  'folder_name','img','notes','year','archived',
 ];
 
 const HEADERS = [
@@ -86,7 +101,7 @@ const HEADERS = [
   'applicant_cnic', 'applicant_type', 'applicant_address', 'class', 'class_desc',
   'tm_trade', 'consultant_name', 'consultant_address', 'stage', 'sub_stage',
   'assigned_person', 'assigned_city', 'issue_date', 'expiry_date', 'folder_name',
-  'img', 'notes', 'year', 'archived', 'created_at', 'updated_at'
+  'img', 'notes', 'year', 'archived', 'created_at', 'updated_at',
 ];
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -95,19 +110,31 @@ function extractYear(d) {
   return m ? m[1] : null;
 }
 
-// Convert an array row from Sheets to an object
+/** Resolve stage number from a raw stage string (matches frontend logic) */
+function getStageNum(stage) {
+  if (!stage) return 0;
+  const v = stage.replace(/[\u{1F000}-\u{1FFFF}\u2600-\u27BF]/gu, '').trim().toUpperCase();
+  if (/STAGE[\s_]*4/.test(v))  return 4;
+  if (/STAGE[\s_]*3/.test(v))  return 3;
+  if (/STAGE[\s_]*2/.test(v))  return 2;
+  if (/STAGE[\s_]*1/.test(v))  return 1;
+  if (/^(APPLICATION FILED|ACKNOWLEDGMENT|ACKNOWLEDGEMENT|EXAMINATION)/.test(v)) return 1;
+  if (/^(ASSIGNED|ACCEPTED|HEARING)/.test(v)) return 2;
+  if (/^(PUBLISHED|OPPO|DEMAND NOTE|D-NOTE|D NOTE|DEMAND)/.test(v)) return 3;
+  if (/^(CERTIFICATE|CERTIF|COMPLETE)/.test(v)) return 4;
+  if (/^(STOP|ABANDON|HOLD|REFUS|^NOTE$)/.test(v)) return -1;
+  if (/^COPYRIGHT/.test(v)) return -2;
+  return 0;
+}
+
 function rowToObject(row) {
   const obj = {};
-  HEADERS.forEach((h, i) => {
-    obj[h] = row[i] || '';
-  });
-  // Type casting
-  obj.id = obj.id ? String(obj.id) : null;
+  HEADERS.forEach((h, i) => { obj[h] = row[i] || ''; });
+  obj.id       = obj.id ? String(obj.id) : null;
   obj.archived = obj.archived === 'true' || obj.archived === 'TRUE';
   return obj;
 }
 
-// Convert an object to an array row for Sheets
 function objectToRow(obj) {
   return HEADERS.map(h => {
     if (obj[h] === null || obj[h] === undefined) return '';
@@ -115,46 +142,67 @@ function objectToRow(obj) {
   });
 }
 
-// Fetch all rows from the Trademarks sheet
 async function getAllRecords() {
   const sheets = getSheetsClient();
   if (!sheets) throw new Error('Sheets client not initialized');
-  
   const res = await sheets.spreadsheets.values.get({
     spreadsheetId,
     range: 'Trademarks!A2:AA',
   });
-  
   const rows = res.data.values || [];
-  // Store the row index (A2 is row index 2 in sheets, but 0 in this array)
   return rows.map((row, index) => {
     const obj = rowToObject(row);
-    obj._sheetRowIndex = index + 2; // Keep track of the actual row number for updates
+    obj._sheetRowIndex = index + 2;
     return obj;
-  }).filter(r => r.id); // Only return rows that have an ID
+  }).filter(r => r.id);
+}
+
+async function patchRecord(sheets, id, fields, body, changedBy) {
+  const records = await getAllRecords();
+  const current = records.find(r => r.id === String(id));
+  if (!current) return null;
+
+  if (body.filing_date && !body.year) {
+    body.year = extractYear(body.filing_date);
+    if (body.year && !fields.includes('year')) fields.push('year');
+  }
+
+  const updatedObj = { ...current };
+  fields.forEach(f => updatedObj[f] = body[f]);
+  updatedObj.updated_at = new Date().toISOString();
+  delete updatedObj._sheetRowIndex;
+
+  const rowNumber = current._sheetRowIndex;
+  const row = objectToRow(updatedObj);
+
+  await sheets.spreadsheets.values.update({
+    spreadsheetId,
+    range: `Trademarks!A${rowNumber}:AA${rowNumber}`,
+    valueInputOption: 'USER_ENTERED',
+    requestBody: { values: [row] },
+  });
+
+  const changes = {};
+  for (const f of fields) {
+    changes[f] = { old: current[f], new: body[f] };
+  }
+  await writeAuditLog(id, changes, changedBy);
+  return updatedObj;
 }
 
 async function writeAuditLog(recordId, changes, changedBy = 'system') {
   const sheets = getSheetsClient();
   if (!sheets) return;
-  
   const rows = [];
   const now = new Date().toISOString();
-  
   for (const [field, { old: oldVal, new: newVal }] of Object.entries(changes)) {
     if (String(oldVal || '') !== String(newVal || '')) {
       rows.push([
-        Date.now() + Math.floor(Math.random() * 1000), // Log ID
-        recordId,
-        field,
-        oldVal ?? '',
-        newVal ?? '',
-        changedBy,
-        now
+        Date.now() + Math.floor(Math.random() * 1000),
+        recordId, field, oldVal ?? '', newVal ?? '', changedBy, now,
       ]);
     }
   }
-  
   if (rows.length > 0) {
     try {
       await sheets.spreadsheets.values.append({
@@ -164,7 +212,7 @@ async function writeAuditLog(recordId, changes, changedBy = 'system') {
         requestBody: { values: rows },
       });
     } catch (err) {
-      console.error('Failed to write audit log to Sheets:', err.message);
+      console.error('Failed to write audit log:', err.message);
     }
   }
 }
@@ -173,6 +221,11 @@ async function writeAuditLog(recordId, changes, changedBy = 'system') {
 app.get('/api/health', (req, res) => {
   const ok = getSheetsClient() !== null;
   res.json({ status: 'ok', database: ok ? 'connected' : 'disconnected' });
+});
+
+// ── Field definitions for {{tag}} system ──────────────────────────────────────
+app.get('/api/fields', (req, res) => {
+  res.json({ success: true, data: FIELD_DEFS });
 });
 
 // ── Stage definitions ─────────────────────────────────────────────────────────
@@ -191,29 +244,27 @@ app.get('/api/trademarks', async (req, res) => {
 
     let records = await getAllRecords();
 
-    // Filters
     const isArchived = archived === 'true';
     records = records.filter(r => r.archived === isArchived);
 
     if (q) {
       const qLower = q.toLowerCase();
-      records = records.filter(r => 
-        (r.tm_no || '').toLowerCase().includes(qLower) ||
-        (r.sr_no || '').toLowerCase().includes(qLower) ||
-        (r.applicant_name || '').toLowerCase().includes(qLower) ||
-        (r.applicant_cnic || '').toLowerCase().includes(qLower) ||
-        (r.class || '').toLowerCase().includes(qLower) ||
-        (r.consultant_name || '').toLowerCase().includes(qLower)
+      records = records.filter(r =>
+        (r.tm_no             || '').toLowerCase().includes(qLower) ||
+        (r.sr_no             || '').toLowerCase().includes(qLower) ||
+        (r.applicant_name    || '').toLowerCase().includes(qLower) ||
+        (r.applicant_cnic    || '').toLowerCase().includes(qLower) ||
+        (r.class             || '').toLowerCase().includes(qLower) ||
+        (r.consultant_name   || '').toLowerCase().includes(qLower)
       );
     }
 
-    if (stage) records = records.filter(r => r.stage === stage);
-    if (sub_stage) records = records.filter(r => r.sub_stage === sub_stage);
+    if (stage)           records = records.filter(r => r.stage === stage);
+    if (sub_stage)       records = records.filter(r => r.sub_stage === sub_stage);
     if (assigned_person) records = records.filter(r => r.assigned_person === assigned_person);
-    if (assigned_city) records = records.filter(r => r.assigned_city === assigned_city);
-    if (year) records = records.filter(r => r.year === year);
+    if (assigned_city)   records = records.filter(r => r.assigned_city === assigned_city);
+    if (year)            records = records.filter(r => r.year === year);
 
-    // Sort by created_at DESC (if available) or by row index DESC (newest at bottom of sheet)
     records.sort((a, b) => {
       const dateA = new Date(a.created_at || 0).getTime();
       const dateB = new Date(b.created_at || 0).getTime();
@@ -221,18 +272,14 @@ app.get('/api/trademarks', async (req, res) => {
       return b._sheetRowIndex - a._sheetRowIndex;
     });
 
-    const total = records.length;
-    const offset = (parseInt(page) - 1) * parseInt(limit);
+    const total    = records.length;
+    const offset   = (parseInt(page) - 1) * parseInt(limit);
     const paginated = records.slice(offset, offset + parseInt(limit));
-
-    // Remove _sheetRowIndex before sending to client
     paginated.forEach(r => delete r._sheetRowIndex);
 
     res.json({
-      success: true,
-      total,
-      page: parseInt(page),
-      limit: parseInt(limit),
+      success: true, total,
+      page: parseInt(page), limit: parseInt(limit),
       pages: Math.ceil(total / parseInt(limit)),
       data: paginated,
     });
@@ -246,9 +293,8 @@ app.get('/api/trademarks', async (req, res) => {
 app.get('/api/trademarks/:id', async (req, res) => {
   try {
     const records = await getAllRecords();
-    const record = records.find(r => r.id === req.params.id);
+    const record  = records.find(r => r.id === req.params.id);
     if (!record) return res.status(404).json({ success: false, error: 'Not found' });
-    
     delete record._sheetRowIndex;
     res.json({ success: true, data: record });
   } catch (err) {
@@ -268,18 +314,15 @@ app.post('/api/trademarks', async (req, res) => {
     }
 
     const newId = String(Date.now() + Math.floor(Math.random() * 1000));
-    const now = new Date().toISOString();
-    
-    const obj = { id: newId };
+    const now   = new Date().toISOString();
+    const obj   = { id: newId };
     ALLOWED_FIELDS.forEach(f => obj[f] = b[f] || '');
-    
-    obj.year = b.year || extractYear(b.filing_date) || '';
-    obj.archived = 'FALSE';
+    obj.year       = b.year || extractYear(b.filing_date) || '';
+    obj.archived   = 'FALSE';
     obj.created_at = now;
     obj.updated_at = now;
 
     const row = objectToRow(obj);
-
     await sheets.spreadsheets.values.append({
       spreadsheetId,
       range: 'Trademarks!A:AA',
@@ -287,12 +330,8 @@ app.post('/api/trademarks', async (req, res) => {
       requestBody: { values: [row] },
     });
 
-    // Audit: creation
     const changes = {};
-    ALLOWED_FIELDS.forEach(f => {
-      const v = obj[f];
-      if (v) changes[f] = { old: null, new: v };
-    });
+    ALLOWED_FIELDS.forEach(f => { const v = obj[f]; if (v) changes[f] = { old: null, new: v }; });
     await writeAuditLog(newId, changes, b._changed_by || 'system');
 
     res.status(201).json({ success: true, id: newId });
@@ -302,15 +341,15 @@ app.post('/api/trademarks', async (req, res) => {
   }
 });
 
-// ── UPDATE trademark (with audit log) ────────────────────────────────────────
+// ── UPDATE trademark ──────────────────────────────────────────────────────────
 app.patch('/api/trademarks/:id', async (req, res) => {
   try {
     const sheets = getSheetsClient();
     if (!sheets) throw new Error('Sheets client not initialized');
 
-    const id = req.params.id;
+    const id        = req.params.id;
     const changedBy = req.body._changed_by || 'system';
-    const body = { ...req.body };
+    const body      = { ...req.body };
     delete body._changed_by;
 
     const fields = Object.keys(body).filter(k => ALLOWED_FIELDS.includes(k));
@@ -318,40 +357,8 @@ app.patch('/api/trademarks/:id', async (req, res) => {
       return res.status(400).json({ success: false, error: 'No valid fields to update' });
     }
 
-    const records = await getAllRecords();
-    const current = records.find(r => r.id === id);
-    
-    if (!current) {
-      return res.status(404).json({ success: false, error: 'Not found' });
-    }
-
-    // Auto-extract year if filing_date changed
-    if (body.filing_date && !body.year) {
-      body.year = extractYear(body.filing_date);
-      if (body.year && !fields.includes('year')) fields.push('year');
-    }
-
-    // Apply updates
-    const updatedObj = { ...current };
-    fields.forEach(f => updatedObj[f] = body[f]);
-    updatedObj.updated_at = new Date().toISOString();
-
-    const rowNumber = current._sheetRowIndex;
-    const row = objectToRow(updatedObj);
-
-    await sheets.spreadsheets.values.update({
-      spreadsheetId,
-      range: `Trademarks!A${rowNumber}:AA${rowNumber}`,
-      valueInputOption: 'USER_ENTERED',
-      requestBody: { values: [row] },
-    });
-
-    // Write audit log for changed fields
-    const changes = {};
-    for (const f of fields) {
-      changes[f] = { old: current[f], new: body[f] };
-    }
-    await writeAuditLog(id, changes, changedBy);
+    const updated = await patchRecord(sheets, id, fields, body, changedBy);
+    if (!updated) return res.status(404).json({ success: false, error: 'Not found' });
 
     res.json({ success: true, message: 'Updated' });
   } catch (err) {
@@ -363,22 +370,19 @@ app.patch('/api/trademarks/:id', async (req, res) => {
 // ── SOFT DELETE (archive) ─────────────────────────────────────────────────────
 app.delete('/api/trademarks/:id', async (req, res) => {
   try {
-    const sheets = getSheetsClient();
+    const sheets    = getSheetsClient();
     if (!sheets) throw new Error('Sheets client not initialized');
-
     const changedBy = req.query.by || 'system';
-    const id = req.params.id;
+    const id        = req.params.id;
 
     const records = await getAllRecords();
     const current = records.find(r => r.id === id);
-    
-    if (!current) {
-      return res.status(404).json({ success: false, error: 'Not found' });
-    }
+    if (!current) return res.status(404).json({ success: false, error: 'Not found' });
 
     const updatedObj = { ...current, archived: true, updated_at: new Date().toISOString() };
-    const rowNumber = current._sheetRowIndex;
-    const row = objectToRow(updatedObj);
+    delete updatedObj._sheetRowIndex;
+    const rowNumber  = current._sheetRowIndex;
+    const row        = objectToRow(updatedObj);
 
     await sheets.spreadsheets.values.update({
       spreadsheetId,
@@ -387,37 +391,30 @@ app.delete('/api/trademarks/:id', async (req, res) => {
       requestBody: { values: [row] },
     });
 
-    await writeAuditLog(id, {
-      archived: { old: false, new: true }
-    }, changedBy);
-    
+    await writeAuditLog(id, { archived: { old: false, new: true } }, changedBy);
     res.json({ success: true, message: 'Archived' });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }
 });
 
-// ── GET audit logs for a record ───────────────────────────────────────────────
+// ── GET audit logs for a single record ───────────────────────────────────────
 app.get('/api/audit-logs/:id', async (req, res) => {
   try {
     const sheets = getSheetsClient();
     if (!sheets) throw new Error('Sheets client not initialized');
 
     const resp = await sheets.spreadsheets.values.get({
-      spreadsheetId,
-      range: 'Logs!A2:G',
+      spreadsheetId, range: 'Logs!A2:G',
     });
 
     const logs = (resp.data.values || [])
       .filter(r => r[1] === req.params.id)
       .map(r => ({
-        id: r[0],
-        record_id: r[1],
-        field_name: r[2],
-        old_value: r[3],
-        new_value: r[4],
-        changed_by: r[5],
-        changed_at: r[6]
+        id: r[0], record_id: r[1], field_name: r[2],
+        old_value: r[3], new_value: r[4], changed_by: r[5], changed_at: r[6],
+        action: r[2] === 'created' ? 'CREATE' : (r[2] === 'archived' ? 'DELETE' : 'UPDATE'),
+        note: `Changed ${r[2]}`,
       }))
       .sort((a, b) => new Date(b.changed_at || 0) - new Date(a.changed_at || 0));
 
@@ -427,46 +424,35 @@ app.get('/api/audit-logs/:id', async (req, res) => {
   }
 });
 
-// ── GET global audit logs ─────────────────────────────────────────────────────
+// ── GET global activity logs ──────────────────────────────────────────────────
 app.get('/api/logs', async (req, res) => {
   try {
-    const limit = parseInt(req.query.limit) || 500;
+    const limit  = parseInt(req.query.limit) || 500;
     const sheets = getSheetsClient();
     if (!sheets) throw new Error('Sheets client not initialized');
 
     const [logsResp, records] = await Promise.all([
-      sheets.spreadsheets.values.get({
-        spreadsheetId,
-        range: 'Logs!A2:G',
-      }),
-      getAllRecords()
+      sheets.spreadsheets.values.get({ spreadsheetId, range: 'Logs!A2:G' }),
+      getAllRecords(),
     ]);
 
     const recordsMap = {};
     records.forEach(r => recordsMap[r.id] = r);
 
-    let logs = (logsResp.data.values || [])
+    const logs = (logsResp.data.values || [])
       .map(r => {
         const record_id = r[1];
-        const tm = recordsMap[record_id] || {};
-        
-        let action = 'UPDATE';
-        if (r[2] === 'created') action = 'CREATE';
-        if (r[2] === 'archived' && r[4] === 'true') action = 'DELETE';
-        if (r[5] === 'system' && r[2] === 'created') action = 'SYNC';
-
+        const tm        = recordsMap[record_id] || {};
+        let action      = 'UPDATE';
+        if (r[2] === 'created')                       action = 'CREATE';
+        if (r[2] === 'archived' && r[4] === 'true')   action = 'DELETE';
+        if (r[5] === 'system' && r[2] === 'created')  action = 'SYNC';
         return {
-          id: r[0],
-          record_id,
-          field_name: r[2],
-          old_value: r[3],
-          new_value: r[4],
-          changed_by: r[5],
-          changed_at: r[6],
-          applicant_name: tm.applicant_name,
-          tm_no: tm.tm_no,
-          action,
-          note: `Changed ${r[2]}`
+          id: r[0], record_id,
+          field_name: r[2], old_value: r[3], new_value: r[4],
+          changed_by: r[5], changed_at: r[6],
+          applicant_name: tm.applicant_name, tm_no: tm.tm_no,
+          action, note: `Changed ${r[2]}`,
         };
       })
       .sort((a, b) => new Date(b.changed_at || 0) - new Date(a.changed_at || 0))
@@ -482,41 +468,59 @@ app.get('/api/logs', async (req, res) => {
 app.get('/api/stats', async (req, res) => {
   try {
     const records = await getAllRecords();
-    
-    let total = 0, active = 0, archived = 0, hearings_pending = 0, opposition = 0, certificates_pending = 0;
+
+    let total = 0, active = 0, archived = 0;
+    let run = 0, processing = 0, done = 0;
+    let stage1 = 0, stage2 = 0, stage3 = 0, stage4 = 0, stopped = 0;
+    let hearings_pending = 0, opposition = 0, certificates_pending = 0;
     const stageMap = {}, cityMap = {}, consultantMap = {}, personMap = {};
 
     records.forEach(r => {
       total++;
-      if (r.archived) {
-        archived++;
-        return; // Skip archived for stats
-      }
+      if (r.archived) { archived++; return; }
       active++;
 
-      const subStage = r.sub_stage || '';
-      if (subStage.toLowerCase().includes('hearing scheduled')) hearings_pending++;
-      if (subStage.toLowerCase().includes('opposition')) opposition++;
-      if (subStage.toLowerCase().includes('certificate') && !subStage.toLowerCase().includes('dispatched')) certificates_pending++;
+      // sub_stage counts (Run / Processing / Done)
+      const ss = (r.sub_stage || '').toUpperCase();
+      if (ss === 'RUN')        run++;
+      else if (ss === 'PROCESSING') processing++;
+      else if (ss === 'DONE')  done++;
 
-      if (r.stage) stageMap[r.stage] = (stageMap[r.stage] || 0) + 1;
-      if (r.assigned_city) cityMap[r.assigned_city] = (cityMap[r.assigned_city] || 0) + 1;
+      // Stage bucket from stage field
+      const sn = getStageNum(r.stage || '');
+      if (sn === 1) stage1++;
+      else if (sn === 2) stage2++;
+      else if (sn === 3) stage3++;
+      else if (sn === 4) stage4++;
+      else if (sn === -1 || sn === -2) stopped++;
+
+      // Special sub-stage flags
+      if (ss.includes('HEARING SCHEDULED')) hearings_pending++;
+      if (ss.includes('OPPOSITION'))        opposition++;
+      if (ss.includes('CERTIFICATE') && !ss.includes('DISPATCHED')) certificates_pending++;
+
+      if (r.stage)           stageMap[r.stage]           = (stageMap[r.stage]           || 0) + 1;
+      if (r.assigned_city)   cityMap[r.assigned_city]     = (cityMap[r.assigned_city]     || 0) + 1;
       if (r.consultant_name) consultantMap[r.consultant_name] = (consultantMap[r.consultant_name] || 0) + 1;
       if (r.assigned_person) personMap[r.assigned_person] = (personMap[r.assigned_person] || 0) + 1;
     });
 
-    const formatMap = (map, keyName) => Object.entries(map)
-      .map(([k, v]) => ({ [keyName]: k, count: v }))
-      .sort((a, b) => b.count - a.count);
+    const formatMap = (map, keyName) =>
+      Object.entries(map)
+        .map(([k, v]) => ({ [keyName]: k, count: v }))
+        .sort((a, b) => b.count - a.count);
 
     res.json({
       success: true,
       data: {
-        total, active, archived, hearings_pending, opposition, certificates_pending,
-        per_stage: Object.entries(stageMap).map(([stage, count]) => ({ stage, count })).sort((a, b) => a.stage.localeCompare(b.stage)),
-        per_city: formatMap(cityMap, 'city'),
+        total, active, archived,
+        run, processing, done,
+        stage1, stage2, stage3, stage4, stopped,
+        hearings_pending, opposition, certificates_pending,
+        per_stage:      Object.entries(stageMap).map(([stage, count]) => ({ stage, count })).sort((a, b) => a.stage.localeCompare(b.stage)),
+        per_city:       formatMap(cityMap, 'city'),
         per_consultant: formatMap(consultantMap, 'consultant'),
-        per_person: formatMap(personMap, 'person'),
+        per_person:     formatMap(personMap, 'person'),
       },
     });
   } catch (err) {
@@ -531,39 +535,23 @@ app.post('/api/upload', upload.single('image'), (req, res) => {
   res.json({ success: true, path: '/uploads/' + req.file.filename });
 });
 
-// ── BULK import ───────────────────────────────────────────────────────────────
-// We can temporarily disable bulk imports or rewrite it simply
-app.post('/api/import', async (req, res) => {
-  res.status(501).json({ success: false, error: 'Bulk import via API is disabled when using Google Sheets directly. Copy paste into sheet instead.' });
-});
-
-app.post('/api/sync-sheets', async (req, res) => {
-  res.status(501).json({ success: false, error: 'Sync not needed when using Sheets as primary database.' });
-});
-
-// ── Start ─────────────────────────────────────────────────────────────────────
-if (require.main === module) {
-  app.listen(PORT, 'localhost', () => {
-    console.log(`BrandEx API running on http://localhost:${PORT}`);
-  });
-}
-
-// ── ASSIGNMENTS (MAPPED TO TRADEMARKS) ───────────────────────────────────────
+// ── ASSIGNMENTS (mapped to trademark fields) ──────────────────────────────────
 app.get('/api/assignments/stats', async (req, res) => {
   try {
     const records = await getAllRecords();
     let total = 0, pending = 0, in_progress = 0, complete = 0;
-    
     records.forEach(r => {
       if (!r.archived && r.assigned_person) {
         total++;
-        if (r.sub_stage === 'Pending') pending++;
+        if (r.sub_stage === 'Pending')     pending++;
         if (r.sub_stage === 'In Progress') in_progress++;
-        if (r.sub_stage === 'Complete') complete++;
+        if (r.sub_stage === 'Complete')    complete++;
       }
     });
     res.json({ success: true, data: { total, pending, in_progress, complete } });
-  } catch (err) { res.status(500).json({ success: false, error: err.message }); }
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
 });
 
 app.get('/api/assignments', async (req, res) => {
@@ -572,21 +560,17 @@ app.get('/api/assignments', async (req, res) => {
     const data = records
       .filter(r => !r.archived && r.assigned_person)
       .map(r => ({
-        id: r.id,
-        trademark_id: r.id,
-        tm_no: r.tm_no,
-        app_name: r.applicant_name,
-        class: r.class,
-        stage: r.stage,
-        agent_name: r.assigned_person,
-        agent_city: r.assigned_city,
-        status: r.sub_stage,
-        assigned_at: r.updated_at
+        id: r.id, trademark_id: r.id,
+        tm_no: r.tm_no, applicant_name: r.applicant_name,
+        class: r.class, stage: r.stage,
+        agent_name: r.assigned_person, agent_city: r.assigned_city,
+        status: r.sub_stage, assigned_at: r.updated_at,
       }))
       .sort((a, b) => new Date(b.assigned_at || 0) - new Date(a.assigned_at || 0));
-    
     res.json({ success: true, data });
-  } catch (err) { res.status(500).json({ success: false, error: err.message }); }
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
 });
 
 app.get('/api/assignments/unassigned', async (req, res) => {
@@ -595,36 +579,90 @@ app.get('/api/assignments/unassigned', async (req, res) => {
     const data = records
       .filter(r => !r.archived && !r.assigned_person && (r.stage || '').toLowerCase().includes('stage 2'))
       .map(r => ({ ...r, app_name: r.applicant_name }));
-      
     res.json({ success: true, data });
-  } catch (err) { res.status(500).json({ success: false, error: err.message }); }
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
 });
 
+// POST /api/assignments — assign a trademark to an agent
 app.post('/api/assignments', async (req, res) => {
   try {
+    const sheets = getSheetsClient();
+    if (!sheets) throw new Error('Sheets client not initialized');
+
     const { trademark_id, agent_name, agent_city, notes } = req.body;
-    
-    // Simulate patch to update
-    req.params = { id: trademark_id };
-    req.body = { assigned_person: agent_name, assigned_city: agent_city, sub_stage: 'Pending', _changed_by: 'system' };
-    
-    // We can't trivially call the other route, so let's copy the logic or direct them
-    return res.status(501).json({ success: false, error: 'Please use the standard PATCH endpoint for assignments.' });
-  } catch (err) { res.status(500).json({ success: false, error: err.message }); }
+    if (!trademark_id || !agent_name || !agent_city) {
+      return res.status(400).json({ success: false, error: 'trademark_id, agent_name and agent_city are required' });
+    }
+
+    const body   = { assigned_person: agent_name, assigned_city: agent_city, sub_stage: 'Pending' };
+    if (notes) body.notes = notes;
+    const fields = Object.keys(body);
+
+    const updated = await patchRecord(sheets, String(trademark_id), fields, body, 'system');
+    if (!updated) return res.status(404).json({ success: false, error: 'Trademark not found' });
+
+    res.json({ success: true, message: 'Assigned' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, error: err.message });
+  }
 });
 
+// PATCH /api/assignments/:id — reassign or change status
 app.patch('/api/assignments/:id', async (req, res) => {
   try {
-    // Should be handled by standard trademark patch now
-    res.status(501).json({ success: false, error: 'Use PATCH /api/trademarks/:id directly' });
-  } catch (err) { res.status(500).json({ success: false, error: err.message }); }
+    const sheets = getSheetsClient();
+    if (!sheets) throw new Error('Sheets client not initialized');
+
+    const id     = req.params.id;
+    const body   = {};
+    if (req.body.agent_name)  body.assigned_person = req.body.agent_name;
+    if (req.body.agent_city)  body.assigned_city   = req.body.agent_city;
+    if (req.body.status)      body.sub_stage        = req.body.status;
+    if (req.body.notes)       body.notes            = req.body.notes;
+    // Also support direct field names
+    if (req.body.assigned_person) body.assigned_person = req.body.assigned_person;
+    if (req.body.assigned_city)   body.assigned_city   = req.body.assigned_city;
+    if (req.body.sub_stage)       body.sub_stage        = req.body.sub_stage;
+
+    const fields = Object.keys(body).filter(k => ALLOWED_FIELDS.includes(k));
+    if (!fields.length) {
+      return res.status(400).json({ success: false, error: 'No valid fields provided' });
+    }
+
+    const updated = await patchRecord(sheets, id, fields, body, 'system');
+    if (!updated) return res.status(404).json({ success: false, error: 'Not found' });
+
+    res.json({ success: true, message: 'Updated' });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
 });
 
+// DELETE /api/assignments/:id — clear assignment fields
 app.delete('/api/assignments/:id', async (req, res) => {
   try {
-    // Handled by standard trademark patch
-    res.status(501).json({ success: false, error: 'Use PATCH /api/trademarks/:id directly' });
-  } catch (err) { res.status(500).json({ success: false, error: err.message }); }
+    const sheets = getSheetsClient();
+    if (!sheets) throw new Error('Sheets client not initialized');
+
+    const body   = { assigned_person: '', assigned_city: '', sub_stage: '' };
+    const fields = ['assigned_person', 'assigned_city', 'sub_stage'];
+    const updated = await patchRecord(sheets, req.params.id, fields, body, 'system');
+    if (!updated) return res.status(404).json({ success: false, error: 'Not found' });
+
+    res.json({ success: true, message: 'Assignment removed' });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
 });
+
+// ── Only listen when run directly (not via server.js) ────────────────────────
+if (require.main === module) {
+  app.listen(PORT, 'localhost', () => {
+    console.log(`✅ BrandEx API running on http://localhost:${PORT}`);
+  });
+}
 
 module.exports = app;

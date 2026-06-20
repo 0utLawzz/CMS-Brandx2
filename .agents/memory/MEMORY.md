@@ -4,3 +4,4 @@
 - [Hostinger MySQL blocked](hostinger-mysql.md) — Hostinger shared hosting firewalls port 3306 externally; Remote MySQL whitelist only controls MySQL auth, not the firewall. Cannot connect from Replit.
 - [Stage mapping](stage-mapping.md) — getStageNum() in app.js maps IPO sub-statuses to 1–4; -1=stopped, -2=copyright; badge shows plain number. DB regex in stats query uses ILIKE patterns to count stages.
 - [Image upload](image-upload.md) — multer saves to workspace/uploads/; img field stores /uploads/filename (fits VARCHAR(255)); Drive ID fallback still works via thumbnail URL.
+- **Git Commit & Push Rules** — Always push code to github after making changes. Use git config user.name "0utLawzz" and email "net2tara@gmail.com". Use standard conventional commits format (e.g. `fix: <message>`, `add: <message>`, `chore: <message>`).

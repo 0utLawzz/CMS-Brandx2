@@ -392,7 +392,7 @@ async function bulkDelete(){
     try{
       const r=await fetch(`${API}/trademarks/${id}`,{method:'DELETE'});
       const j=await r.json();
-      if(j.success){allRecords=allRecords.filter(x=>x.id!==id);selectedIds.delete(id);deleted++;}
+      if(j.success){allRecords=allRecords.filter(x=>String(x.id)!==String(id));selectedIds.delete(id);deleted++;}
     }catch{}
   }
   await loadStats();
@@ -408,7 +408,7 @@ async function deleteRec(id,name,fromSearch=false){
     const r=await fetch(`${API}/trademarks/${id}`,{method:'DELETE'});
     const j=await r.json();
     if(!j.success) throw new Error(j.error);
-    allRecords=allRecords.filter(x=>x.id!==id);
+    allRecords=allRecords.filter(x=>String(x.id)!==String(id));
     selectedIds.delete(id);
     await loadStats();
     renderRecordsTable();
@@ -430,20 +430,9 @@ function exportCSV(){
   a.click();
 }
 
-// ─── Sync from Google Sheets ──────────────────────────────────────────────────
-async function syncFromSheets(){
-  const btn=document.getElementById('syncBtn');
-  if(!btn) return;
-  const orig=btn.textContent;
-  btn.textContent='⏳ SYNCING…';btn.disabled=true;
-  try{
-    const res=await fetch(`${API}/sync-sheets`,{method:'POST'});
-    const j=await res.json();
-    if(!j.success) throw new Error(j.error||'Sync failed');
-    alert(`✅ Sync complete!\nNew records: ${j.inserted} | Skipped: ${j.skipped}`);
-    await loadData();
-  }catch(e){alert('Sync failed: '+e.message);}
-  finally{btn.textContent=orig;btn.disabled=false;}
+// ─── Template Utility ─────────────────────────────────────────────────────────
+function renderTemplate(template, record) {
+  return template.replace(/\{\{(\w+)\}\}/g, (_, key) => record[key] || '');
 }
 
 // ─── Image upload ─────────────────────────────────────────────────────────────
@@ -703,7 +692,7 @@ function populateClassSelect(){
 
 function openEditModal(id){
   isNewRecord=false;
-  const rec=allRecords.find(r=>r.id===id);
+  const rec=allRecords.find(r=>String(r.id)===String(id));
   if(!rec) return;
   editingRecord=rec;
   document.getElementById('modalTitle').textContent='EDIT RECORD';
@@ -842,7 +831,7 @@ async function renderLogsTab(){
               const tm=l.applicant_name||(l.new_values?.applicant_name)||'—';
               const tmNo=l.tm_no||(l.new_values?.tm_no)||'—';
               return `<tr>
-                <td class="td-date" style="white-space:nowrap">${formatLogDate(l.created_at)}</td>
+                <td class="td-date" style="white-space:nowrap">${formatLogDate(l.changed_at)}</td>
                 <td><span style="font-family:'DM Mono',monospace;font-size:9px;color:${ac};border:1.5px solid ${ac};border-radius:3px;padding:2px 7px;font-weight:600">${l.action}</span></td>
                 <td class="td-name">${tm}</td>
                 <td class="td-tm" style="font-size:10px">${tmNo}</td>
@@ -875,7 +864,7 @@ async function renderTrademarkLogs(trademarkId, containerId){
       const ac=ACTION_COLORS[l.action]||'#888';
       return `<div style="display:flex;gap:8px;align-items:flex-start;padding:4px 0;border-bottom:1px solid #f0e8d0">
         <span style="font-family:'DM Mono',monospace;font-size:8px;color:${ac};border:1px solid ${ac};border-radius:2px;padding:1px 5px;white-space:nowrap;flex-shrink:0">${l.action}</span>
-        <span style="font-family:'DM Mono',monospace;font-size:8px;color:#888;white-space:nowrap;flex-shrink:0">${formatLogDate(l.created_at)}</span>
+        <span style="font-family:'DM Mono',monospace;font-size:8px;color:#888;white-space:nowrap;flex-shrink:0">${formatLogDate(l.changed_at)}</span>
         <span style="font-family:'Space Grotesk',sans-serif;font-size:10px;color:#555;flex:1">${l.note||'—'}</span>
       </div>`;
     }).join('');
@@ -896,7 +885,6 @@ document.addEventListener('DOMContentLoaded',()=>{
   document.getElementById('searchBtn').addEventListener('click',doSearch);
   document.getElementById('searchInput').addEventListener('keydown',e=>{if(e.key==='Enter')doSearch();});
   document.getElementById('refreshBtn').addEventListener('click',loadData);
-  document.getElementById('syncBtn').addEventListener('click',syncFromSheets);
 
   ['addNewBtn','addNewBtn2','addNewBtn3'].forEach(id=>{
     const el=document.getElementById(id);

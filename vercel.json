@@ -13,12 +13,20 @@
     {
       "src": "*.css",
       "use": "@vercel/static"
+    },
+    {
+      "src": "*.js",
+      "use": "@vercel/static"
     }
   ],
   "routes": [
     {
       "src": "/api/(.*)",
       "dest": "api/index.js"
+    },
+    {
+      "src": "/uploads/(.*)",
+      "dest": "/uploads/$1"
     },
     {
       "src": "/(.*\\.(js|css|html|png|jpg|jpeg|gif|svg|ico|webp))",

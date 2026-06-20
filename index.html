@@ -44,7 +44,6 @@
           </span>
           <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
             <button class="btn-outline" id="refreshBtn">↻ REFRESH</button>
-            <button class="btn-outline" id="syncBtn">⟳ SYNC SHEETS</button>
             <button class="btn-orange-sm" id="addNewBtn">+ ADD NEW</button>
           </div>
         </div>
@@ -145,7 +144,7 @@
           <div class="sort-group">
             <span class="sort-label">SORT</span>
             <button class="sort-btn active" data-sort="created_at">NEWEST</button>
-            <button class="sort-btn" data-sort="app_name">NAME</button>
+            <button class="sort-btn" data-sort="applicant_name">NAME</button>
             <button class="sort-btn" data-sort="stage">STAGE</button>
             <button class="sort-btn" data-sort="status_run">STATUS</button>
           </div>
@@ -319,8 +318,8 @@
             <input type="text" class="form-input" id="editFolder" placeholder="Google Drive folder name" />
           </div>
           <div class="form-group">
-            <label class="form-label">F · DATE (LONG)</label>
-            <input type="text" class="form-input" id="editDateL" placeholder="e.g. 01-MAY-2026" />
+            <label class="form-label">F · DATE (SHORT)</label>
+            <input type="text" class="form-input" id="editDateL" placeholder="DD-MMM-YY" />
           </div>
         </div>
 
@@ -365,12 +364,12 @@
         <div class="form-section-label">M–N · DATES</div>
         <div class="form-grid">
           <div class="form-group">
-            <label class="form-label">M · ISSUE DATE</label>
-            <input type="text" class="form-input" id="editIssueDate" placeholder="01-MAY-2026" />
+            <label class="form-label">M · ISSUE DATE (LONG)</label>
+            <input type="text" class="form-input" id="editIssueDate" placeholder="DD-MMM-YYYY hh:mm:ss AM/PM" />
           </div>
           <div class="form-group">
-            <label class="form-label">N · EXPIRY DATE <span style="font-size:9px;color:#0A6B52">(auto +7 days)</span></label>
-            <input type="text" class="form-input" id="editExpiryDate" placeholder="Auto from issue date" readonly style="background:#f5f5f0" />
+            <label class="form-label">N · EXPIRY DATE (LONG) <span style="font-size:9px;color:#0A6B52">(auto +7 days)</span></label>
+            <input type="text" class="form-input" id="editExpiryDate" placeholder="DD-MMM-YYYY hh:mm:ss AM/PM" readonly style="background:#f5f5f0" />
           </div>
         </div>
 
