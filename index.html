@@ -315,7 +315,10 @@
           </div>
           <div class="form-group">
             <label class="form-label">E · FOLDER NAME</label>
-            <input type="text" class="form-input" id="editFolder" placeholder="Google Drive folder name" />
+            <div style="display:flex;gap:6px;align-items:center">
+              <input type="text" class="form-input" id="editFolder" placeholder="Google Drive folder name or ID" style="flex:1" />
+              <button type="button" onclick="openFolderPicker()" style="flex-shrink:0;padding:0 12px;height:36px;background:#1a1a1a;color:#fff;border:none;border-radius:4px;font-family:'DM Mono',monospace;font-size:10px;font-weight:600;cursor:pointer;white-space:nowrap;letter-spacing:0.5px" title="Paste Drive folder URL">&#128193; PICK</button>
+            </div>
           </div>
           <div class="form-group">
             <label class="form-label">F · DATE (SHORT)</label>
@@ -397,7 +400,7 @@
         <div class="form-grid">
           <div class="form-group">
             <label class="form-label">R · CONSULTANT NAME</label>
-            <input type="text" class="form-input" id="editConName" placeholder="Consultant full name" />
+            <input type="text" class="form-input" id="editConName" placeholder="Type to search consultant…" autocomplete="off" />
           </div>
           <div class="form-group form-full">
             <label class="form-label">S · CONSULTANT ADDRESS</label>
