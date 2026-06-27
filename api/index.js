@@ -84,19 +84,17 @@ const FIELD_DEFS = [
 
 // ── Stage / Sub-Stage Definitions ─────────────────────────────────────────────
 const STAGES = {
-  'Stage 1 – Application': [
-    'Application Prepared', 'Application Filed', 'TM Assigned',
-    'Acknowledgement Received', 'Examination Received',
+  'Stage 1': [
+    'APPLICATION FILED', 'ACKNOWLEGMENT', 'EXAMINATION',
   ],
-  'Stage 2 – Examination': [
-    'Assigned', 'Under Review', 'Hearing Scheduled', 'Hearing Completed', 'Accepted',
+  'Stage 2': [
+    'ASSIGNED', 'ACCEPTED', 'HEARING',
   ],
-  'Stage 3 – Publication': [
-    'Published In Journal', 'Waiting Period', 'Demand Note Received',
-    'Demand Note Paid', 'Opposition',
+  'Stage 3': [
+    'PUBLISHED', 'OPPOSITION', 'DEMAND-NOTE RECEIVED', 'TM-11 (D-NOTE) PAID',
   ],
-  'Stage 4 – Registration': [
-    'Certificate Received', 'Certificate Dispatched', 'Closed',
+  'Stage 4': [
+    'CERTIFICATE RECEIVED', 'CERTIFICATE DISPATCH', 'HEARING/OPPO',
   ],
 };
 
@@ -141,10 +139,10 @@ function getStageNum(stage) {
   if (/STAGE[\s_]*3/.test(v))  return 3;
   if (/STAGE[\s_]*2/.test(v))  return 2;
   if (/STAGE[\s_]*1/.test(v))  return 1;
-  if (/^(APPLICATION FILED|ACKNOWLEDGMENT|ACKNOWLEDGEMENT|EXAMINATION)/.test(v)) return 1;
-  if (/^(ASSIGNED|ACCEPTED|HEARING)/.test(v)) return 2;
-  if (/^(PUBLISHED|OPPO|DEMAND NOTE|D-NOTE|D NOTE|DEMAND)/.test(v)) return 3;
-  if (/^(CERTIFICATE|CERTIF|COMPLETE)/.test(v)) return 4;
+  if (/^(APPLICATION FILED|ACKNOWLEGMENT|EXAMINATION)/.test(v)) return 1;
+  if (/^(ASSIGNED|ACCEPTED|HEARING$)/.test(v)) return 2;
+  if (/^(PUBLISHED|OPPOSITION|DEMAND-NOTE RECEIVED|TM-11 \(D-NOTE\) PAID)/.test(v)) return 3;
+  if (/^(CERTIFICATE RECEIVED|CERTIFICATE DISPATCH|HEARING\/OPPO)/.test(v)) return 4;
   if (/^(STOP|ABANDON|HOLD|REFUS|^NOTE$)/.test(v)) return -1;
   if (/^COPYRIGHT/.test(v)) return -2;
   return 0;

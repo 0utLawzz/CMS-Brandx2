@@ -116,10 +116,10 @@ function getStageNum(stage){
   if(/STAGE[\s_]*3/.test(v))  return 3;
   if(/STAGE[\s_]*2/.test(v))  return 2;
   if(/STAGE[\s_]*1/.test(v))  return 1;
-  if(/^(APPLICATION FILED|ACKNOWLEDGMENT|ACKNOWLEDGEMENT|EXAMINATION)/.test(v)) return 1;
-  if(/^(ASSIGNED|ACCEPTED|HEARING)/.test(v)) return 2;
-  if(/^(PUBLISHED|OPPO|DEMAND NOTE|D-NOTE|D NOTE|DEMAND)/.test(v)) return 3;
-  if(/^(CERTIFICATE|CERTIF|COMPLETE)/.test(v)) return 4;
+  if(/^(APPLICATION FILED|ACKNOWLEGMENT|EXAMINATION)/.test(v)) return 1;
+  if(/^(ASSIGNED|ACCEPTED|HEARING$)/.test(v)) return 2;
+  if(/^(PUBLISHED|OPPOSITION|DEMAND-NOTE RECEIVED|TM-11 \(D-NOTE\) PAID)/.test(v)) return 3;
+  if(/^(CERTIFICATE RECEIVED|CERTIFICATE DISPATCH|HEARING\/OPPO)/.test(v)) return 4;
   if(/^(STOP|ABANDON|HOLD|REFUS|^NOTE$)/.test(v)) return -1;
   if(/^COPYRIGHT/.test(v)) return -2;
   return 0;
