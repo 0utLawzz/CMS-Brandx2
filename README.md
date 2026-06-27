@@ -1,7 +1,7 @@
 # BrandEx Law — Trademark Portal
 
 A web-based trademark management system for BrandEx Law (Pakistan).
-Neo-brutalism UI · Google Sheets database · REST API
+Features Neo-brutalism UI, Google Sheets as database, and a Node.js REST API.
 
 ---
 
@@ -10,48 +10,56 @@ Neo-brutalism UI · Google Sheets database · REST API
 ### Prerequisites
 - Node.js 18+
 - Google Cloud Service Account (for Sheets API)
+- Git
 
-### Installation
+### Installation Method
 
 ```bash
-# 1. Clone the repo
+# 1. Clone the repository
 git clone <your-repo-url>
 cd CMS-Brandx2
 
-# 2. Install root dependencies (web server)
+# 2. Install dependencies for the web server
 npm install
 
-# 3. Install API dependencies
+# 3. Install dependencies for the API server
 cd api
 npm install
 cd ..
 
-# 4. Set environment variables (see below)
+# 4. Configure Environment Variables
+# Create an `.env` file in the `api` folder and add your credentials:
+# 
+# SHEET_ID=your-google-sheet-id
+# GOOGLE_SERVICE_ACCOUNT_EMAIL=your-service-account-email@...
+# GOOGLE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n"
+# PORT=3000
 
-# 5. Start the API server (port 3000)
-cd api && node index.js
-
-# 6. In another terminal, start the web server (port 5000)
+# 5. Start the Application
+# This project uses a unified server that serves both the frontend and the API on port 5000.
+npm start
+# OR manually:
 node server.js
 ```
 
-Open `http://localhost:5000` in your browser.
+Open `http://localhost:5000` in your web browser.
 
 ---
 
-## Environment Variables
+## Troubleshooting
 
-Create `api/.env` with the following:
+- **Error: `Cannot find module 'dotenvx'` or similar missing modules**
+  - **Solution:** Make sure you ran `npm install` inside both the root folder AND the `api` folder. We have updated the project to use `dotenv` instead of `dotenvx` to avoid package resolution issues.
+  - Run `cd api && npm install` to make sure all backend dependencies are installed.
 
-```env
-# Google Sheets Integration
-SHEET_ID=your-google-sheet-id
-GOOGLE_SERVICE_ACCOUNT_EMAIL=your-service-account-email@...
-GOOGLE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n"
+- **Port in use error**
+  - **Solution:** Ensure no other process is using port 5000 or 3000. You can change the port in `server.js` or `.env`.
 
-# API Server
-PORT=3000
-```
+- **Missing Google Sheets credentials**
+  - **Solution:** Ensure your `api/.env` file contains valid Google API credentials. For local testing without `.env`, you can provide a `brandex-*.json` service account key file (this should be ignored in git).
+
+- **UI not loading data**
+  - **Solution:** Open browser developer tools (F12) -> Network tab to check if API calls to `/api/trademarks` are failing. Check the Node.js console for API connection issues.
 
 ---
 
@@ -59,57 +67,21 @@ PORT=3000
 
 ```
 CMS-Brandx2/
-│
 ├── index.html              ← Main web portal UI (5 tabs)
 ├── styles.css              ← Neo-brutalism theme (cream/orange/teal/black)
 ├── app.js                  ← All frontend JS (search, table, modal, CRUD, export)
-├── server.js               ← Static file server + /api/* reverse proxy (port 5000)
+├── server.js               ← Unified server serving both static files and API (port 5000)
 ├── logo.png                ← Brand logo
 ├── package.json            ← Root dependencies
-├── README.md               ← This file
+├── README.md               ← This documentation
 │
 ├── api/
-│   ├── index.js            ← Express REST API (port 3000)
+│   ├── index.js            ← Express REST API (used by server.js)
 │   ├── sheets.js           ← Google Sheets API client
-│   ├── .env                ← Local credentials (gitignored)
-│   ├── package.json        ← API deps: express, pg, cors, dotenv, multer
+│   ├── package.json        ← API deps: express, googleapis, cors, dotenv, multer
 │
 ├── uploads/                ← Uploaded trademark images (auto-created)
 ```
-
----
-
-## Database Schema
-
-Table: `trademarks`
-
-| # | Column | Type | Description |
-|---|--------|------|-------------|
-| — | id | SERIAL PK | Auto-increment ID |
-| A | status_run | VARCHAR(20) | Run / Processing / Done |
-| B | stage | VARCHAR(30) | Current stage/sub-status |
-| C | sr_no | VARCHAR(60) | Serial number (e.g. PB-RWP-…) |
-| D | tm_no | VARCHAR(30) | Trademark number (UNIQUE) |
-| E | folder_name | VARCHAR(255) | Google Drive folder name |
-| F | date_l | VARCHAR(60) | Filing date (long format) |
-| G | class | VARCHAR(10) | Trademark class (01–45) |
-| H | class_desc | TEXT | Class/goods description |
-| I | app_type | VARCHAR(20) | SOLE / PARTNER / COMPANY |
-| J | app_name | VARCHAR(255) | Applicant full name (**required**) |
-| K | app_so | VARCHAR(255) | Father's name (S/O) |
-| L | app_cnic | VARCHAR(20) | CNIC (XXXXX-XXXXXXX-X) |
-| M | issue_date | VARCHAR(60) | Issue date |
-| N | expiry_date | VARCHAR(60) | Expiry date (auto: issue + 7 days) |
-| O | app_trade | VARCHAR(255) | Business/trade name |
-| P | app_add | TEXT | Applicant address |
-| Q | year | VARCHAR(4) | Year of application |
-| R | con_name | VARCHAR(255) | Consultant name |
-| S | con_add | TEXT | Consultant address |
-| T | img | VARCHAR(255) | Image path (/uploads/…) or Drive ID |
-| U | no_img | VARCHAR(255) | Fallback text if no image |
-| — | created_at | TIMESTAMP | Auto-set on insert |
-
-Schema is managed directly in Google Sheets. The `Trademarks` sheet requires headers matching the schema.
 
 ---
 
@@ -118,7 +90,7 @@ Schema is managed directly in Google Sheets. The `Trademarks` sheet requires hea
 | Layer | Technology |
 |-------|-----------|
 | Frontend | Vanilla HTML/CSS/JS · Neo-brutalism design |
-| Web server | Node.js built-in `http` module |
+| Web server | Express.js (Node.js) |
 | API | Express.js 5 |
-| Database | Google Sheets |
+| Database | Google Sheets API |
 | File upload | Multer |

@@ -8,7 +8,7 @@ const fs       = require('fs');
 // Load .env only when running locally (Vercel injects env vars automatically)
 const envPath = path.join(__dirname, '.env');
 if (fs.existsSync(envPath)) {
-  require('@dotenvx/dotenvx').config({ path: envPath });
+  require('dotenv').config({ path: envPath });
 }
 
 const { getSheetsClient, spreadsheetId } = require('./sheets');

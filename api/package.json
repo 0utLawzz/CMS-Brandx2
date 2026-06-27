@@ -4,7 +4,7 @@
   "private": true,
   "dependencies": {
     "cors": "^2.8.6",
-    "dotenvx": "^1.35.0",
+    "dotenv": "^16.4.5",
     "express": "^5.2.1",
     "googleapis": "^173.0.0",
     "multer": "^2.2.0"
