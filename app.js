@@ -86,6 +86,17 @@ let isNewRecord   = false;
 let lastSearchQuery = '';
 const selectedIds = new Set();
 
+// Sub-stage display colors
+const SUB_STAGE_COLORS = {
+  'APPLICATION FILED':'#2563EB','ACKNOWLEGMENT':'#0D9970','EXAMINATION':'#D4A800',
+  'ASSIGNED':'#C94A00','ACCEPTED':'#0A6B52','HEARING':'#7C3AED',
+  'PUBLISHED':'#0D9970','OPPOSITION':'#DC2626','DEMAND-NOTE RECEIVED':'#D4A800','TM-11 (D-NOTE) PAID':'#0A6B52',
+  'CERTIFICATE RECEIVED':'#0D9970','CERTIFICATE DISPATCH':'#2563EB','HEARING/OPPO':'#DC2626',
+  'ABANDONED':'#DC2626','HOLD':'#888','REFUSED':'#DC2626',
+  'COPYRIGHT FILED':'#7C3AED','COPYRIGHT ACKNOWLEDGEMENT':'#2563EB','COPYRIGHT CERTIFICATE RECEIVED':'#0D9970',
+};
+const RUN_COLORS = { 'Run':'#2563EB', 'Processing':'#D4A800', 'Done':'#0D9970' };
+
 // ─── Toast System ────────────────────────────────────────────────────────────
 function showToast(msg, type='success'){
   const t=document.getElementById('toast');
@@ -351,7 +362,7 @@ function renderCasesTable(){
   tbody.innerHTML=pageRows.map(r=>{
     const sn=getStageNum(r.stage||'');
     const sc=stageBadgeColor(sn);
-    const runColor=RUN_COLORS[r.sub_stage]||'#888';
+    const subColor = SUB_STAGE_COLORS[r.sub_stage] || '#888';
     
     // APPLICATION NAME (fallback applicant_name)
     const appName = r.application_name || r.applicant_name || '—';
@@ -364,7 +375,7 @@ function renderCasesTable(){
       <td class="td-name">${appName}</td>
       <td class="td-tm">™ ${r.tm_no||'—'} <span style="font-size:9px;color:#888">${cLabel}</span></td>
       <td><span class="city-badge">${r.city||'—'}</span></td>
-      <td><span style="font-family:'DM Mono',monospace;font-size:9px;color:${runColor};border:1.5px solid ${runColor};border-radius:3px;padding:1px 5px">${r.sub_stage||'—'}</span></td>
+      <td><span style="font-family:'DM Mono',monospace;font-size:9px;color:${subColor};border:1.5px solid ${subColor};border-radius:3px;padding:1px 5px">${r.sub_stage||'—'}</span></td>
       <td class="td-name" style="font-size:10px">${r.consultant_name||'—'}</td>
       <td class="td-name" style="font-size:10px;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.notes||'—'}</td>
       <td>
@@ -379,7 +390,7 @@ function renderCasesTable(){
 function renderCard(rec){
   const sn=getStageNum(rec.stage||'');
   const sc=stageBadgeColor(sn);
-  const runColor=RUN_COLORS[rec.sub_stage]||'#888';
+  const subColor = SUB_STAGE_COLORS[rec.sub_stage] || '#888';
   const imgSrc=getImageSrc(rec.img);
   const appName = rec.application_name || rec.applicant_name || 'Untitled Mark';
   const initials=avatarInitials(appName);
@@ -414,7 +425,7 @@ function renderCard(rec){
         <div class="card-tm-row">
           <span class="card-class" style="border-color:#555;color:#555">${rec.class||'N/A'}</span>
           <span class="card-stage-text" style="color:${sc};font-weight:600">${stageLabel.toUpperCase()}</span>
-          ${rec.sub_stage?`<span style="font-family:'DM Mono',monospace;font-size:9px;color:${runColor};border:1.5px solid ${runColor};border-radius:3px;padding:1px 5px">${rec.sub_stage.toUpperCase()}</span>`:''}
+          ${rec.sub_stage?`<span style="font-family:'DM Mono',monospace;font-size:9px;color:${subColor};border:1.5px solid ${subColor};border-radius:3px;padding:1px 5px">${rec.sub_stage.toUpperCase()}</span>`:''}
           ${rec.city?`<span class="city-badge">${rec.city}</span>`:''}
         </div>
       </div>
@@ -522,7 +533,7 @@ function renderRecordsTable(){
   tbody.innerHTML=pageRows.map(r=>{
     const sn=getStageNum(r.stage||'');
     const sc=stageBadgeColor(sn);
-    const runColor=RUN_COLORS[r.sub_stage]||'#888';
+    const subColor2=SUB_STAGE_COLORS[r.sub_stage]||'#888';
     const isSel=selectedIds.has(r.id);
     const imgSrc=getImageSrc(r.img,'40');
     const imgCell=imgSrc
@@ -540,7 +551,7 @@ function renderRecordsTable(){
       <td class="td-name">${appName}</td>
       <td><span class="td-cls">${r.class||'&#8212;'}</span></td>
       <td><div class="stage-badge-num" style="background:${sc};border-color:${sc}">${stageBadgeText(sn)}</div></td>
-      <td><span style="font-family:'DM Mono',monospace;font-size:9px;color:${runColor};border:1.5px solid ${runColor};border-radius:3px;padding:1px 5px">${r.sub_stage||'&#8212;'}</span></td>
+      <td><span style="font-family:'DM Mono',monospace;font-size:9px;color:${subColor2};border:1.5px solid ${subColor2};border-radius:3px;padding:1px 5px">${r.sub_stage||'&#8212;'}</span></td>
       <td><span class="city-badge">${r.city||'—'}</span></td>
       <td class="td-name" style="font-size:10px">${r.assigned_person||'&#8212;'}</td>
       <td class="td-name" style="font-size:10px;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${(r.notes||'').replace(/"/g, '&quot;')}">${r.notes||'&#8212;'}</td>
@@ -953,19 +964,42 @@ function onConsultantChange(){
   if(match) addr.value = match.address;
 }
 
-function onStageChange(){
-  const stage = document.getElementById('editStage').value;
-  const sub = document.getElementById('editStatusRun').value;
-  const journalSec = document.getElementById('journalSection');
-  const assignSec = document.getElementById('assignSection');
-  const assignCitySec = document.getElementById('assignCitySection');
-  
-  if(journalSec) {
-    journalSec.style.display = (stage.includes('STAGE 3') && sub.includes('PUBLISHED')) ? 'block' : 'none';
+const SUB_STAGES = {
+  'STAGE 1': ['APPLICATION FILED','ACKNOWLEGMENT','EXAMINATION'],
+  'STAGE 2': ['ASSIGNED','ACCEPTED','HEARING'],
+  'STAGE 3': ['PUBLISHED','OPPOSITION','DEMAND-NOTE RECEIVED','TM-11 (D-NOTE) PAID'],
+  'STAGE 4': ['CERTIFICATE RECEIVED','CERTIFICATE DISPATCH','HEARING/OPPO'],
+  'STOPPED': ['ABANDONED','HOLD','REFUSED'],
+  'COPYRIGHT': ['COPYRIGHT FILED','COPYRIGHT ACKNOWLEDGEMENT','COPYRIGHT CERTIFICATE RECEIVED'],
+};
+
+function onStageChange(preserveSubStage){
+  const stageEl = document.getElementById('editStage');
+  const subEl   = document.getElementById('editSubStage');
+  const stage   = stageEl ? stageEl.value : '';
+
+  // Populate sub-stage dropdown
+  if(subEl) {
+    const saved = preserveSubStage || '';
+    const subs  = SUB_STAGES[stage] || [];
+    subEl.innerHTML = `<option value="">— Select —</option>`
+      + subs.map(s => `<option value="${s}"${s===saved?' selected':''}>${s}</option>`).join('');
+    if(!subs.length) {
+      subEl.innerHTML = `<option value="">— N/A for this stage —</option>`;
+    }
   }
-  
+
+  // Journal section (Stage 3 + PUBLISHED)
+  const sub         = subEl ? subEl.value : '';
+  const journalSec  = document.getElementById('journalSection');
+  const assignSec   = document.getElementById('assignSection');
+  const assignCitySec = document.getElementById('assignCitySection');
+
+  if(journalSec) {
+    journalSec.style.display = (stage === 'STAGE 3' && sub === 'PUBLISHED') ? 'block' : 'none';
+  }
   if(assignSec && assignCitySec) {
-    const isStage2 = stage.includes('STAGE 2');
+    const isStage2 = stage === 'STAGE 2';
     assignSec.style.display = isStage2 ? 'block' : 'none';
     assignCitySec.style.display = isStage2 ? 'block' : 'none';
   }
@@ -996,7 +1030,9 @@ function openAddModal(){
 
 function fillModalForm(rec){
   const f=(id,val)=>{const el=document.getElementById(id);if(el)el.value=val||'';};
-  f('editStatusRun',rec.sub_stage);f('editStage',rec.stage);
+  f('editStage',rec.stage);
+  onStageChange(rec.sub_stage); // populate sub-stage options then set value
+  f('editStatusRun', rec.status_run || ''); // Mail merge process field
   f('editPrefix',rec.prefix);f('editClientNo',rec.client_no);f('editCaseNo',rec.case_no);
   f('editSrNo',rec.sr_no);f('editTmNo',rec.tm_no);
   f('editFolder',rec.folder_name);
@@ -1050,7 +1086,8 @@ async function saveEdit(){
   buildFolder();
   
   const data={
-    sub_stage:gv('editStatusRun'),stage:gv('editStage'),
+    sub_stage:gv('editSubStage'),stage:gv('editStage'),
+    status_run:gv('editStatusRun'),
     prefix:gv('editPrefix'),client_no:gv('editClientNo'),case_no:gv('editCaseNo'),
     folder_name:gv('editFolder'),sr_no:gv('editSrNo'),tm_no:gv('editTmNo'),
     filing_date:gv('editDateL'), application_date:gv('editAppDate'),

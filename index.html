@@ -337,43 +337,18 @@
             <label class="form-label">STAGE <span class="req">⭐</span></label>
             <select class="form-select" id="editStage" onchange="onStageChange()">
               <option value="">— Select —</option>
-              <optgroup label="── STAGE 1">
-                <option>STAGE 1</option>
-                <option>APPLICATION FILED</option>
-                <option>ACKNOWLEGMENT</option>
-                <option>EXAMINATION</option>
-              </optgroup>
-              <optgroup label="── STAGE 2">
-                <option>STAGE 2</option>
-                <option>ASSIGNED</option>
-                <option>ACCEPTED</option>
-                <option>HEARING</option>
-              </optgroup>
-              <optgroup label="── STAGE 3">
-                <option>STAGE 3</option>
-                <option>PUBLISHED</option>
-                <option>OPPOSITION</option>
-                <option>DEMAND-NOTE RECEIVED</option>
-                <option>TM-11 (D-NOTE) PAID</option>
-              </optgroup>
-              <optgroup label="── STAGE 4">
-                <option>STAGE 4</option>
-                <option>CERTIFICATE RECEIVED</option>
-                <option>CERTIFICATE DISPATCH</option>
-                <option>HEARING/OPPO</option>
-              </optgroup>
-              <optgroup label="── STOPPED">
-                <option>STOPPED</option>
-                <option>ABANDONED</option>
-                <option>HOLD</option>
-                <option>REFUSED</option>
-              </optgroup>
-              <optgroup label="── COPYRIGHT">
-                <option>COPYRIGHT</option>
-                <option>COPYRIGHT FILED</option>
-                <option>COPYRIGHT ACKNOWLEDGEMENT</option>
-                <option>COPYRIGHT CERTIFICATE RECEIVED</option>
-              </optgroup>
+              <option value="STAGE 1">STAGE 1</option>
+              <option value="STAGE 2">STAGE 2</option>
+              <option value="STAGE 3">STAGE 3</option>
+              <option value="STAGE 4">STAGE 4</option>
+              <option value="STOPPED">STOPPED</option>
+              <option value="COPYRIGHT">COPYRIGHT</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">SUB-STAGE</label>
+            <select class="form-select" id="editSubStage">
+              <option value="">— Select Stage First —</option>
             </select>
           </div>
 
@@ -551,7 +526,6 @@
           </div>
         </div>
 
-        <!-- ── SECTION: STATUS & SERIAL ──────────────────────────────────── -->
         <div class="form-section-label">⑥ SYSTEM</div>
         <div class="form-grid">
           <div class="form-group">

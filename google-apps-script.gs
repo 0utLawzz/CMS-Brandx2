@@ -18,7 +18,7 @@ const HEADERS_TRADEMARKS = [
   'folder_name', 'img', 'notes', 'year', 'archived', 'created_at', 'updated_at',
   'prefix', 'client_no', 'case_no', 'city',
   'application_name', 'application_date', 'application_type',
-  'journal_date', 'mark_text', 'status'
+  'journal_date', 'mark_text', 'status', 'status_run'
 ];
 
 const HEADERS_LOGS = [

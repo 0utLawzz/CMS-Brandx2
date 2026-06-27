@@ -109,7 +109,7 @@ const ALLOWED_FIELDS = [
   // New fields
   'prefix','client_no','case_no','city',
   'application_name','application_date','application_type',
-  'journal_date','mark_text','status',
+  'journal_date','mark_text','status','status_run',
 ];
 
 const HEADERS = [
@@ -122,7 +122,7 @@ const HEADERS = [
   // New fields appended (cols AC onwards)
   'prefix', 'client_no', 'case_no', 'city',
   'application_name', 'application_date', 'application_type',
-  'journal_date', 'mark_text', 'status',
+  'journal_date', 'mark_text', 'status', 'status_run',
 ];
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -223,7 +223,7 @@ async function patchRecord(sheets, id, fields, body, changedBy) {
 
   await sheets.spreadsheets.values.update({
     spreadsheetId,
-    range: `Trademarks!A${rowNumber}:AM${rowNumber}`,
+    range: `Trademarks!A${rowNumber}:AN${rowNumber}`,
     valueInputOption: 'USER_ENTERED',
     requestBody: { values: [row] },
   });
@@ -383,7 +383,7 @@ app.post('/api/trademarks', async (req, res) => {
     const row = objectToRow(obj);
     await sheets.spreadsheets.values.append({
       spreadsheetId,
-      range: 'Trademarks!A:AM',
+      range: 'Trademarks!A:AN',
       valueInputOption: 'USER_ENTERED',
       requestBody: { values: [row] },
     });
