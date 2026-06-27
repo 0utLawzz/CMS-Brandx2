@@ -3,7 +3,7 @@ const API = '/api';
 const RUN_COLORS   = { Run:'#2563EB', Processing:'#D4A800', Done:'#0D9970' };
 const AVATAR_COLORS = ['#C94A00','#0A6B52','#D4A800','#0D9970','#8B2FC9','#2563EB','#DC2626'];
 
-// ─── CSV Data: Classes (ClassMap.csv — col 0=class number, col 1=primary description) ─
+// ─── CSV Data: Classes ────────────────────────────────────────────────────────
 const CLASS_MAP = [
   [1,'CHEMICALS USED IN INDUSTRY, SCIENCE AND PHOTOGRAPHY, AS WELL AS IN AGRICULTURE, HORTICULTURE AND FORESTRY; UNPROCESSED ARTIFICIAL RESINS, UNPROCESSED PLASTICS; MANURES; FIRE EXTINGUISHING COMPOSITIONS; TEMPERING AND SOLDERING PREPARATIONS; CHEMICAL SUBSTANCES FOR PRESERVING FOODSTUFFS; TANNING SUBSTANCES; ADHESIVES USED IN INDUSTRY.'],
   [2,'PAINTS, VARNISHES, LACQUERS; PRESERVATIVES AGAINST RUST AND AGAINST DETERIORATION OF WOOD; COLORANTS; MORDANTS; RAW NATURAL RESINS; METALS IN FOIL AND POWDER FORM FOR PAINTERS, DECORATORS, PRINTERS AND ARTISTS.'],
@@ -52,7 +52,7 @@ const CLASS_MAP = [
   [45,'LEGAL SERVICES; LEGAL CONSULTANCY AND ADVISORY SERVICES; LEGAL REPRESENTATION; DRAFTING OF LEGAL DOCUMENTS; LITIGATION AND DISPUTE RESOLUTION SERVICES; LEGAL RESEARCH AND OPINIONS; CONSULTANCY RELATING TO LAWS, REGULATIONS AND LEGAL COMPLIANCE.'],
 ];
 
-// ─── CSV Data: Consultants (Consultants.csv) ──────────────────────────────────
+// ─── CSV Data: Consultants ────────────────────────────────────────────────────
 const CONSULTANTS = [
   {name:'JAN ONLINE SERVICES/ÀDISTAAN',  address:'OPPOSITE GRASSY GROUND, SAIDU SHARIF, SWAT CELL # 0307-9118062, 0343-9832412'},
   {name:'BRANDEX LAW ASSOCIATES',         address:'DROP AT ABDULLAH CENTRE, JUNEJO COLONY BEHIND PTCL EXCHANGE, TARLAI, ISLAMABAD CELL # 03360015004'},
@@ -78,11 +78,23 @@ let allRecords    = [];
 let sortKey       = 'created_at';
 let currentPage   = 1;
 let pageSize      = 100;
-let activeFilters = { stage:'', sub_stage:'', applicant_type:'', year:'' };
+let activeFilters = { stage:'', sub_stage:'', applicant_type:'', city:'', year:'' };
+let currentSidebarStage = 'all';
+
 let editingRecord = null;
 let isNewRecord   = false;
 let lastSearchQuery = '';
 const selectedIds = new Set();
+
+// ─── Toast System ────────────────────────────────────────────────────────────
+function showToast(msg, type='success'){
+  const t=document.getElementById('toast');
+  if(!t) return;
+  t.textContent=msg;
+  t.className=`toast toast-${type}`;
+  t.style.display='block';
+  setTimeout(()=>{t.style.display='none';}, 4000);
+}
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 function hashCode(str){ let h=0; for(const c of str){h=((h<<5)-h)+c.charCodeAt(0);h|=0;} return Math.abs(h); }
@@ -100,25 +112,16 @@ function cleanStageText(stage){
 function getStageNum(stage){
   if(!stage) return 0;
   const v = cleanStageText(stage).toUpperCase();
-
   if(/STAGE[\s_]*4/.test(v))  return 4;
   if(/STAGE[\s_]*3/.test(v))  return 3;
   if(/STAGE[\s_]*2/.test(v))  return 2;
   if(/STAGE[\s_]*1/.test(v))  return 1;
-
-  // Stage 1 sub-statuses
   if(/^(APPLICATION FILED|ACKNOWLEDGMENT|ACKNOWLEDGEMENT|EXAMINATION)/.test(v)) return 1;
-  // Stage 2 sub-statuses
   if(/^(ASSIGNED|ACCEPTED|HEARING)/.test(v)) return 2;
-  // Stage 3 sub-statuses
   if(/^(PUBLISHED|OPPO|DEMAND NOTE|D-NOTE|D NOTE|DEMAND)/.test(v)) return 3;
-  // Stage 4 sub-statuses
   if(/^(CERTIFICATE|CERTIF|COMPLETE)/.test(v)) return 4;
-  // Stopped
   if(/^(STOP|ABANDON|HOLD|REFUS|^NOTE$)/.test(v)) return -1;
-  // Copyright
   if(/^COPYRIGHT/.test(v)) return -2;
-
   return 0;
 }
 
@@ -140,17 +143,53 @@ function formatCNIC(val){
   return d.slice(0,5)+'-'+d.slice(5,12)+'-'+d.slice(12,13);
 }
 
-function autoExpiry(issueStr){
-  const d=new Date(issueStr); if(isNaN(d)) return '';
+// Format: DD-MM-YYYY HH:MM:SS AM/PM
+function formatLongDate(dateStr){
+  if(!dateStr) return '';
+  try{
+    const d=new Date(dateStr);
+    if(isNaN(d)) return dateStr;
+    const pad=n=>String(n).padStart(2,'0');
+    let h=d.getHours();
+    const ampm=h>=12?'PM':'AM';
+    h=h%12; if(h===0) h=12;
+    return `${pad(d.getDate())}-${pad(d.getMonth()+1)}-${d.getFullYear()} ${pad(h)}:${pad(d.getMinutes())}:${pad(d.getSeconds())} ${ampm}`;
+  }catch(e){return dateStr;}
+}
+
+// Convert input datetime-local value to ISO and vice-versa
+function isoToDatetimeLocal(iso){
+  if(!iso) return '';
+  try{
+    const d=new Date(iso);
+    if(isNaN(d)) return '';
+    return d.toISOString().slice(0,16); // YYYY-MM-DDThh:mm
+  }catch{return '';}
+}
+
+function autoExpiry(issueIsoStr){
+  const d=new Date(issueIsoStr); 
+  if(isNaN(d)) return '';
   d.setDate(d.getDate()+7);
-  const M=['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
-  return `${String(d.getDate()).padStart(2,'0')}-${M[d.getMonth()]}-${d.getFullYear()}`;
+  return d.toISOString(); // For backend format, UI will show as long date or local
 }
 
 function genSrNo(){
-  const ts=Date.now().toString();
-  const rnd=Math.floor(Math.random()*1000000).toString().padStart(6,'0');
-  return 'PB-RWP-'+(ts+rnd).slice(0,18);
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  let rand = '';
+  for (let i = 0; i < 18; i++) {
+    rand += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return 'PB-ISB-' + rand;
+}
+
+function buildFolder(){
+  const p=document.getElementById('editPrefix').value;
+  const c=document.getElementById('editClientNo').value.trim();
+  const n=document.getElementById('editCaseNo').value.trim();
+  const folderEl=document.getElementById('editFolder');
+  if(p && c && n) folderEl.value = `${p}-${c}-${n}`;
+  else folderEl.value = '';
 }
 
 function getImageSrc(img, sz='80'){
@@ -159,37 +198,87 @@ function getImageSrc(img, sz='80'){
   return `https://drive.google.com/thumbnail?id=${img}&sz=w${sz}`;
 }
 
+// ─── API Sync ─────────────────────────────────────────────────────────────────
+async function triggerSync(){
+  const btn = document.getElementById('syncBtn');
+  if(!btn) return;
+  btn.textContent = 'SYNCING...';
+  btn.disabled = true;
+  try{
+    const res = await fetch(`${API}/sync`, { method:'POST' });
+    const j = await res.json();
+    if(!j.success) throw new Error(j.error);
+    showToast(j.message, 'success');
+    loadData();
+  }catch(e){
+    showToast('Sync failed: ' + e.message, 'error');
+  }finally{
+    btn.textContent = '⇅ SYNC';
+    btn.disabled = false;
+  }
+}
+
 // ─── Stats & Chart ────────────────────────────────────────────────────────────
 async function loadStats(){
   try{
     const r=await fetch(`${API}/stats`);
     const j=await r.json(); if(!j.success) return;
     const s=j.data;
+
+    // Sidebar counts
+    document.getElementById('sbCount1').textContent = s.stage1||0;
+    document.getElementById('sbCount2').textContent = s.stage2||0;
+    document.getElementById('sbCount3').textContent = s.stage3||0;
+    document.getElementById('sbCount4').textContent = s.stage4||0;
+    
+    // Sidebar KPI 
+    document.getElementById('kExam').textContent   = s.examination_pending||0;
+    document.getElementById('kAssign').textContent = s.assigned_pending||0;
+    document.getElementById('kPub').textContent    = s.published_pending||0;
+    document.getElementById('kDemand').textContent = s.demand_note_pending||0;
+    document.getElementById('kOppo').textContent   = s.opposition_count||0;
+
+    // Dashboard grid
     document.getElementById('s-total').textContent      =(s.total||0).toLocaleString();
-    document.getElementById('s-run').textContent        =(s.run||0).toLocaleString();
-    document.getElementById('s-processing').textContent =(s.processing||0).toLocaleString();
-    document.getElementById('s-done').textContent       =(s.done||0).toLocaleString();
     document.getElementById('s-s1').textContent         =(s.stage1||0).toLocaleString();
     document.getElementById('s-s2').textContent         =(s.stage2||0).toLocaleString();
     document.getElementById('s-s3').textContent         =(s.stage3||0).toLocaleString();
     document.getElementById('s-s4').textContent         =(s.stage4||0).toLocaleString();
+    document.getElementById('s-stopped').textContent    =(s.stopped||0).toLocaleString();
+    
     const total=parseInt(s.total)||1;
     const BARS=[
-      {label:'STAGE 1',color:'#C94A00',val:s.stage1},
-      {label:'STAGE 2',color:'#0A6B52',val:s.stage2},
-      {label:'STAGE 3',color:'#D4A800',val:s.stage3},
       {label:'STAGE 4',color:'#0D9970',val:s.stage4},
-      {label:'STOPPED',color:'#888',   val:s.stopped},
+      {label:'STAGE 3',color:'#D4A800',val:s.stage3},
+      {label:'STAGE 2',color:'#0A6B52',val:s.stage2},
+      {label:'STAGE 1',color:'#C94A00',val:s.stage1},
     ];
-    document.getElementById('chartTotal').textContent=total.toLocaleString()+' TOTAL';
+    document.getElementById('chartTotal').textContent=total.toLocaleString()+' TOTAL CASES';
+    
+    // Bottom-to-top layout
     document.getElementById('stageBars').innerHTML=BARS.map(b=>{
       const pct=Math.round((parseInt(b.val)||0)/total*100);
-      return `<div class="bar-row">
-        <span class="bar-label">${b.label}</span>
-        <div class="bar-track"><div class="bar-fill" style="width:${pct}%;background:${b.color}"></div></div>
-        <span class="bar-count" style="color:${b.color}">${parseInt(b.val)||0}</span>
+      return `<div class="bar-col">
+        <span class="bar-count-vert" style="color:${b.color}">${parseInt(b.val)||0}</span>
+        <div class="bar-track-vert">
+          <div class="bar-fill-vert" style="height:${pct}%;background:${b.color}"></div>
+        </div>
+        <span class="bar-label-vert">${b.label}</span>
       </div>`;
     }).join('');
+
+    // KPI Sub-stage pending grid
+    document.getElementById('kpiGrid').innerHTML = `
+      <div class="kpi-box"><span>Examination</span><strong>${s.examination_pending||0}</strong></div>
+      <div class="kpi-box"><span>Assigned</span><strong>${s.assigned_pending||0}</strong></div>
+      <div class="kpi-box"><span>Published</span><strong>${s.published_pending||0}</strong></div>
+      <div class="kpi-box"><span>Demand Note</span><strong>${s.demand_note_pending||0}</strong></div>
+      <div class="kpi-box" style="border-color:#C94A00;background:rgba(201,74,0,0.05)">
+        <span style="color:#C94A00">Opposition</span>
+        <strong style="color:#C94A00">${s.opposition_count||0}</strong>
+      </div>
+    `;
+
     document.getElementById('chartCard').style.display='block';
   }catch(e){console.warn('Stats:',e);}
 }
@@ -208,6 +297,7 @@ async function loadData(){
     chip.className='status-chip ok';
     st.textContent=allRecords.length.toLocaleString()+' records ready';
     await loadStats();
+    renderCasesTable();
     renderRecordsTable();
   }catch(err){
     chip.className='status-chip error';
@@ -215,74 +305,127 @@ async function loadData(){
   }
 }
 
-// ─── Search card ──────────────────────────────────────────────────────────────
+// ─── Sidebar Filtering ────────────────────────────────────────────────────────
+function sidebarFilter(stage){
+  currentSidebarStage = stage;
+  document.querySelectorAll('.sidebar-btn').forEach(b=>b.classList.remove('active'));
+  
+  let map={'all':'sbAll','1':'sbS1','2':'sbS2','3':'sbS3','4':'sbS4'};
+  const btn=document.getElementById(map[stage]);
+  if(btn) btn.classList.add('active');
+  
+  const titleMap = {'all':'📂 ALL CASES','1':'STAGE 1 CASES','2':'STAGE 2 CASES','3':'STAGE 3 CASES','4':'STAGE 4 CASES'};
+  document.getElementById('casesTitle').textContent = titleMap[stage];
+  
+  switchTab('cases');
+  renderCasesTable();
+}
+
+// ─── Tab 2: Cases Table ───────────────────────────────────────────────────────
+function getFilteredCases(){
+  let rows = [...allRecords];
+  if(currentSidebarStage !== 'all'){
+    const stg = parseInt(currentSidebarStage);
+    rows = rows.filter(r => getStageNum(r.stage||'') === stg);
+  }
+  const cityFilter = document.getElementById('casesCityFilter')?.value;
+  if(cityFilter) rows = rows.filter(r => r.city === cityFilter);
+  
+  rows.sort((a,b) => new Date(b.created_at||0) - new Date(a.created_at||0));
+  return rows;
+}
+
+function renderCasesTable(){
+  const rows = getFilteredCases();
+  document.getElementById('casesCount').textContent = rows.length + ' records';
+  
+  const tbody=document.getElementById('casesTbody');
+  if(!rows.length){
+    tbody.innerHTML=`<tr><td colspan="10" style="text-align:center;padding:30px;color:#888;font-family:'DM Mono',monospace;font-size:11px">NO CASES FOUND</td></tr>`;
+    return;
+  }
+  
+  // Show max 100 on one page per spec
+  const pageRows = rows.slice(0, 100); 
+
+  tbody.innerHTML=pageRows.map(r=>{
+    const sn=getStageNum(r.stage||'');
+    const sc=stageBadgeColor(sn);
+    const runColor=RUN_COLORS[r.sub_stage]||'#888';
+    
+    // APPLICATION NAME (fallback applicant_name)
+    const appName = r.application_name || r.applicant_name || '—';
+    const cLabel = r.class ? `CL ${r.class}` : '';
+
+    return `<tr>
+      <td class="td-date">${r.filing_date||'—'}</td>
+      <td><div class="stage-badge-num" style="background:${sc};border-color:${sc}">${stageBadgeText(sn)}</div></td>
+      <td class="td-case">${r.folder_name||'—'}</td>
+      <td class="td-name">${appName}</td>
+      <td class="td-tm">™ ${r.tm_no||'—'} <span style="font-size:9px;color:#888">${cLabel}</span></td>
+      <td><span class="city-badge">${r.city||'—'}</span></td>
+      <td><span style="font-family:'DM Mono',monospace;font-size:9px;color:${runColor};border:1.5px solid ${runColor};border-radius:3px;padding:1px 5px">${r.sub_stage||'—'}</span></td>
+      <td class="td-name" style="font-size:10px">${r.consultant_name||'—'}</td>
+      <td class="td-name" style="font-size:10px;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.notes||'—'}</td>
+      <td>
+        <button class="action-edit" onclick="openEditModal(${r.id})">✎ EDIT</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+
+// ─── Search card (Short Display) ──────────────────────────────────────────────
 function renderCard(rec){
   const sn=getStageNum(rec.stage||'');
   const sc=stageBadgeColor(sn);
   const runColor=RUN_COLORS[rec.sub_stage]||'#888';
   const imgSrc=getImageSrc(rec.img);
-  const initials=avatarInitials(rec.applicant_name);
-  const avColor=avatarColor(rec.applicant_name);
+  const appName = rec.application_name || rec.applicant_name || 'Untitled Mark';
+  const initials=avatarInitials(appName);
+  const avColor=avatarColor(appName);
   const id='card_'+rec.id;
   const stageLabel=cleanStageText(rec.stage||'');
 
   const kvRows=[
-    ['SR. NO',rec.sr_no],['TM NO',rec.tm_no],['FOLDER',rec.folder_name],
+    ['SR. NO',rec.sr_no],['FOLDER',rec.folder_name],['TM NO',rec.tm_no],
+    ['PREFIX',rec.prefix],['CLIENT NO',rec.client_no],['CASE NO',rec.case_no],
     ['DATE',rec.filing_date],['CLASS',rec.class],['CLASS DESC',rec.class_desc],
-    ['APP TYPE',rec.applicant_type],['APP NAME',rec.applicant_name],["FATHER'S NAME",rec.applicant_so],
-    ['CNIC',rec.applicant_cnic],['ISSUE DATE',rec.issue_date],['EXPIRY DATE',rec.expiry_date],
+    ['APP TYPE',rec.application_type || rec.applicant_type],['APP NAME',rec.application_name],['APPLICANT',rec.applicant_name],
+    ["FATHER'S NAME",rec.applicant_so],['CNIC',rec.applicant_cnic],['CITY',rec.city],
+    ['STAMP ISSUE',formatLongDate(rec.stamp_issue_date||rec.issue_date)],['STAMP EXPIRY',formatLongDate(rec.stamp_expiry_date||rec.expiry_date)],
     ['TRADE NAME',rec.tm_trade],['APP ADDRESS',rec.applicant_address],['YEAR',rec.year],
     ['CON. NAME',rec.consultant_name],['CON. ADDRESS',rec.consultant_address],
-    ['IMG',rec.img],['NO IMG TEXT',rec.notes],
+    ['JOURNAL',rec.journal_date],['IMG',rec.img],['WORD MARK',rec.mark_text],['NOTES',rec.notes],
   ].map(([k,v])=>`<div class="kv-row"><span class="kv-key">${k}</span><span class="kv-val">${v||'—'}</span></div>`).join('');
+
+  // Short Search Display order per PDF:
+  // IMAGE -> APP NAME -> CLASS (number only) -> STAGE -> SUB STAGE -> CITY -> ALL FIELD -> EDIT -> CASE HISTORY
 
   return `
   <div class="result-card" id="${id}">
-    <div class="card-top-row">
-      <span style="font-family:'DM Mono',monospace;font-size:9px;color:#888">${rec.sr_no||'—'}</span>
-      <div style="display:flex;gap:6px;align-items:center">
-        ${rec.year?`<span class="card-city">${rec.year}</span>`:''}
-        ${rec.sub_stage?`<span style="font-family:'DM Mono',monospace;font-size:9px;color:${runColor};border:1.5px solid ${runColor};border-radius:3px;padding:1px 5px">${rec.sub_stage.toUpperCase()}</span>`:''}
-      </div>
-    </div>
-    <div class="card-main">
+    <div class="card-main" style="align-items:center">
       ${imgSrc
-        ?`<img src="${imgSrc}" alt="" style="width:52px;height:52px;object-fit:contain;border:2.5px solid #0C0C0C;border-radius:4px;background:#f0e8d0">`
-        :`<div class="avatar" style="background:${avColor}"><span>${initials}</span><span class="avatar-tm">&#8482;</span></div>`
+        ?`<img src="${imgSrc}" alt="" style="width:48px;height:48px;object-fit:contain;border:2px solid #0C0C0C;border-radius:4px;background:#f0e8d0">`
+        :`<div class="avatar" style="width:48px;height:48px;font-size:14px;background:${avColor}"><span>${initials}</span></div>`
       }
-      <div class="card-info">
-        <div class="card-name">${rec.applicant_name||'Untitled Mark'}</div>
+      <div class="card-info" style="flex:1">
+        <div class="card-name">${appName}</div>
         <div class="card-tm-row">
-          <span class="card-tm-icon">&#8482;</span>
-          <span class="card-tm-no">${rec.tm_no||'—'}</span>
-          ${rec.class?`<span class="card-class">CL ${rec.class}</span>`:''}
-          ${rec.applicant_type?`<span class="card-class" style="color:#0A6B52;border-color:#0A6B52">${rec.applicant_type}</span>`:''}
+          <span class="card-class" style="border-color:#555;color:#555">${rec.class||'N/A'}</span>
+          <span class="card-stage-text" style="color:${sc};font-weight:600">${stageLabel.toUpperCase()}</span>
+          ${rec.sub_stage?`<span style="font-family:'DM Mono',monospace;font-size:9px;color:${runColor};border:1.5px solid ${runColor};border-radius:3px;padding:1px 5px">${rec.sub_stage.toUpperCase()}</span>`:''}
+          ${rec.city?`<span class="city-badge">${rec.city}</span>`:''}
         </div>
-        ${rec.tm_trade?`<div style="font-family:'Space Grotesk',sans-serif;font-size:11px;color:#555;font-style:italic;margin-top:2px">${rec.tm_trade}</div>`:''}
-        ${rec.applicant_cnic?`<div style="font-family:'DM Mono',monospace;font-size:9px;color:#888;margin-top:2px">CNIC/NTN: ${rec.applicant_cnic}</div>`:''}
-      </div>
-      <div class="card-stage-box" style="background:${sc};border-color:${sc}">
-        <span class="card-stage-text" style="color:white">${stageBadgeText(sn)}</span>
       </div>
     </div>
-    ${stageLabel?`<div class="card-status-bar" style="border-color:${sc}">
-      <span class="card-status-label" style="color:${sc}">${stageLabel.toUpperCase()}</span>
-    </div>`:''}
-    ${rec.consultant_name?`<div style="font-family:'DM Mono',monospace;font-size:9px;color:#0A6B52;margin-top:4px;padding:3px 8px;background:rgba(10,107,82,0.06);border:1.5px solid rgba(10,107,82,0.2);border-radius:3px;display:inline-block">CON: ${rec.consultant_name}</div>`:''}
-    <div class="card-actions">
+    <div class="card-actions" style="margin-top:10px;padding-top:10px;border-top:1px solid #eee">
       <button class="expand-btn" onclick="toggleKV('kv_${id}',this)">&#9660; ALL FIELDS</button>
       <button class="edit-btn"   onclick="openEditModal(${rec.id})">&#9998; EDIT</button>
-      <button class="action-del" style="padding:5px 10px;font-size:10px" onclick="deleteRec(${rec.id},'${(rec.applicant_name||'').replace(/'/g,"\\'")}',true)">&#10005;</button>
+      <button class="expand-btn" onclick="toggleHistory('hist_${id}',${rec.id},this)">&#128203; CASE HISTORY</button>
     </div>
-    <div id="kv_${id}" class="kv-table" style="display:none">${kvRows}</div>
-    <!-- History panel -->
-    <div style="margin-top:10px;border-top:2px solid #f0e8d0;padding-top:8px">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
-        <span style="font-family:'DM Mono',monospace;font-size:9px;color:#888;text-transform:uppercase;letter-spacing:1px">&#128203; Case History</span>
-        <button class="expand-btn" onclick="toggleHistory('hist_${id}',${rec.id},this)" style="padding:2px 8px;font-size:8px">&#9660; SHOW</button>
-      </div>
-      <div id="hist_${id}" style="display:none"></div>
-    </div>
+    <div id="kv_${id}" class="kv-table" style="display:none;margin-top:8px">${kvRows}</div>
+    <div id="hist_${id}" style="display:none;margin-top:8px"></div>
   </div>`;
 }
 
@@ -298,7 +441,7 @@ function toggleHistory(histId,trademarkId,btn){
   if(!el) return;
   const hidden=el.style.display==='none';
   el.style.display=hidden?'block':'none';
-  btn.textContent=hidden?'▲ HIDE':'▼ SHOW';
+  btn.textContent=hidden?'▲ CASE HISTORY':'▼ CASE HISTORY';
   if(hidden && !el.dataset.loaded){
     el.dataset.loaded='1';
     renderTrademarkLogs(trademarkId,histId);
@@ -312,16 +455,16 @@ function doSearch(){
   const el=document.getElementById('searchResults');
   const countEl=document.getElementById('searchCount');
   if(!q){
-    el.innerHTML=`<div class="no-results"><div class="no-results-title">START SEARCHING</div><p class="no-results-hint">Enter TM Number, app name, CNIC or serial number.</p></div>`;
+    el.innerHTML=`<div class="no-results"><div class="no-results-title">START SEARCHING</div><p class="no-results-hint">Enter TM Number, app name, CNIC or Folder No.</p></div>`;
     if(countEl) countEl.textContent='';
     return;
   }
   const matches=allRecords.filter(r=>
     (r.tm_no||'').toLowerCase().includes(q)||
     (r.applicant_name||'').toLowerCase().includes(q)||
-    (r.sr_no||'').toLowerCase().includes(q)||
+    (r.application_name||'').toLowerCase().includes(q)||
+    (r.folder_name||'').toLowerCase().includes(q)||
     (r.applicant_cnic||'').toLowerCase().includes(q)||
-    (r.tm_trade||'').toLowerCase().includes(q)||
     (r.consultant_name||'').toLowerCase().includes(q)
   );
   if(countEl) countEl.textContent=matches.length+' result'+(matches.length!==1?'s':'');
@@ -344,11 +487,11 @@ function getFilteredRows(){
   if(activeFilters.stage!=='')      rows=rows.filter(r=>getStageNum(r.stage||'')==parseInt(activeFilters.stage));
   if(activeFilters.sub_stage) rows=rows.filter(r=>(r.sub_stage||'')==activeFilters.sub_stage);
   if(activeFilters.applicant_type)   rows=rows.filter(r=>(r.applicant_type||'')==activeFilters.applicant_type);
+  if(activeFilters.city)       rows=rows.filter(r=>(r.city||'')==activeFilters.city);
   if(activeFilters.year)       rows=rows.filter(r=>(r.year||'')==activeFilters.year);
   rows.sort((a,b)=>{
-    if(sortKey==='applicant_name')   return (a.applicant_name||'').localeCompare(b.applicant_name||'');
+    if(sortKey==='application_name') return (a.application_name||a.applicant_name||'').localeCompare(b.application_name||b.applicant_name||'');
     if(sortKey==='stage')      return getStageNum(b.stage||'')-getStageNum(a.stage||'');
-    if(sortKey==='sub_stage') return (a.sub_stage||'').localeCompare(b.sub_stage||'');
     return new Date(b.created_at||0)-new Date(a.created_at||0);
   });
   return rows;
@@ -369,9 +512,13 @@ function renderRecordsTable(){
 
   const tbody=document.getElementById('recordsTbody');
   if(!pageRows.length){
-    tbody.innerHTML=`<tr><td colspan="12" style="text-align:center;padding:30px;color:#888;font-family:'DM Mono',monospace;font-size:11px">NO RECORDS</td></tr>`;
+    tbody.innerHTML=`<tr><td colspan="13" style="text-align:center;padding:30px;color:#888;font-family:'DM Mono',monospace;font-size:11px">NO RECORDS</td></tr>`;
     updateBulkBar(); return;
   }
+  
+  // ALL RECORD SHEET display fields per PDF:
+  // SELECT CASE (checkbox), IMAGE (thumbnail), DATE, FOLDER, TM NO, CLASS, STAGE, SUB-STAGE, CITY, ASSIGN TO, NOTES
+
   tbody.innerHTML=pageRows.map(r=>{
     const sn=getStageNum(r.stage||'');
     const sc=stageBadgeColor(sn);
@@ -381,38 +528,34 @@ function renderRecordsTable(){
     const imgCell=imgSrc
       ?`<img src="${imgSrc}" alt="" style="width:25px;height:25px;object-fit:contain;border:1.5px solid #0C0C0C;border-radius:3px;background:#f5edd8;vertical-align:middle">`
       :`<div style="width:25px;height:25px;background:#ede0c4;border:1.5px solid #ccc;border-radius:3px;display:inline-flex;align-items:center;justify-content:center;font-size:8px;color:#aaa;font-family:'DM Mono',monospace">&#8482;</div>`;
-    return `<tr class="${isSel?'tr-selected':''}">
-      <td><input type="checkbox" class="row-check" data-id="${r.id}" ${isSel?'checked':''}></td>
+    
+    const appName = r.application_name || r.applicant_name || '—';
+
+    return `<tr class="${isSel?'tr-selected':''}" style="cursor:pointer" onclick="if(event.target.tagName!=='INPUT'&&event.target.tagName!=='BUTTON') openEditModal(${r.id})">
+      <td onclick="event.stopPropagation()"><input type="checkbox" class="row-check" data-id="${r.id}" ${isSel?'checked':''}></td>
       <td>${imgCell}</td>
       <td class="td-date">${r.filing_date||'&#8212;'}</td>
-      <td class="td-case"><a href="https://drive.google.com/drive/search?q=${encodeURIComponent(r.folder_name||'')}" target="_blank" style="color:#2563EB;text-decoration:none" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">${r.folder_name||'&#8212;'}</a></td>
+      <td class="td-case">${r.folder_name||'&#8212;'}</td>
       <td class="td-tm">&#8482; ${r.tm_no||'&#8212;'}</td>
-      <td class="td-name">${r.applicant_name||'&#8212;'}</td>
+      <td class="td-name">${appName}</td>
       <td><span class="td-cls">${r.class||'&#8212;'}</span></td>
       <td><div class="stage-badge-num" style="background:${sc};border-color:${sc}">${stageBadgeText(sn)}</div></td>
       <td><span style="font-family:'DM Mono',monospace;font-size:9px;color:${runColor};border:1.5px solid ${runColor};border-radius:3px;padding:1px 5px">${r.sub_stage||'&#8212;'}</span></td>
-      <td class="td-name" style="font-size:10px">${r.assigned_person||'&#8212;'} <br/><span style="color:#888;font-size:9px">${r.assigned_city||''}</span></td>
-      <td class="td-name" style="font-size:10px;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${(r.notes||'').replace(/"/g, '&quot;')}">${r.notes||'&#8212;'}</td>
-      <td><div class="action-cell">
+      <td><span class="city-badge">${r.city||'—'}</span></td>
+      <td class="td-name" style="font-size:10px">${r.assigned_person||'&#8212;'}</td>
+      <td class="td-name" style="font-size:10px;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${(r.notes||'').replace(/"/g, '&quot;')}">${r.notes||'&#8212;'}</td>
+      <td onclick="event.stopPropagation()"><div class="action-cell">
         <button class="action-edit" onclick="openEditModal(${r.id})">✎</button>
-        <button class="btn-assign" style="padding:3px 6px;font-size:9px" title="Assign to agent" onclick="openAssignModal(${r.id},'${(r.tm_no||'').replace(/'/g,"\\'")}','${(r.applicant_name||'').replace(/'/g,"\\'")}')">⊕</button>
-        <button class="action-del"  onclick="deleteRec(${r.id},'${(r.applicant_name||'').replace(/'/g,"\\'")}',false)">✕</button>
+        <button class="action-del"  onclick="deleteRec(${r.id},'${(appName).replace(/'/g,"\\'")}',false)">✕</button>
       </div></td>
     </tr>`;
   }).join('');
 
   tbody.querySelectorAll('.row-check').forEach(cb=>{
     cb.addEventListener('change',()=>{
-      const id=parseInt(cb.dataset.id);
+      const id=String(cb.dataset.id);
       cb.checked?selectedIds.add(id):selectedIds.delete(id);
       updateBulkBar();
-    });
-  });
-  tbody.querySelectorAll('.action-tick').forEach(btn=>{
-    btn.addEventListener('click',()=>{
-      const id=parseInt(btn.dataset.id);
-      selectedIds.has(id)?selectedIds.delete(id):selectedIds.add(id);
-      renderRecordsTable();
     });
   });
   updateBulkBar();
@@ -466,8 +609,9 @@ async function bulkDelete(){
     }catch{}
   }
   await loadStats();
+  renderCasesTable();
   renderRecordsTable();
-  alert(`Deleted ${deleted} of ${ids.length} records.`);
+  showToast(`Deleted ${deleted} of ${ids.length} records.`);
 }
 function bulkClear(){selectedIds.clear();renderRecordsTable();}
 
@@ -479,19 +623,21 @@ async function deleteRec(id,name,fromSearch=false){
     const j=await r.json();
     if(!j.success) throw new Error(j.error);
     allRecords=allRecords.filter(x=>String(x.id)!==String(id));
-    selectedIds.delete(id);
+    selectedIds.delete(String(id));
     await loadStats();
+    renderCasesTable();
     renderRecordsTable();
-    if(fromSearch) doSearch(); // re-run search to remove deleted card
+    if(fromSearch) doSearch(); 
+    showToast('Record deleted.');
   }catch(e){alert('Delete failed: '+e.message);}
 }
 
 // ─── Export CSV ───────────────────────────────────────────────────────────────
 function exportCSV(){
   const rows=getFilteredRows();
-  const cols=['id','sr_no','tm_no','applicant_name','class','class_desc','stage','sub_stage',
-              'applicant_type','applicant_so','applicant_cnic','issue_date','expiry_date','tm_trade',
-              'applicant_address','year','consultant_name','consultant_address','filing_date','folder_name','img','notes'];
+  const cols=['id','prefix','client_no','case_no','folder_name','sr_no','tm_no','application_name','applicant_name','class','class_desc','stage','sub_stage',
+              'application_type','applicant_so','applicant_cnic','city','stamp_issue_date','stamp_expiry_date','tm_trade',
+              'applicant_address','year','consultant_name','consultant_address','journal_date','filing_date','img','notes','status'];
   const esc=v=>'"'+(v||'').toString().replace(/"/g,'""')+'"';
   const csv=[cols.join(','),...rows.map(r=>cols.map(c=>esc(r[c])).join(','))].join('\n');
   const a=document.createElement('a');
@@ -500,13 +646,8 @@ function exportCSV(){
   a.click();
 }
 
-// ─── Template Utility ─────────────────────────────────────────────────────────
-function renderTemplate(template, record) {
-  return template.replace(/\{\{(\w+)\}\}/g, (_, key) => record[key] || '');
-}
-
 // ─── Image upload ─────────────────────────────────────────────────────────────
-async function handleImageUpload(file){
+async function handleImageUpload(file, inputId='editImg'){
   if(!file) return;
   const fd=new FormData();
   fd.append('image',file);
@@ -514,10 +655,21 @@ async function handleImageUpload(file){
     const res=await fetch(`${API}/upload`,{method:'POST',body:fd});
     const j=await res.json();
     if(!j.success) throw new Error(j.error);
-    const imgEl=document.getElementById('editImg');
-    if(imgEl) imgEl.value=j.path;
-    updateImgPreview(j.path);
+    const imgEl=document.getElementById(inputId);
+    if(imgEl) {
+      imgEl.value=j.path;
+      if(inputId==='editImg') updateImgPreview(j.path);
+    }
   }catch(e){alert('Upload failed: '+e.message);}
+}
+
+function triggerStageUpload(id) {
+  document.getElementById(id).click();
+}
+function handleStageUpload(input, textId) {
+  if(input.files && input.files[0]) {
+    handleImageUpload(input.files[0], textId);
+  }
 }
 
 // ─── Assignment system ────────────────────────────────────────────────────────
@@ -575,6 +727,7 @@ async function renderAssignmentTab(){
           <div class="assign-stat"><span class="assign-stat-val" style="color:#0D9970">${parseInt(stats.complete)||0}</span><span class="assign-stat-lbl">COMPLETE</span></div>
           ${unassigned.length?`<div class="assign-stat" style="border-color:#C94A00"><span class="assign-stat-val" style="color:#C94A00">${unassigned.length}</span><span class="assign-stat-lbl">UNASSIGNED</span></div>`:''}
         </div>
+        <button class="btn-outline" onclick="window.location.href='${API}/assignments/export-csv'">↓ EXPORT ASSIGNMENTS (CSV)</button>
       </div>
 
       <!-- Agent cards -->
@@ -602,7 +755,7 @@ async function renderAssignmentTab(){
         </select>
         <select class="filter-select" onchange="filterAssignByCity(this.value)">
           <option value="">All Cities</option>
-          ${['KARACHI','LAHORE','ISLAMABAD'].map(c=>`<option${assignmentFilter.city===c?' selected':''}>${c}</option>`).join('')}
+          ${['KARACHI','LAHORE','ISLAMABAD','PESHAWAR'].map(c=>`<option${assignmentFilter.city===c?' selected':''}>${c}</option>`).join('')}
         </select>
         ${(assignmentFilter.agent||assignmentFilter.status||assignmentFilter.city)?`<button class="btn-outline" style="padding:5px 10px;font-size:9px" onclick="clearAssignFilters()">✕ CLEAR</button>`:''}
         <span style="font-family:'DM Mono',monospace;font-size:10px;color:#888;margin-left:auto">${filtered.length} record${filtered.length!==1?'s':''}</span>
@@ -612,11 +765,11 @@ async function renderAssignmentTab(){
       <div class="table-wrap" style="margin-bottom:24px">
         <table class="records-table">
           <thead><tr>
-            <th>TM NO</th><th>APP NAME</th><th>CLASS</th><th>STAGE</th>
+            <th>FOLDER</th><th>TM NO</th><th>APP NAME</th><th>CLASS</th><th>STAGE</th>
             <th>AGENT</th><th>CITY</th><th>STATUS</th><th>DATE</th><th>ACTIONS</th>
           </tr></thead>
           <tbody>
-            ${!filtered.length?`<tr><td colspan="9" style="text-align:center;padding:30px;color:#888;font-family:'DM Mono',monospace;font-size:11px">NO ASSIGNMENTS${(assignmentFilter.agent||assignmentFilter.status||assignmentFilter.city)?' — clear filters to see all':' YET'}</td></tr>`:''}
+            ${!filtered.length?`<tr><td colspan="10" style="text-align:center;padding:30px;color:#888;font-family:'DM Mono',monospace;font-size:11px">NO ASSIGNMENTS${(assignmentFilter.agent||assignmentFilter.status||assignmentFilter.city)?' — clear filters to see all':' YET'}</td></tr>`:''}
             ${filtered.map(a=>{
               const sn=getStageNum(a.stage||'');
               const sc=stageBadgeColor(sn);
@@ -625,6 +778,7 @@ async function renderAssignmentTab(){
               const safe_tm   =(a.tm_no||'').replace(/'/g,"\\'");
               const safe_name =(a.applicant_name||'').replace(/'/g,"\\'");
               return `<tr>
+                <td class="td-case">${a.folder_name||'—'}</td>
                 <td class="td-tm">™ ${a.tm_no||'—'}</td>
                 <td class="td-name">${a.applicant_name||'—'}</td>
                 <td><span class="td-cls">${a.class||'—'}</span></td>
@@ -638,8 +792,8 @@ async function renderAssignmentTab(){
                     ?`<button class="btn-assign-complete" onclick="completeAssignment(${a.id})">✓</button>`
                     :`<span style="font-family:'DM Mono',monospace;font-size:9px;color:#0D9970;padding:2px 4px">✓</span>`
                   }
-                  <button class="action-edit" title="Reassign" onclick="openAssignModal(${a.trademark_id},'${safe_tm}','${safe_name}',${a.id},'${a.agent_name}','${a.agent_city}','${a.status}')">⟳</button>
-                  <button class="action-del" onclick="removeAssignment(${a.id},'${safe_name}')">✕</button>
+                  <button class="action-edit" title="Reassign" onclick="openAssignModal('${a.trademark_id}','${safe_tm}','${safe_name}','${a.id}','${a.agent_name}','${a.agent_city}','${a.status}')">⟳</button>
+                  <button class="action-del" onclick="removeAssignment('${a.id}','${safe_name}')">✕</button>
                 </div></td>
               </tr>`;
             }).join('')}
@@ -655,19 +809,19 @@ async function renderAssignmentTab(){
         </div>
         <div class="table-wrap" style="margin-top:10px">
           <table class="records-table">
-            <thead><tr><th>TM NO</th><th>APP NAME</th><th>CLASS</th><th>STAGE</th><th>SUB-STATUS</th><th>ACTION</th></tr></thead>
+            <thead><tr><th>FOLDER</th><th>TM NO</th><th>APP NAME</th><th>CITY</th><th>STAGE</th><th>ACTION</th></tr></thead>
             <tbody>
               ${unassigned.slice(0,50).map(r=>{
                 const sn=getStageNum(r.stage||'');
                 const safe_tm   =(r.tm_no||'').replace(/'/g,"\\'");
-                const safe_name =(r.applicant_name||'').replace(/'/g,"\\'");
+                const safe_name =(r.app_name||'').replace(/'/g,"\\'");
                 return `<tr>
+                  <td class="td-case">${r.folder_name||'—'}</td>
                   <td class="td-tm">™ ${r.tm_no||'—'}</td>
-                  <td class="td-name">${r.applicant_name||'—'}</td>
-                  <td><span class="td-cls">${r.class||'—'}</span></td>
+                  <td class="td-name">${r.app_name||'—'}</td>
+                  <td><span class="city-badge">${r.city||'—'}</span></td>
                   <td><div class="stage-badge-num" style="background:${stageBadgeColor(sn)}">${stageBadgeText(sn)}</div></td>
-                  <td style="font-family:'DM Mono',monospace;font-size:9px;color:#C94A00">${cleanStageText(r.class_desc||'')||'—'}</td>
-                  <td><button class="btn-assign" onclick="openAssignModal(${r.id},'${safe_tm}','${safe_name}')">⊕ ASSIGN</button></td>
+                  <td><button class="btn-assign" onclick="openAssignModal('${r.id}','${safe_tm}','${safe_name}')">⊕ ASSIGN</button></td>
                 </tr>`;
               }).join('')}
             </tbody>
@@ -729,6 +883,7 @@ async function saveAssignment(){
     if(!j.success) throw new Error(j.error);
     closeAssignModal();
     renderAssignmentTab();
+    showToast('Assignment saved.');
   }catch(e){alert('Save failed: '+e.message);}
   finally{btn.textContent='ASSIGN';btn.disabled=false;}
 }
@@ -739,6 +894,7 @@ async function completeAssignment(id){
     const j=await res.json();
     if(!j.success) throw new Error(j.error);
     renderAssignmentTab();
+    showToast('Assignment marked Complete.');
   }catch(e){alert('Failed: '+e.message);}
 }
 
@@ -749,6 +905,7 @@ async function removeAssignment(id,appName){
     const j=await res.json();
     if(!j.success) throw new Error(j.error);
     renderAssignmentTab();
+    showToast('Assignment removed.');
   }catch(e){alert('Failed: '+e.message);}
 }
 
@@ -759,60 +916,59 @@ function populateClassSelect(){
   sel.innerHTML='<option value="">— Select class —</option>';
   CLASS_MAP.forEach(([num,desc])=>{
     const n=String(num).padStart(2,'0');
-    const shortDesc=desc.length>70?desc.slice(0,70)+'…':desc;
     const opt=document.createElement('option');
     opt.value=n;
-    opt.textContent=`${n} — ${shortDesc}`;
+    opt.textContent=n; // Display ONLY number per spec
     opt.title=desc;
     sel.appendChild(opt);
   });
 }
 
+function onClassChange(){
+  const cv = document.getElementById('editClass').value;
+  const cDesc = document.getElementById('editClassDesc');
+  if(!cv || !cDesc) return;
+  const match = CLASS_MAP.find(c => String(c[0]).padStart(2,'0') === cv);
+  if(match) cDesc.value = match[1];
+  else cDesc.value = '';
+}
+
 function populateConsultantSelect(){
   const sel=document.getElementById('editConName');
   if(!sel) return;
-  // Replace plain <input> with a <select> behaviour via datalist on first call
-  // We use a <select> approach: check if already a select
-  if(sel.tagName==='INPUT'){
-    // Keep as input but add datalist for autocomplete
-    let dl=document.getElementById('consultantDatalist');
-    if(!dl){
-      dl=document.createElement('datalist');
-      dl.id='consultantDatalist';
-      document.body.appendChild(dl);
-    }
-    dl.innerHTML='';
-    CONSULTANTS.forEach(c=>{
-      const opt=document.createElement('option');
-      opt.value=c.name;
-      dl.appendChild(opt);
-    });
-    sel.setAttribute('list','consultantDatalist');
-    // Auto-fill address when name matches
-    sel.addEventListener('input',()=>{
-      const found=CONSULTANTS.find(c=>c.name.toUpperCase()===sel.value.toUpperCase());
-      const addrEl=document.getElementById('editConAdd');
-      if(found&&addrEl&&!addrEl.value) addrEl.value=found.address;
-    });
-    sel.addEventListener('change',()=>{
-      const found=CONSULTANTS.find(c=>c.name.toUpperCase()===sel.value.toUpperCase());
-      const addrEl=document.getElementById('editConAdd');
-      if(found&&addrEl) addrEl.value=found.address;
-    });
-  }
+  sel.innerHTML='<option value="">— Select Consultant —</option>';
+  CONSULTANTS.forEach(c=>{
+    const opt=document.createElement('option');
+    opt.value=c.name;
+    opt.textContent=c.name;
+    sel.appendChild(opt);
+  });
 }
 
-// ─── Google Drive Folder Picker ───────────────────────────────────────────────
-function openFolderPicker(){
-  // Opens Google Drive in a popup; user can copy the folder URL or ID.
-  // Full Picker API requires OAuth — using a simple folder URL prompt instead.
-  const url=prompt('Paste your Google Drive folder URL or folder name:');
-  if(!url||!url.trim()) return;
-  const folderEl=document.getElementById('editFolder');
-  if(!folderEl) return;
-  // Extract folder ID from URL if present, otherwise use as-is
-  const m=url.match(/folders\/([a-zA-Z0-9_-]+)/);
-  folderEl.value=m?m[1]:url.trim();
+function onConsultantChange(){
+  const sel = document.getElementById('editConName');
+  const addr = document.getElementById('editConAdd');
+  if(!sel || !addr) return;
+  const match = CONSULTANTS.find(c => c.name === sel.value);
+  if(match) addr.value = match.address;
+}
+
+function onStageChange(){
+  const stage = document.getElementById('editStage').value;
+  const sub = document.getElementById('editStatusRun').value;
+  const journalSec = document.getElementById('journalSection');
+  const assignSec = document.getElementById('assignSection');
+  const assignCitySec = document.getElementById('assignCitySection');
+  
+  if(journalSec) {
+    journalSec.style.display = (stage.includes('STAGE 3') && sub.includes('PUBLISHED')) ? 'block' : 'none';
+  }
+  
+  if(assignSec && assignCitySec) {
+    const isStage2 = stage.includes('STAGE 2');
+    assignSec.style.display = isStage2 ? 'block' : 'none';
+    assignCitySec.style.display = isStage2 ? 'block' : 'none';
+  }
 }
 
 function openEditModal(id){
@@ -821,8 +977,7 @@ function openEditModal(id){
   if(!rec) return;
   editingRecord=rec;
   document.getElementById('modalTitle').textContent='EDIT RECORD';
-  document.getElementById('modalCase').textContent=rec.sr_no||'';
-  document.getElementById('modalNotice').textContent='📡 Changes save directly to database.';
+  document.getElementById('modalCase').textContent=rec.folder_name||'';
   fillModalForm(rec);
   document.getElementById('editModal').classList.add('open');
 }
@@ -831,26 +986,56 @@ function openAddModal(){
   isNewRecord=true;editingRecord=null;
   document.getElementById('modalTitle').textContent='ADD NEW RECORD';
   document.getElementById('modalCase').textContent='';
-  document.getElementById('modalNotice').textContent='📡 New record will be saved to database.';
   fillModalForm({});
-  document.getElementById('editSrNo').value=genSrNo();
+  document.getElementById('editSrNo').value=genSrNo(); // Hidden auto-gen
+  const dt = new Date().toISOString().slice(0,10);
+  document.getElementById('editDateL').value = dt;
+  document.getElementById('editAppDate').value = dt;
   document.getElementById('editModal').classList.add('open');
 }
 
 function fillModalForm(rec){
   const f=(id,val)=>{const el=document.getElementById(id);if(el)el.value=val||'';};
   f('editStatusRun',rec.sub_stage);f('editStage',rec.stage);
+  f('editPrefix',rec.prefix);f('editClientNo',rec.client_no);f('editCaseNo',rec.case_no);
   f('editSrNo',rec.sr_no);f('editTmNo',rec.tm_no);
-  f('editFolder',rec.folder_name);f('editDateL',rec.filing_date);
+  f('editFolder',rec.folder_name);
+  
+  // Dates
+  if(rec.filing_date) document.getElementById('editDateL').value = new Date(rec.filing_date).toISOString().slice(0,10);
+  else document.getElementById('editDateL').value = '';
+  
+  if(rec.application_date) document.getElementById('editAppDate').value = new Date(rec.application_date).toISOString().slice(0,10);
+  else document.getElementById('editAppDate').value = '';
+  
   f('editClass',rec.class);f('editClassDesc',rec.class_desc);
-  f('editAppType',rec.applicant_type);f('editAppName',rec.applicant_name);
+  f('editAppType',rec.application_type || rec.applicant_type);
+  f('editAppName',rec.application_name || rec.applicant_name); // application_name overrides
+  f('editApplicantName',rec.applicant_name); 
   f('editAppSo',rec.applicant_so);f('editAppCnic',rec.applicant_cnic);
-  f('editIssueDate',rec.issue_date);f('editExpiryDate',rec.expiry_date);
+  f('editCity',rec.city);
+  
+  f('editStampIssue',isoToDatetimeLocal(rec.stamp_issue_date||rec.issue_date));
+  f('editStampExpiry',isoToDatetimeLocal(rec.stamp_expiry_date||rec.expiry_date));
+  
   f('editAppTrade',rec.tm_trade);f('editAppAdd',rec.applicant_address);
   f('editYear',rec.year);f('editConName',rec.consultant_name);
-  f('editConAdd',rec.consultant_address);f('editImg',rec.img);f('editNoImg',rec.notes);
+  f('editConAdd',rec.consultant_address);
+  f('editJournalDate',rec.journal_date);
+  
+  f('editAssignPerson',rec.assigned_person);
+  f('editAssignCity',rec.assigned_city);
+  
+  f('editImg',rec.img);f('editMarkText',rec.mark_text);f('editNoImg',rec.notes);
+  f('editStatus',rec.status);
+  
   updateImgPreview(rec.img);
   const iu=document.getElementById('imgUpload');if(iu)iu.value='';
+  
+  // Clear stage uploads for UI
+  ['stage1ImgId','stage2ImgId','stage3ImgId','stage4ImgId'].forEach(id=>f(id,''));
+  
+  onStageChange();
 }
 
 function closeEditModal(){
@@ -861,19 +1046,31 @@ function closeEditModal(){
 const gv=id=>{const el=document.getElementById(id);return el?el.value.trim():'';};
 
 async function saveEdit(){
+  // Auto-build folder before save if missing
+  buildFolder();
+  
   const data={
     sub_stage:gv('editStatusRun'),stage:gv('editStage'),
-    sr_no:gv('editSrNo'),tm_no:gv('editTmNo'),
-    folder_name:gv('editFolder'),filing_date:gv('editDateL'),
+    prefix:gv('editPrefix'),client_no:gv('editClientNo'),case_no:gv('editCaseNo'),
+    folder_name:gv('editFolder'),sr_no:gv('editSrNo'),tm_no:gv('editTmNo'),
+    filing_date:gv('editDateL'), application_date:gv('editAppDate'),
     class:gv('editClass'),class_desc:gv('editClassDesc'),
-    applicant_type:gv('editAppType'),applicant_name:gv('editAppName'),
-    applicant_so:gv('editAppSo'),applicant_cnic:gv('editAppCnic'),
-    issue_date:gv('editIssueDate'),expiry_date:gv('editExpiryDate'),
+    application_type:gv('editAppType'),
+    application_name:gv('editAppName'), applicant_name:gv('editApplicantName'),
+    applicant_so:gv('editAppSo'),applicant_cnic:gv('editAppCnic'),city:gv('editCity'),
+    stamp_issue_date:gv('editStampIssue'),stamp_expiry_date:gv('editStampExpiry'),
     tm_trade:gv('editAppTrade'),applicant_address:gv('editAppAdd'),
     year:gv('editYear'),consultant_name:gv('editConName'),
-    consultant_address:gv('editConAdd'),img:gv('editImg'),notes:gv('editNoImg'),
+    consultant_address:gv('editConAdd'),
+    journal_date:gv('editJournalDate'),
+    assigned_person:gv('editAssignPerson'), assigned_city:gv('editAssignCity'),
+    img:gv('editImg'),mark_text:gv('editMarkText'),notes:gv('editNoImg'),
+    status:gv('editStatus')
   };
-  if(!data.applicant_name){alert('App Name (J) is required ⭐');return;}
+  
+  if(!data.applicant_name){alert('Applicant Name is required ⭐');return;}
+  if(!data.application_name){alert('Application Name is required ⭐');return;}
+  
   const btn=document.getElementById('modalSave');
   btn.textContent='SAVING…';btn.disabled=true;
   try{
@@ -882,14 +1079,17 @@ async function saveEdit(){
       const res=await fetch(`${API}/trademarks`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
       j=await res.json();
       if(!j.success) throw new Error(j.error);
+      showToast('Record created successfully');
       await loadData();
     }else{
       const res=await fetch(`${API}/trademarks/${editingRecord.id}`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
       j=await res.json();
       if(!j.success) throw new Error(j.error);
       Object.assign(editingRecord,data);
+      renderCasesTable();
       renderRecordsTable();
       await loadStats();
+      showToast('Record updated');
     }
     closeEditModal();
   }catch(e){alert('Save failed: '+e.message);}
@@ -904,10 +1104,70 @@ function updateImgPreview(src){
   else if(wrap) wrap.style.display='none';
 }
 
+// ─── Print Functionality ──────────────────────────────────────────────────────
+function printRecord() {
+  if(!editingRecord) return;
+  const pa = document.getElementById('printArea');
+  
+  const sn=getStageNum(editingRecord.stage||'');
+  const sc=stageBadgeColor(sn);
+  const imgSrc=getImageSrc(editingRecord.img, '200');
+  const appName = editingRecord.application_name || editingRecord.applicant_name;
+  
+  // Format long dates
+  const stampIssue = formatLongDate(editingRecord.stamp_issue_date || editingRecord.issue_date);
+  const stampExpiry = formatLongDate(editingRecord.stamp_expiry_date || editingRecord.expiry_date);
+
+  pa.innerHTML = `
+    <div class="print-header">
+      <div style="font-size:24px;font-weight:bold;margin-bottom:4px">BRANDEX LAW</div>
+      <div style="font-size:14px;color:#555">TRADEMARK OFFICIAL RECORD</div>
+    </div>
+    
+    <div style="display:flex;justify-content:space-between;margin-bottom:20px;padding-bottom:10px;border-bottom:2px solid #000">
+      <div>
+        <div style="font-size:20px;font-weight:bold;margin-bottom:8px">${appName}</div>
+        <div><strong>Folder No:</strong> ${editingRecord.folder_name||'—'}</div>
+        <div><strong>TM No:</strong> ${editingRecord.tm_no||'—'}</div>
+        <div><strong>Class:</strong> ${editingRecord.class||'—'}</div>
+      </div>
+      <div>
+        ${imgSrc ? `<img src="${imgSrc}" style="width:100px;height:100px;object-fit:contain;border:1px solid #ccc;border-radius:4px" />` 
+                 : `<div style="width:100px;height:100px;border:1px solid #ccc;display:flex;align-items:center;justify-content:center;background:#f5f5f0;font-size:10px">NO IMAGE</div>`}
+      </div>
+    </div>
+
+    <table class="print-table">
+      <tr><td class="lbl">Stage</td><td>${editingRecord.stage||'—'} <span style="font-size:11px;color:#666">(${editingRecord.sub_stage||''})</span></td></tr>
+      <tr><td class="lbl">Application Type</td><td>${editingRecord.application_type || editingRecord.applicant_type || '—'}</td></tr>
+      <tr><td class="lbl">Filing Date</td><td>${editingRecord.filing_date||'—'}</td></tr>
+      <tr><td class="lbl">Applicant Name</td><td>${editingRecord.applicant_name||'—'}</td></tr>
+      <tr><td class="lbl">Applicant S/O</td><td>${editingRecord.applicant_so||'—'}</td></tr>
+      <tr><td class="lbl">CNIC/NTN</td><td>${editingRecord.applicant_cnic||'—'}</td></tr>
+      <tr><td class="lbl">City</td><td>${editingRecord.city||'—'}</td></tr>
+      <tr><td class="lbl">Address</td><td>${editingRecord.applicant_address||'—'}</td></tr>
+      <tr><td class="lbl">Trade / Brand</td><td>${editingRecord.tm_trade||'—'}</td></tr>
+      <tr><td class="lbl">Class Description</td><td>${editingRecord.class_desc||'—'}</td></tr>
+      <tr><td class="lbl">Stamp Issue</td><td>${stampIssue||'—'}</td></tr>
+      <tr><td class="lbl">Stamp Expiry</td><td>${stampExpiry||'—'}</td></tr>
+      <tr><td class="lbl">Consultant</td><td>${editingRecord.consultant_name||'—'}</td></tr>
+      ${editingRecord.journal_date ? `<tr><td class="lbl">Journal Date</td><td>${editingRecord.journal_date}</td></tr>` : ''}
+      <tr><td class="lbl">Word Mark Text</td><td>${editingRecord.mark_text||'—'}</td></tr>
+      <tr><td class="lbl">Notes</td><td>${editingRecord.notes||'—'}</td></tr>
+    </table>
+    
+    <div style="margin-top:40px;text-align:center;font-size:10px;color:#888;border-top:1px solid #eee;padding-top:10px">
+      Generated by BrandEx CMS • Serial No: ${editingRecord.sr_no||'—'} • Date: ${new Date().toLocaleString()}
+    </div>
+  `;
+  window.print();
+}
+
 // ─── Tab switching ────────────────────────────────────────────────────────────
 function switchTab(id){
   document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active',b.dataset.tab===id));
   document.querySelectorAll('.tab-panel').forEach(p=>p.classList.toggle('active',p.id==='tab-'+id));
+  if(id==='cases')      renderCasesTable();
   if(id==='records')    renderRecordsTable();
   if(id==='assignment') renderAssignmentTab();
   if(id==='logs')       renderLogsTab();
@@ -937,7 +1197,7 @@ async function renderLogsTab(){
     const logs=j.data;
     if(countEl) countEl.textContent=logs.length.toLocaleString()+' entries';
     if(!logs.length){
-      el.innerHTML=`<div class="no-results"><div class="no-results-title">NO LOGS YET</div><p class="no-results-hint">Activity will appear here as records are created, edited or deleted.</p></div>`;
+      el.innerHTML=`<div class="no-results"><div class="no-results-title">NO LOGS YET</div><p class="no-results-hint">Activity will appear here as records are modified.</p></div>`;
       return;
     }
     el.innerHTML=`
@@ -953,7 +1213,7 @@ async function renderLogsTab(){
           <tbody>
             ${logs.map(l=>{
               const ac=ACTION_COLORS[l.action]||'#888';
-              const tm=l.applicant_name||(l.new_values?.applicant_name)||'—';
+              const tm=l.application_name||l.applicant_name||(l.new_values?.applicant_name)||'—';
               const tmNo=l.tm_no||(l.new_values?.tm_no)||'—';
               return `<tr>
                 <td class="td-date" style="white-space:nowrap">${formatLogDate(l.changed_at)}</td>
@@ -971,7 +1231,7 @@ async function renderLogsTab(){
   }
 }
 
-// ─── Trademark log history (used in search cards + edit modal) ────────────────
+// ─── Trademark log history ────────────────────────────────────────────────────
 async function renderTrademarkLogs(trademarkId, containerId){
   const el=document.getElementById(containerId);
   if(!el) return;
@@ -1011,8 +1271,10 @@ document.addEventListener('DOMContentLoaded',()=>{
   document.getElementById('searchBtn').addEventListener('click',doSearch);
   document.getElementById('searchInput').addEventListener('keydown',e=>{if(e.key==='Enter')doSearch();});
   document.getElementById('refreshBtn').addEventListener('click',loadData);
+  document.getElementById('syncBtn').addEventListener('click',triggerSync);
+  document.getElementById('printRecordBtn').addEventListener('click',printRecord);
 
-  ['addNewBtn','addNewBtn2','addNewBtn3'].forEach(id=>{
+  ['addNewBtn','addNewBtn2','addNewBtn3','addNewBtn4'].forEach(id=>{
     const el=document.getElementById(id);
     if(el) el.addEventListener('click',openAddModal);
   });
@@ -1020,15 +1282,21 @@ document.addEventListener('DOMContentLoaded',()=>{
   document.getElementById('filterInput').addEventListener('input',()=>{currentPage=1;renderRecordsTable();});
 
   // Filter dropdowns
-  ['filterStage','filterStatus','filterType','filterYear'].forEach(id=>{
+  ['filterStage','filterStatus','filterType','filterCity','filterYear'].forEach(id=>{
     const el=document.getElementById(id);
     if(el) el.addEventListener('change',()=>{
       activeFilters.stage      = document.getElementById('filterStage')?.value??'';
       activeFilters.sub_stage = document.getElementById('filterStatus')?.value??'';
       activeFilters.applicant_type   = document.getElementById('filterType')?.value??'';
+      activeFilters.city       = document.getElementById('filterCity')?.value??'';
       activeFilters.year       = document.getElementById('filterYear')?.value??'';
       currentPage=1;renderRecordsTable();
     });
+  });
+  
+  // Tab 2 City filter
+  document.getElementById('casesCityFilter')?.addEventListener('change',()=>{
+    renderCasesTable();
   });
 
   // Sort buttons
@@ -1045,7 +1313,7 @@ document.addEventListener('DOMContentLoaded',()=>{
     const rows=getFilteredRows();
     const s=pageSize===0?0:(currentPage-1)*pageSize;
     const en=pageSize===0?rows.length:Math.min(s+pageSize,rows.length);
-    rows.slice(s,en).forEach(r=>e.target.checked?selectedIds.add(r.id):selectedIds.delete(r.id));
+    rows.slice(s,en).forEach(r=>e.target.checked?selectedIds.add(String(r.id)):selectedIds.delete(String(r.id)));
     renderRecordsTable();
   });
 
@@ -1072,10 +1340,12 @@ document.addEventListener('DOMContentLoaded',()=>{
   const cnicEl=document.getElementById('editAppCnic');
   if(cnicEl) cnicEl.addEventListener('input',()=>{cnicEl.value=formatCNIC(cnicEl.value);});
 
-  const issueDateEl=document.getElementById('editIssueDate');
-  if(issueDateEl) issueDateEl.addEventListener('input',()=>{
-    const exp=document.getElementById('editExpiryDate');
-    if(exp) exp.value=autoExpiry(issueDateEl.value);
+  const stampIssueEl=document.getElementById('editStampIssue');
+  if(stampIssueEl) stampIssueEl.addEventListener('change',()=>{
+    const exp=document.getElementById('editStampExpiry');
+    if(exp && stampIssueEl.value) {
+      exp.value = isoToDatetimeLocal(autoExpiry(stampIssueEl.value));
+    }
   });
 
   const imgEl=document.getElementById('editImg');
@@ -1084,7 +1354,13 @@ document.addEventListener('DOMContentLoaded',()=>{
   const imgUpload=document.getElementById('imgUpload');
   if(imgUpload) imgUpload.addEventListener('change',e=>{
     const file=e.target.files?.[0];
-    if(file) handleImageUpload(file);
+    if(file) handleImageUpload(file, 'editImg');
+  });
+
+  // Folder auto-build listeners
+  ['editPrefix','editClientNo','editCaseNo'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(el) el.addEventListener('input', buildFolder);
   });
 
   // Logs tab

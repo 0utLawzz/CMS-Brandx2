@@ -1,96 +1,82 @@
-# BrandEx Law — Trademark Portal
+# BrandEx Law - Trademark Case Management System (CMS)
 
-A web-based trademark management system for BrandEx Law (Pakistan).
-Features Neo-brutalism UI, Google Sheets as database, and a Node.js REST API.
+A specialized CMS for managing trademark applications through various lifecycle stages, built with Node.js, Express, and Google Sheets as the database.
 
----
+## Features
 
-## Quick Start
-
-### Prerequisites
-- Node.js 18+
-- Google Cloud Service Account (for Sheets API)
-- Git
-
-### Installation Method
-
-```bash
-# 1. Clone the repository
-git clone <your-repo-url>
-cd CMS-Brandx2
-
-# 2. Install dependencies for the web server
-npm install
-
-# 3. Install dependencies for the API server
-cd api
-npm install
-cd ..
-
-# 4. Configure Environment Variables
-# Create an `.env` file in the `api` folder and add your credentials:
-# 
-# SHEET_ID=your-google-sheet-id
-# GOOGLE_SERVICE_ACCOUNT_EMAIL=your-service-account-email@...
-# GOOGLE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n"
-# PORT=3000
-
-# 5. Start the Application
-# This project uses a unified server that serves both the frontend and the API on port 5000.
-npm start
-# OR manually:
-node server.js
-```
-
-Open `http://localhost:5000` in your web browser.
-
----
-
-## Troubleshooting
-
-- **Error: `Cannot find module 'dotenvx'` or similar missing modules**
-  - **Solution:** Make sure you ran `npm install` inside both the root folder AND the `api` folder. We have updated the project to use `dotenv` instead of `dotenvx` to avoid package resolution issues.
-  - Run `cd api && npm install` to make sure all backend dependencies are installed.
-
-- **Port in use error**
-  - **Solution:** Ensure no other process is using port 5000 or 3000. You can change the port in `server.js` or `.env`.
-
-- **Missing Google Sheets credentials**
-  - **Solution:** Ensure your `api/.env` file contains valid Google API credentials. For local testing without `.env`, you can provide a `brandex-*.json` service account key file (this should be ignored in git).
-
-- **UI not loading data**
-  - **Solution:** Open browser developer tools (F12) -> Network tab to check if API calls to `/api/trademarks` are failing. Check the Node.js console for API connection issues.
-
----
+- **Google Sheets Database**: Direct 2-way sync with Google Sheets (ID: `1lc3rb1e636KnwLgciiJWYrIwg9XDsx6HEM5SvBUYHzg`)
+- **Stage Management**: Track cases through 4 primary stages (Application, Examination, Publication, Registration).
+- **Auto-Generated Identifiers**: 
+  - Folder numbers auto-build from `Prefix - ClientNo - CaseNo` (e.g. `X-785-252`).
+  - Serial Numbers auto-generated (`PB-ISB-` + 18 chars).
+- **KPI Dashboard**: Bottom-to-top visual chart showing case distribution and pending actionable items.
+- **Assignment System**: Track agents, cities, and statuses with exportable history.
+- **Audit Logs**: Full history tracking for every change on every record.
+- **Print Records**: Generate printable official records.
 
 ## Project Structure
 
 ```
 CMS-Brandx2/
-├── index.html              ← Main web portal UI (5 tabs)
-├── styles.css              ← Neo-brutalism theme (cream/orange/teal/black)
-├── app.js                  ← All frontend JS (search, table, modal, CRUD, export)
-├── server.js               ← Unified server serving both static files and API (port 5000)
-├── logo.png                ← Brand logo
-├── package.json            ← Root dependencies
-├── README.md               ← This documentation
-│
+├── index.html           # Main frontend UI
+├── app.js               # Frontend application logic
+├── styles.css           # UI styling and print media
 ├── api/
-│   ├── index.js            ← Express REST API (used by server.js)
-│   ├── sheets.js           ← Google Sheets API client
-│   ├── package.json        ← API deps: express, googleapis, cors, dotenv, multer
-│
-├── uploads/                ← Uploaded trademark images (auto-created)
+│   ├── index.js         # Backend Express API server
+│   ├── sheets.js        # Google Sheets authentication and connection
+│   └── .env             # Backend environment variables
+├── google-apps-script.gs # Apps script for creating the database
+└── README.md            # This documentation
 ```
 
----
+## Installation & Setup
 
-## Tech Stack
+1. **Install Dependencies**
+   ```bash
+   npm install
+   ```
 
-| Layer | Technology |
-|-------|-----------|
-| Frontend | Vanilla HTML/CSS/JS · Neo-brutalism design |
-| Web server | Express.js (Node.js) |
-| API | Express.js 5 |
-| Database | Google Sheets API |
-| File upload | Multer |
+2. **Environment Variables**
+   Ensure your `api/.env` file has the following:
+   ```env
+   GOOGLE_SERVICE_ACCOUNT_EMAIL=your-service-account-email
+   GOOGLE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n"
+   SHEET_ID=1lc3rb1e636KnwLgciiJWYrIwg9XDsx6HEM5SvBUYHzg
+   PORT=3000
+   ```
+
+3. **Database Setup**
+   - Open your Google Sheet.
+   - Go to **Extensions > Apps Script**.
+   - Paste the contents of `google-apps-script.gs`.
+   - Run `setupDatabase()` to create the `Trademarks` and `Logs` sheets with proper headers.
+   - Run `createTriggers()` to enable automatic manual-edit logging.
+
+4. **Run the Application**
+   ```bash
+   npm start
+   ```
+   The server will start on `http://localhost:3000`.
+
+## Field Mapping (`{{tag}}`)
+
+| Field Name | Description | Required |
+|------------|-------------|----------|
+| `application_name` | Mark / Brand / Trade Name | Yes ⭐ |
+| `applicant_name` | Legal name of applicant | Yes ⭐ |
+| `prefix` | X (Regular) / A (Consultant) / N (Noor Baaf) | Yes ⭐ |
+| `client_no` | Client Number | Yes ⭐ |
+| `case_no` | Case Number | Yes ⭐ |
+| `folder_name` | Auto-generated from prefix-client-case | Auto |
+| `sr_no` | Auto-generated hidden ID | Auto |
+| `tm_no` | Trademark Number | Optional |
+| `class` | Class number (01-45) | Yes ⭐ |
+| `city` | Applicant City | Yes ⭐ |
+| `stage` | Current stage (1-4, Stopped, Copyright) | Yes ⭐ |
+| `stamp_issue_date` | Long format date for stamp issue | Optional |
+| `stamp_expiry_date` | Auto-calculates to +7 days | Auto |
+| `journal_date` | Journal number/date (Stage 3 only) | Conditional |
+
+## Deployment
+
+This application is ready to be deployed to Vercel or any standard Node.js hosting provider. Make sure to map the `.env` variables in your hosting provider's dashboard.

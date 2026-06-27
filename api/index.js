@@ -46,14 +46,21 @@ const upload = multer({
 // ── Field Definitions (for {{tag}} system) ────────────────────────────────────
 const FIELD_DEFS = [
   { key: 'sr_no',               tag: '{{sr_no}}',               label: 'Serial No' },
+  { key: 'prefix',              tag: '{{prefix}}',              label: 'Prefix (X/A/N)' },
+  { key: 'client_no',           tag: '{{client_no}}',           label: 'Client No' },
+  { key: 'case_no',             tag: '{{case_no}}',             label: 'Case No' },
+  { key: 'folder_name',         tag: '{{folder_name}}',         label: 'Folder No' },
   { key: 'tm_no',               tag: '{{tm_no}}',               label: 'TM Number' },
   { key: 'filing_date',         tag: '{{filing_date}}',         label: 'Filing Date' },
-  { key: 'folder_name',         tag: '{{folder_name}}',         label: 'Folder Name' },
+  { key: 'application_date',    tag: '{{application_date}}',    label: 'Application Date' },
+  { key: 'application_name',    tag: '{{application_name}}',    label: 'Application Name' },
+  { key: 'application_type',    tag: '{{application_type}}',    label: 'Application Type' },
   { key: 'applicant_name',      tag: '{{applicant_name}}',      label: 'Applicant Name' },
   { key: 'applicant_so',        tag: '{{applicant_so}}',        label: "Father's Name (S/O)" },
   { key: 'applicant_cnic',      tag: '{{applicant_cnic}}',      label: 'CNIC / NTN / Passport' },
   { key: 'applicant_type',      tag: '{{applicant_type}}',      label: 'Applicant Type' },
   { key: 'applicant_address',   tag: '{{applicant_address}}',   label: 'Applicant Address' },
+  { key: 'city',                tag: '{{city}}',                label: 'City' },
   { key: 'class',               tag: '{{class}}',               label: 'Class (01–45)' },
   { key: 'class_desc',          tag: '{{class_desc}}',          label: 'Class Description' },
   { key: 'tm_trade',            tag: '{{tm_trade}}',            label: 'Trade / Brand Name' },
@@ -63,11 +70,16 @@ const FIELD_DEFS = [
   { key: 'sub_stage',           tag: '{{sub_stage}}',           label: 'Sub-Stage / Status' },
   { key: 'assigned_person',     tag: '{{assigned_person}}',     label: 'Assigned Person' },
   { key: 'assigned_city',       tag: '{{assigned_city}}',       label: 'Assigned City' },
-  { key: 'issue_date',          tag: '{{issue_date}}',          label: 'Issue Date' },
-  { key: 'expiry_date',         tag: '{{expiry_date}}',         label: 'Expiry Date' },
+  { key: 'stamp_issue_date',    tag: '{{stamp_issue_date}}',    label: 'Stamp Issue Date' },
+  { key: 'stamp_expiry_date',   tag: '{{stamp_expiry_date}}',   label: 'Stamp Expiry Date' },
+  { key: 'issue_date',          tag: '{{issue_date}}',          label: 'Issue Date (legacy)' },
+  { key: 'expiry_date',         tag: '{{expiry_date}}',         label: 'Expiry Date (legacy)' },
+  { key: 'journal_date',        tag: '{{journal_date}}',        label: 'Journal Date' },
   { key: 'year',                tag: '{{year}}',                label: 'Year' },
   { key: 'img',                 tag: '{{img}}',                 label: 'Image / Drive ID' },
+  { key: 'mark_text',           tag: '{{mark_text}}',           label: 'Word Mark (no image)' },
   { key: 'notes',               tag: '{{notes}}',               label: 'Notes' },
+  { key: 'status',              tag: '{{status}}',              label: 'Status (Mail Merge Trigger)' },
 ];
 
 // ── Stage / Sub-Stage Definitions ─────────────────────────────────────────────
@@ -77,7 +89,7 @@ const STAGES = {
     'Acknowledgement Received', 'Examination Received',
   ],
   'Stage 2 – Examination': [
-    'Assigned', 'Under Review', 'Hearing Scheduled', 'Hearing Completed', 'Approved',
+    'Assigned', 'Under Review', 'Hearing Scheduled', 'Hearing Completed', 'Accepted',
   ],
   'Stage 3 – Publication': [
     'Published In Journal', 'Waiting Period', 'Demand Note Received',
@@ -88,20 +100,31 @@ const STAGES = {
   ],
 };
 
+// ── Updated headers to include all new fields ─────────────────────────────────
 const ALLOWED_FIELDS = [
   'filing_date','sr_no','tm_no','applicant_name','applicant_so','applicant_cnic',
   'applicant_type','applicant_address','class','class_desc','tm_trade',
   'consultant_name','consultant_address','stage','sub_stage',
-  'assigned_person','assigned_city','issue_date','expiry_date',
+  'assigned_person','assigned_city','stamp_issue_date','stamp_expiry_date',
+  'issue_date','expiry_date',
   'folder_name','img','notes','year','archived',
+  // New fields
+  'prefix','client_no','case_no','city',
+  'application_name','application_date','application_type',
+  'journal_date','mark_text','status',
 ];
 
 const HEADERS = [
   'id', 'filing_date', 'sr_no', 'tm_no', 'applicant_name', 'applicant_so',
   'applicant_cnic', 'applicant_type', 'applicant_address', 'class', 'class_desc',
   'tm_trade', 'consultant_name', 'consultant_address', 'stage', 'sub_stage',
-  'assigned_person', 'assigned_city', 'issue_date', 'expiry_date', 'folder_name',
-  'img', 'notes', 'year', 'archived', 'created_at', 'updated_at',
+  'assigned_person', 'assigned_city', 'stamp_issue_date', 'stamp_expiry_date',
+  'issue_date', 'expiry_date',
+  'folder_name', 'img', 'notes', 'year', 'archived', 'created_at', 'updated_at',
+  // New fields appended (cols AC onwards)
+  'prefix', 'client_no', 'case_no', 'city',
+  'application_name', 'application_date', 'application_type',
+  'journal_date', 'mark_text', 'status',
 ];
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -127,6 +150,22 @@ function getStageNum(stage) {
   return 0;
 }
 
+/** Auto-generate folder number from prefix, client_no, case_no */
+function buildFolderName(prefix, clientNo, caseNo) {
+  if (!prefix || !clientNo || !caseNo) return '';
+  return `${prefix}-${clientNo}-${caseNo}`;
+}
+
+/** Generate SR No: PB-ISB- + 18 alphanumeric characters */
+function genSrNo() {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  let rand = '';
+  for (let i = 0; i < 18; i++) {
+    rand += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return 'PB-ISB-' + rand;
+}
+
 function rowToObject(row) {
   const obj = {};
   HEADERS.forEach((h, i) => { obj[h] = row[i] || ''; });
@@ -147,7 +186,7 @@ async function getAllRecords() {
   if (!sheets) throw new Error('Sheets client not initialized');
   const res = await sheets.spreadsheets.values.get({
     spreadsheetId,
-    range: 'Trademarks!A2:AA',
+    range: 'Trademarks!A2:AK',
   });
   const rows = res.data.values || [];
   return rows.map((row, index) => {
@@ -167,6 +206,15 @@ async function patchRecord(sheets, id, fields, body, changedBy) {
     if (body.year && !fields.includes('year')) fields.push('year');
   }
 
+  // Auto-build folder_name if prefix/client_no/case_no provided
+  const pfx = body.prefix || current.prefix;
+  const cln = body.client_no || current.client_no;
+  const csn = body.case_no || current.case_no;
+  if ((body.prefix || body.client_no || body.case_no) && pfx && cln && csn) {
+    body.folder_name = buildFolderName(pfx, cln, csn);
+    if (!fields.includes('folder_name')) fields.push('folder_name');
+  }
+
   const updatedObj = { ...current };
   fields.forEach(f => updatedObj[f] = body[f]);
   updatedObj.updated_at = new Date().toISOString();
@@ -177,7 +225,7 @@ async function patchRecord(sheets, id, fields, body, changedBy) {
 
   await sheets.spreadsheets.values.update({
     spreadsheetId,
-    range: `Trademarks!A${rowNumber}:AA${rowNumber}`,
+    range: `Trademarks!A${rowNumber}:AK${rowNumber}`,
     valueInputOption: 'USER_ENTERED',
     requestBody: { values: [row] },
   });
@@ -220,7 +268,7 @@ async function writeAuditLog(recordId, changes, changedBy = 'system') {
 // ── Health ────────────────────────────────────────────────────────────────────
 app.get('/api/health', (req, res) => {
   const ok = getSheetsClient() !== null;
-  res.json({ status: 'ok', database: ok ? 'connected' : 'disconnected' });
+  res.json({ status: 'ok', database: ok ? 'connected' : 'disconnected', spreadsheetId });
 });
 
 // ── Field definitions for {{tag}} system ──────────────────────────────────────
@@ -237,7 +285,7 @@ app.get('/api/stages', (req, res) => {
 app.get('/api/trademarks', async (req, res) => {
   try {
     const {
-      q, stage, sub_stage, assigned_person, assigned_city, year,
+      q, stage, sub_stage, assigned_person, assigned_city, year, city,
       archived = 'false',
       page = 1, limit = 50,
     } = req.query;
@@ -253,8 +301,10 @@ app.get('/api/trademarks', async (req, res) => {
         (r.tm_no             || '').toLowerCase().includes(qLower) ||
         (r.sr_no             || '').toLowerCase().includes(qLower) ||
         (r.applicant_name    || '').toLowerCase().includes(qLower) ||
+        (r.application_name  || '').toLowerCase().includes(qLower) ||
         (r.applicant_cnic    || '').toLowerCase().includes(qLower) ||
         (r.class             || '').toLowerCase().includes(qLower) ||
+        (r.folder_name       || '').toLowerCase().includes(qLower) ||
         (r.consultant_name   || '').toLowerCase().includes(qLower)
       );
     }
@@ -263,24 +313,26 @@ app.get('/api/trademarks', async (req, res) => {
     if (sub_stage)       records = records.filter(r => r.sub_stage === sub_stage);
     if (assigned_person) records = records.filter(r => r.assigned_person === assigned_person);
     if (assigned_city)   records = records.filter(r => r.assigned_city === assigned_city);
+    if (city)            records = records.filter(r => r.city === city);
     if (year)            records = records.filter(r => r.year === year);
 
     records.sort((a, b) => {
       const dateA = new Date(a.created_at || 0).getTime();
       const dateB = new Date(b.created_at || 0).getTime();
       if (dateA !== dateB) return dateB - dateA;
-      return b._sheetRowIndex - a._sheetRowIndex;
+      return (b._sheetRowIndex || 0) - (a._sheetRowIndex || 0);
     });
 
     const total    = records.length;
-    const offset   = (parseInt(page) - 1) * parseInt(limit);
-    const paginated = records.slice(offset, offset + parseInt(limit));
+    const lim      = parseInt(limit) || 5000;
+    const offset   = (parseInt(page) - 1) * lim;
+    const paginated = records.slice(offset, offset + lim);
     paginated.forEach(r => delete r._sheetRowIndex);
 
     res.json({
       success: true, total,
-      page: parseInt(page), limit: parseInt(limit),
-      pages: Math.ceil(total / parseInt(limit)),
+      page: parseInt(page), limit: lim,
+      pages: Math.ceil(total / lim),
       data: paginated,
     });
   } catch (err) {
@@ -322,10 +374,18 @@ app.post('/api/trademarks', async (req, res) => {
     obj.created_at = now;
     obj.updated_at = now;
 
+    // Auto-generate SR No if not provided
+    if (!obj.sr_no) obj.sr_no = genSrNo();
+
+    // Auto-build folder_name from prefix + client_no + case_no
+    if (b.prefix && b.client_no && b.case_no) {
+      obj.folder_name = buildFolderName(b.prefix, b.client_no, b.case_no);
+    }
+
     const row = objectToRow(obj);
     await sheets.spreadsheets.values.append({
       spreadsheetId,
-      range: 'Trademarks!A:AA',
+      range: 'Trademarks!A:AK',
       valueInputOption: 'USER_ENTERED',
       requestBody: { values: [row] },
     });
@@ -386,7 +446,7 @@ app.delete('/api/trademarks/:id', async (req, res) => {
 
     await sheets.spreadsheets.values.update({
       spreadsheetId,
-      range: `Trademarks!A${rowNumber}:AA${rowNumber}`,
+      range: `Trademarks!A${rowNumber}:AK${rowNumber}`,
       valueInputOption: 'USER_ENTERED',
       requestBody: { values: [row] },
     });
@@ -394,6 +454,72 @@ app.delete('/api/trademarks/:id', async (req, res) => {
     await writeAuditLog(id, { archived: { old: false, new: true } }, changedBy);
     res.json({ success: true, message: 'Archived' });
   } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// ── 2-Way SYNC (fixes spurious "1 row updated" issue) ────────────────────────
+// Only writes rows where sheet data differs from what we'd compute
+app.post('/api/sync', async (req, res) => {
+  try {
+    const sheets = getSheetsClient();
+    if (!sheets) throw new Error('Sheets client not initialized');
+
+    const records = await getAllRecords();
+    let updated = 0;
+    const now = new Date().toISOString();
+
+    for (const rec of records) {
+      const rowIdx = rec._sheetRowIndex;
+      if (!rowIdx) continue;
+
+      // Check if folder_name needs rebuild
+      let needsUpdate = false;
+      const expectedFolder = rec.prefix && rec.client_no && rec.case_no
+        ? buildFolderName(rec.prefix, rec.client_no, rec.case_no)
+        : rec.folder_name;
+
+      if (expectedFolder && expectedFolder !== rec.folder_name) {
+        needsUpdate = true;
+        rec.folder_name = expectedFolder;
+      }
+
+      if (needsUpdate) {
+        rec.updated_at = now;
+        delete rec._sheetRowIndex;
+        const row = objectToRow(rec);
+        await sheets.spreadsheets.values.update({
+          spreadsheetId,
+          range: `Trademarks!A${rowIdx}:AK${rowIdx}`,
+          valueInputOption: 'USER_ENTERED',
+          requestBody: { values: [row] },
+        });
+        updated++;
+      }
+    }
+
+    // Log sync event
+    try {
+      await sheets.spreadsheets.values.append({
+        spreadsheetId,
+        range: 'Logs!A:G',
+        valueInputOption: 'USER_ENTERED',
+        requestBody: {
+          values: [[
+            Date.now(), 'SYNC', 'sync', '', `${updated} rows updated`, 'system', now,
+          ]],
+        },
+      });
+    } catch {}
+
+    res.json({
+      success: true,
+      message: `Sync complete: ${updated} row${updated !== 1 ? 's' : ''} updated`,
+      updated,
+      total: records.length,
+    });
+  } catch (err) {
+    console.error(err);
     res.status(500).json({ success: false, error: err.message });
   }
 });
@@ -446,13 +572,14 @@ app.get('/api/logs', async (req, res) => {
         let action      = 'UPDATE';
         if (r[2] === 'created')                       action = 'CREATE';
         if (r[2] === 'archived' && r[4] === 'true')   action = 'DELETE';
-        if (r[5] === 'system' && r[2] === 'created')  action = 'SYNC';
+        if (r[5] === 'system' && r[2] === 'sync')     action = 'SYNC';
         return {
           id: r[0], record_id,
           field_name: r[2], old_value: r[3], new_value: r[4],
           changed_by: r[5], changed_at: r[6],
-          applicant_name: tm.applicant_name, tm_no: tm.tm_no,
-          action, note: `Changed ${r[2]}`,
+          applicant_name: tm.applicant_name || tm.application_name,
+          tm_no: tm.tm_no,
+          action, note: r[4] || `Changed ${r[2]}`,
         };
       })
       .sort((a, b) => new Date(b.changed_at || 0) - new Date(a.changed_at || 0))
@@ -472,7 +599,8 @@ app.get('/api/stats', async (req, res) => {
     let total = 0, active = 0, archived = 0;
     let run = 0, processing = 0, done = 0;
     let stage1 = 0, stage2 = 0, stage3 = 0, stage4 = 0, stopped = 0;
-    let hearings_pending = 0, opposition = 0, certificates_pending = 0;
+    let examination_pending = 0, assigned_pending = 0, published_pending = 0;
+    let demand_note_pending = 0, opposition_count = 0;
     const stageMap = {}, cityMap = {}, consultantMap = {}, personMap = {};
 
     records.forEach(r => {
@@ -480,13 +608,11 @@ app.get('/api/stats', async (req, res) => {
       if (r.archived) { archived++; return; }
       active++;
 
-      // sub_stage counts (Run / Processing / Done)
       const ss = (r.sub_stage || '').toUpperCase();
       if (ss === 'RUN')        run++;
       else if (ss === 'PROCESSING') processing++;
       else if (ss === 'DONE')  done++;
 
-      // Stage bucket from stage field
       const sn = getStageNum(r.stage || '');
       if (sn === 1) stage1++;
       else if (sn === 2) stage2++;
@@ -494,13 +620,18 @@ app.get('/api/stats', async (req, res) => {
       else if (sn === 4) stage4++;
       else if (sn === -1 || sn === -2) stopped++;
 
-      // Special sub-stage flags
-      if (ss.includes('HEARING SCHEDULED')) hearings_pending++;
-      if (ss.includes('OPPOSITION'))        opposition++;
-      if (ss.includes('CERTIFICATE') && !ss.includes('DISPATCHED')) certificates_pending++;
+      // KPI sub-stage pending counts
+      if (ss.includes('EXAMINATION'))         examination_pending++;
+      if (ss.includes('ASSIGNED') && sn===2)  assigned_pending++;
+      if (ss.includes('PUBLISHED'))           published_pending++;
+      if (ss.includes('DEMAND NOTE'))         demand_note_pending++;
+      if (ss.includes('OPPO') || ss.includes('OPPOSITION')) opposition_count++;
 
       if (r.stage)           stageMap[r.stage]           = (stageMap[r.stage]           || 0) + 1;
-      if (r.assigned_city)   cityMap[r.assigned_city]     = (cityMap[r.assigned_city]     || 0) + 1;
+      if (r.city || r.assigned_city) {
+        const c = r.city || r.assigned_city;
+        cityMap[c] = (cityMap[c] || 0) + 1;
+      }
       if (r.consultant_name) consultantMap[r.consultant_name] = (consultantMap[r.consultant_name] || 0) + 1;
       if (r.assigned_person) personMap[r.assigned_person] = (personMap[r.assigned_person] || 0) + 1;
     });
@@ -516,7 +647,9 @@ app.get('/api/stats', async (req, res) => {
         total, active, archived,
         run, processing, done,
         stage1, stage2, stage3, stage4, stopped,
-        hearings_pending, opposition, certificates_pending,
+        // KPI pending counts
+        examination_pending, assigned_pending, published_pending,
+        demand_note_pending, opposition_count,
         per_stage:      Object.entries(stageMap).map(([stage, count]) => ({ stage, count })).sort((a, b) => a.stage.localeCompare(b.stage)),
         per_city:       formatMap(cityMap, 'city'),
         per_consultant: formatMap(consultantMap, 'consultant'),
@@ -561,10 +694,14 @@ app.get('/api/assignments', async (req, res) => {
       .filter(r => !r.archived && r.assigned_person)
       .map(r => ({
         id: r.id, trademark_id: r.id,
-        tm_no: r.tm_no, applicant_name: r.applicant_name,
+        tm_no: r.tm_no,
+        applicant_name: r.application_name || r.applicant_name,
         class: r.class, stage: r.stage,
+        city: r.city,
         agent_name: r.assigned_person, agent_city: r.assigned_city,
         status: r.sub_stage, assigned_at: r.updated_at,
+        folder_name: r.folder_name,
+        notes: r.notes,
       }))
       .sort((a, b) => new Date(b.assigned_at || 0) - new Date(a.assigned_at || 0));
     res.json({ success: true, data });
@@ -578,8 +715,27 @@ app.get('/api/assignments/unassigned', async (req, res) => {
     const records = await getAllRecords();
     const data = records
       .filter(r => !r.archived && !r.assigned_person && (r.stage || '').toLowerCase().includes('stage 2'))
-      .map(r => ({ ...r, app_name: r.applicant_name }));
+      .map(r => ({ ...r, app_name: r.application_name || r.applicant_name }));
     res.json({ success: true, data });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// ── EXPORT assignments as CSV ─────────────────────────────────────────────────
+app.get('/api/assignments/export-csv', async (req, res) => {
+  try {
+    const records = await getAllRecords();
+    const assigned = records.filter(r => !r.archived && r.assigned_person);
+
+    const cols = ['folder_name','tm_no','application_name','applicant_name','class','stage',
+                  'sub_stage','assigned_person','assigned_city','city','updated_at','notes'];
+    const esc = v => '"' + (v || '').toString().replace(/"/g, '""') + '"';
+    const csv = [cols.join(','), ...assigned.map(r => cols.map(c => esc(r[c])).join(','))].join('\n');
+
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', 'attachment; filename="brandex_assignments.csv"');
+    res.send(csv);
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }
@@ -622,7 +778,6 @@ app.patch('/api/assignments/:id', async (req, res) => {
     if (req.body.agent_city)  body.assigned_city   = req.body.agent_city;
     if (req.body.status)      body.sub_stage        = req.body.status;
     if (req.body.notes)       body.notes            = req.body.notes;
-    // Also support direct field names
     if (req.body.assigned_person) body.assigned_person = req.body.assigned_person;
     if (req.body.assigned_city)   body.assigned_city   = req.body.assigned_city;
     if (req.body.sub_stage)       body.sub_stage        = req.body.sub_stage;
@@ -662,6 +817,7 @@ app.delete('/api/assignments/:id', async (req, res) => {
 if (require.main === module) {
   app.listen(PORT, 'localhost', () => {
     console.log(`✅ BrandEx API running on http://localhost:${PORT}`);
+    console.log(`📊 Sheet ID: ${spreadsheetId}`);
   });
 }
 
