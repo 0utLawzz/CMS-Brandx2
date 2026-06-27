@@ -1357,6 +1357,56 @@ document.addEventListener('DOMContentLoaded',()=>{
     if(file) handleImageUpload(file, 'editImg');
   });
 
+  window.triggerStageUpload = function(id) {
+    const el = document.getElementById(id);
+    if(el) el.click();
+  };
+
+  window.handleStageUpload = function(inputEl, targetInputId) {
+    const file = inputEl.files?.[0];
+    if(file) handleImageUpload(file, targetInputId);
+  };
+
+  window.handleImageUpload = function(file, targetInputId) {
+    if(!file.type.startsWith('image/')) {
+      alert('Only images are supported for direct base64 upload.');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let width = img.width;
+        let height = img.height;
+        // Resize if too large to fit in Google Sheets (50k char limit ~ 37KB)
+        const MAX_WIDTH = 300;
+        if (width > MAX_WIDTH) {
+          height = Math.floor(height * (MAX_WIDTH / width));
+          width = MAX_WIDTH;
+        }
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+        // Compress to JPEG format with 0.5 quality
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.5);
+        
+        if (dataUrl.length > 49000) {
+          alert('Image is still too large after compression. Please upload a smaller image.');
+        } else {
+          const targetEl = document.getElementById(targetInputId);
+          if (targetEl) {
+            targetEl.value = dataUrl;
+            if(targetInputId === 'editImg') updateImgPreview(dataUrl);
+          }
+        }
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  };
+
   // Folder auto-build listeners
   ['editPrefix','editClientNo','editCaseNo'].forEach(id=>{
     const el = document.getElementById(id);

@@ -223,7 +223,7 @@ async function patchRecord(sheets, id, fields, body, changedBy) {
 
   await sheets.spreadsheets.values.update({
     spreadsheetId,
-    range: `Trademarks!A${rowNumber}:AK${rowNumber}`,
+    range: `Trademarks!A${rowNumber}:AM${rowNumber}`,
     valueInputOption: 'USER_ENTERED',
     requestBody: { values: [row] },
   });
@@ -383,7 +383,7 @@ app.post('/api/trademarks', async (req, res) => {
     const row = objectToRow(obj);
     await sheets.spreadsheets.values.append({
       spreadsheetId,
-      range: 'Trademarks!A:AK',
+      range: 'Trademarks!A:AM',
       valueInputOption: 'USER_ENTERED',
       requestBody: { values: [row] },
     });
