@@ -3,7 +3,8 @@ const { google } = require('googleapis');
 const SCOPES = ['https://www.googleapis.com/auth/spreadsheets'];
 
 let sheets = null;
-let spreadsheetId = process.env.SHEET_ID;
+const PERMANENT_SHEET_ID = '1lc3rb1e636KnwLgciiJWYrIwg9XDsx6HEM5SvBUYHzg';
+let spreadsheetId = process.env.SHEET_ID || PERMANENT_SHEET_ID;
 
 // If we have a Service Account configured, initialize the Google Auth client
 if (process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL && process.env.GOOGLE_PRIVATE_KEY) {
