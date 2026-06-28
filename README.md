@@ -1,124 +1,31 @@
-# BrandEx Law — Trademark Portal
+# CMS Brandx2
 
-A web-based trademark management system for BrandEx Law (Pakistan).
-Neo-brutalism UI · Google Sheets database · REST API
+![Social Preview](./social-preview.png)
 
----
 
-## Quick Start
 
-### Prerequisites
-- Node.js 18+
-- Google Cloud Service Account (for Sheets API)
+## Description
+CMS-Brandx2 project repository, managed via automated tooling.
 
-### Installation
+**Website (Deploy Url):** *(Insert Deploy URL here)*
+
+**Topics:** cms-brandx2 node.js automation clean
+
+Welcome to **CMS-Brandx2**. This project was generated as part of a mass-processing script.
+
+## Installation
 
 ```bash
-# 1. Clone the repo
-git clone <your-repo-url>
-cd CMS-Brandx2
-
-# 2. Install root dependencies (web server)
 npm install
-
-# 3. Install API dependencies
-cd api
-npm install
-cd ..
-
-# 4. Set environment variables (see below)
-
-# 5. Start the API server (port 3000)
-cd api && node index.js
-
-# 6. In another terminal, start the web server (port 5000)
-node server.js
+# or
+yarn install
 ```
 
-Open `http://localhost:5000` in your browser.
+## Usage
+Explain how to run or use the project here.
 
----
+## Changelog
+- **2026-06-28**: Initial README generation and mass cleanup.
 
-## Environment Variables
-
-Create `api/.env` with the following:
-
-```env
-# Google Sheets Integration
-SHEET_ID=your-google-sheet-id
-GOOGLE_SERVICE_ACCOUNT_EMAIL=your-service-account-email@...
-GOOGLE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n"
-
-# API Server
-PORT=3000
-```
-
----
-
-## Project Structure
-
-```
-CMS-Brandx2/
-│
-├── index.html              ← Main web portal UI (5 tabs)
-├── styles.css              ← Neo-brutalism theme (cream/orange/teal/black)
-├── app.js                  ← All frontend JS (search, table, modal, CRUD, export)
-├── server.js               ← Static file server + /api/* reverse proxy (port 5000)
-├── logo.png                ← Brand logo
-├── package.json            ← Root dependencies
-├── README.md               ← This file
-│
-├── api/
-│   ├── index.js            ← Express REST API (port 3000)
-│   ├── sheets.js           ← Google Sheets API client
-│   ├── .env                ← Local credentials (gitignored)
-│   ├── package.json        ← API deps: express, pg, cors, dotenv, multer
-│
-├── uploads/                ← Uploaded trademark images (auto-created)
-```
-
----
-
-## Database Schema
-
-Table: `trademarks`
-
-| # | Column | Type | Description |
-|---|--------|------|-------------|
-| — | id | SERIAL PK | Auto-increment ID |
-| A | status_run | VARCHAR(20) | Run / Processing / Done |
-| B | stage | VARCHAR(30) | Current stage/sub-status |
-| C | sr_no | VARCHAR(60) | Serial number (e.g. PB-RWP-…) |
-| D | tm_no | VARCHAR(30) | Trademark number (UNIQUE) |
-| E | folder_name | VARCHAR(255) | Google Drive folder name |
-| F | date_l | VARCHAR(60) | Filing date (long format) |
-| G | class | VARCHAR(10) | Trademark class (01–45) |
-| H | class_desc | TEXT | Class/goods description |
-| I | app_type | VARCHAR(20) | SOLE / PARTNER / COMPANY |
-| J | app_name | VARCHAR(255) | Applicant full name (**required**) |
-| K | app_so | VARCHAR(255) | Father's name (S/O) |
-| L | app_cnic | VARCHAR(20) | CNIC (XXXXX-XXXXXXX-X) |
-| M | issue_date | VARCHAR(60) | Issue date |
-| N | expiry_date | VARCHAR(60) | Expiry date (auto: issue + 7 days) |
-| O | app_trade | VARCHAR(255) | Business/trade name |
-| P | app_add | TEXT | Applicant address |
-| Q | year | VARCHAR(4) | Year of application |
-| R | con_name | VARCHAR(255) | Consultant name |
-| S | con_add | TEXT | Consultant address |
-| T | img | VARCHAR(255) | Image path (/uploads/…) or Drive ID |
-| U | no_img | VARCHAR(255) | Fallback text if no image |
-| — | created_at | TIMESTAMP | Auto-set on insert |
-
-Schema is managed directly in Google Sheets. The `Trademarks` sheet requires headers matching the schema.
-
----
-
-## Tech Stack
-
-| Layer | Technology |
-|-------|-----------|
-| Frontend | Vanilla HTML/CSS/JS · Neo-brutalism design |
-| Web server | Node.js built-in `http` module |
-| API | Express.js 5 |
-| Database | Google Sheets |
-| File upload | Multer |
+## Contributing
+Contributions are welcome. Please open an issue or submit a pull request.
